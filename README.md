@@ -1,0 +1,1 @@
+# qmlcore-android
