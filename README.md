@@ -43,7 +43,8 @@ class fd.Timer {
   static setTimeout(callback, ms) { }
   static setInterval(callback, ms) { }
 
-  cancel() { /*cancels current timer*/ }
+  property callback; //current callback
+  cancel() { callback = null; /*cancel current timer*/ }
 }
 
 fd.fetch - http request, the same options/arguments. 
