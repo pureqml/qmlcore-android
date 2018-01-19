@@ -9,7 +9,10 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8;
+import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.pureqml.android.runtime.Console;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,6 +37,17 @@ public class ExecutionEnvironment extends Service {
 
     private final static int BufferSize = 128 * 1024;
 
+    static private void registerRuntime(V8 runtime) {
+        V8Object v8Console = new V8Object(runtime);
+        runtime.add("console", v8Console);
+        v8Console.registerJavaMethod(new Console.LogMethod(), "log");
+        v8Console.release();
+
+        V8Object v8Module = new V8Object(runtime);
+        runtime.add("module", v8Module);
+        v8Module.release();
+    }
+
     private void start() {
         Log.i(TAG, "starting execution environment...");
         String script;
@@ -57,10 +71,13 @@ public class ExecutionEnvironment extends Service {
 
         Log.v(TAG, "creating v8 runtime...");
         _runtime = V8.createV8Runtime();
+        registerRuntime(_runtime);
         Log.v(TAG, "executing script...");
-        V8Object exports = _runtime.executeObjectScript(script);
-        Log.i(TAG, "script finished: " + exports.toString());
-        _runtime.release();
+        _runtime.executeVoidScript(script);
+        V8Object exports = _runtime.getObject("module").getObject("exports");
+        Object result = exports.executeFunction("run", null);
+        Log.i(TAG, "script finished: " + result.toString());
+        //_runtime.release();
     }
 
     ExecutionEnvironment() {
