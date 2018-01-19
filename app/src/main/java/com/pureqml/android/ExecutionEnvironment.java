@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
@@ -42,6 +43,15 @@ public class ExecutionEnvironment extends Service {
         runtime.add("console", v8Console);
         v8Console.registerJavaMethod(new Console.LogMethod(), "log");
         v8Console.release();
+
+        V8Object v8FD = new V8Object(runtime);
+        v8FD.registerJavaMethod(new JavaVoidCallback() {
+            @Override
+            public void invoke(V8Object self, V8Array arguments) {
+                Log.i(TAG, "CTOR INVOCATION " + arguments.length());
+            }
+        }, "Element");
+        runtime.add("fd", v8FD);
 
         V8Object v8Module = new V8Object(runtime);
         runtime.add("module", v8Module);
@@ -80,7 +90,7 @@ public class ExecutionEnvironment extends Service {
         //_runtime.release();
     }
 
-    ExecutionEnvironment() {
+    public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
         new Thread(new Runnable() {
             @Override
