@@ -77,11 +77,12 @@ public class Wrapper {
 
         for(Method method : cls.getMethods()) {
             String name = method.getName();
-            if (!method.getDeclaringClass().equals(cls) || !Modifier.isPublic(method.getModifiers()) || method.isSynthetic())
+            int mods = method.getModifiers();
+            if (!method.getDeclaringClass().equals(cls) || Modifier.isPrivate(mods) || Modifier.isProtected(mods) || method.isSynthetic())
                 continue;
 
-            Log.i(TAG, "wrapping method " + name);
             Class<?>[] argTypes = method.getParameterTypes();
+            Log.i(TAG, "wrapping method " + name + " with " + argTypes.length + " args");
             if (argTypes.length == 1 && argTypes[0].equals(V8Array.class)) {
                 prototype.registerJavaMethod(new SimpleMethodWrapper(env, method), name);
             } else
