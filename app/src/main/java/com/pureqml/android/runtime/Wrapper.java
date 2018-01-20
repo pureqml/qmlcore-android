@@ -15,9 +15,7 @@ public class Wrapper {
     public final static String TAG = "ClassWrapper";
 
     public static final class MethodWrapper implements JavaCallback {
-
         private final Method _method;
-
         public MethodWrapper(Method method) { _method = method; }
 
         @Override
@@ -37,6 +35,26 @@ public class Wrapper {
         }
     }
 
+    public static final class SimpleMethodWrapper implements JavaCallback {
+        private final Method _method;
+
+        public SimpleMethodWrapper(Method method) {
+            _method = method;
+        }
+
+        @Override
+        public Object invoke(V8Object self, V8Array arguments) {
+            try {
+                return _method.invoke(self, arguments);
+            } catch (IllegalAccessException e) {
+                Log.e(TAG, "invocation failed", e);
+            } catch (InvocationTargetException e) {
+                Log.e(TAG, "invocation failed", e);
+            }
+            return null;
+        }
+    }
+
     public static V8Object generatePrototype(V8 v8, V8Object prototype, Class<?> cls) {
         Log.i(TAG, "wrapping class " + cls.getName());
 
@@ -44,7 +62,11 @@ public class Wrapper {
             String name = method.getName();
             if (method.getDeclaringClass().equals(cls) && Modifier.isPublic(method.getModifiers()) && !name.startsWith("access$")) {
                 Log.i(TAG, "wrapping method " + name);
-                prototype.registerJavaMethod(new MethodWrapper(method), name);
+                Class<?>[] argTypes = method.getParameterTypes();
+                if (argTypes.length == 1 && argTypes[0].equals(V8Array.class))
+                    prototype.registerJavaMethod(new SimpleMethodWrapper(method), name);
+                else
+                    prototype.registerJavaMethod(new MethodWrapper(method), name);
             }
         }
         return null;

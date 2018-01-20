@@ -18,6 +18,10 @@ public class Element extends V8Object {
         Log.i(TAG, "append element!");
     }
 
+    public void style(V8Array arguments) {
+        Log.i(TAG, "style");
+    }
+
     public static final class Constructor extends JavaCallbackWithRuntime {
         public Constructor(V8 v8, V8Object prototype) {
             super(v8, prototype);
@@ -25,7 +29,7 @@ public class Element extends V8Object {
 
         @Override
         public Object invoke(V8Object self, V8Array arguments) {
-            Log.i(TAG, "CTOR INVOCATION " + arguments.length());
+            Log.i(TAG, "Element()");
             V8Object el = new Element(_v8);
             el.setPrototype(_prototype);
             return el;

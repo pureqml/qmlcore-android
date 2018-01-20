@@ -36,7 +36,7 @@ public class ExecutionEnvironment extends Service {
 
     private final static int BufferSize = 128 * 1024;
 
-    static private void registerRuntime(V8 v8) {
+    static Element registerRuntime(V8 v8) {
         V8Object v8Console = new V8Object(v8);
         v8.add("console", v8Console);
         v8Console.registerJavaMethod(new Console.LogMethod(), "log");
@@ -53,6 +53,11 @@ public class ExecutionEnvironment extends Service {
         V8Object v8Module = new V8Object(v8);
         v8.add("module", v8Module);
         v8Module.release();
+
+        //create root element to pass it to context
+        Element root = new Element(v8);
+        root.setPrototype(elementPrototype);
+        return root;
     }
 
     private static final String readScript(InputStream input) throws IOException {
@@ -74,7 +79,7 @@ public class ExecutionEnvironment extends Service {
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
-        registerRuntime(_v8);
+        _rootElement = registerRuntime(_v8);
         Log.v(TAG, "executing script...");
 
         String script;
@@ -87,9 +92,6 @@ public class ExecutionEnvironment extends Service {
         }
         _v8.executeVoidScript(script);
         V8Object exports = _v8.getObject("module").getObject("exports");
-
-        //create root element to pass it to context
-        _rootElement = new Element(_v8);
 
         Object result = exports.executeJSFunction("run", _rootElement);
         Log.i(TAG, "script finished: " + result.toString());
