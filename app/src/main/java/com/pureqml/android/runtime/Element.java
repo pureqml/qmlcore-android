@@ -6,15 +6,24 @@ import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8Value;
 
-public class Element extends V8Object {
+public class Element {
     public static final String TAG = "rt.Element";
+    protected Element _parent;
 
-    public Element(V8 v8) {
-        super(v8);
+    public Element() {
+        _parent = null;
+    }
+
+    private void setParent(Element parent) {
     }
 
     public void append(Element el) {
+        Log.i(TAG, "append element!");
+    }
+
+    public void remove(Element el) {
         Log.i(TAG, "append element!");
     }
 
@@ -22,17 +31,7 @@ public class Element extends V8Object {
         Log.i(TAG, "style");
     }
 
-    public static final class Constructor extends JavaCallbackWithRuntime {
-        public Constructor(V8 v8, V8Object prototype) {
-            super(v8, prototype);
-        }
-
-        @Override
-        public Object invoke(V8Object self, V8Array arguments) {
-            Log.i(TAG, "Element()");
-            V8Object el = new Element(_v8);
-            el.setPrototype(_prototype);
-            return el;
-        }
+    public void on(String name, V8Value callback) {
+        Log.i(TAG, "on " + name);
     }
 }

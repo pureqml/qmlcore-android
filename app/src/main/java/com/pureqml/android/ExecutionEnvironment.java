@@ -11,14 +11,18 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
+import com.pureqml.android.runtime.IExecutionEnvironment;
 import com.pureqml.android.runtime.Wrapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.WeakHashMap;
 
-public class ExecutionEnvironment extends Service {
+public class ExecutionEnvironment extends Service implements IExecutionEnvironment {
     public static final String TAG = "ExecutionEnvironment";
+
     public class LocalBinder extends Binder {
         ExecutionEnvironment getService() {
             return ExecutionEnvironment.this;
@@ -26,7 +30,9 @@ public class ExecutionEnvironment extends Service {
     }
     private final IBinder _binder = new LocalBinder();
     private V8 _v8;
-    private Element _rootElement;
+
+    //Element collection
+    private Map<Long, Element> _elements;
 
     @Nullable
     @Override
@@ -34,33 +40,30 @@ public class ExecutionEnvironment extends Service {
         return _binder;
     }
 
-    private final static int BufferSize = 128 * 1024;
-
-    static Element registerRuntime(V8 v8) {
-        V8Object v8Console = new V8Object(v8);
-        v8.add("console", v8Console);
+    void registerRuntime() {
+        V8Object v8Console = new V8Object(_v8);
+        _v8.add("console", v8Console);
         v8Console.registerJavaMethod(new Console.LogMethod(), "log");
         v8Console.release();
 
-        V8Object v8FD = new V8Object(v8);
+        V8Object v8FD = new V8Object(_v8);
+        _v8.add("fd", v8FD);
 
-        V8Object elementPrototype = new V8Object(v8);
-        v8FD.registerJavaMethod(new Element.Constructor(v8, elementPrototype), "Element");
-        Wrapper.generatePrototype(v8, elementPrototype, Element.class);
-        v8.add("fd", v8FD);
+        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Element.class, new Class<?>[] { }), "Element");
+
         v8FD.release();
 
-        V8Object v8Module = new V8Object(v8);
-        v8.add("module", v8Module);
+        V8Object v8Module = new V8Object(_v8);
+        _v8.add("module", v8Module);
         v8Module.release();
 
         //create root element to pass it to context
-        Element root = new Element(v8);
-        root.setPrototype(elementPrototype);
-        return root;
+        //return new Element(v8, elementPrototype);
     }
 
     private static final String readScript(InputStream input) throws IOException {
+            final int BufferSize = 128 * 1024;
+
             final byte[] buffer = new byte[BufferSize];
             final ByteArrayOutputStream scriptStream = new ByteArrayOutputStream();
             int r;
@@ -76,10 +79,11 @@ public class ExecutionEnvironment extends Service {
 
     private void start() {
         Log.i(TAG, "starting execution environment...");
+        _elements = new WeakHashMap<Long, Element>(10000);
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
-        _rootElement = registerRuntime(_v8);
+        registerRuntime();
 
         String script;
         final String assetName = "main.js";
@@ -93,8 +97,11 @@ public class ExecutionEnvironment extends Service {
         _v8.executeVoidScript(script, assetName, 0);
         V8Object exports = _v8.getObject("module").getObject("exports");
 
+        Log.v(TAG, "creating root element...");
+        V8Object rootElement = _v8.executeObjectScript("new fd.Element()");
         Log.v(TAG, "executing script...");
-        Object result = exports.executeJSFunction("run", _rootElement);
+        Object result = exports.executeJSFunction("run", rootElement);
+
         Log.i(TAG, "script finished: " + result.toString());
         exports.release();
         //_v8.release();
@@ -109,4 +116,15 @@ public class ExecutionEnvironment extends Service {
             }
         }).start();
     }
+
+    @Override
+    public Element getElementById(long id) {
+        return _elements.get(Long.valueOf(id));
+    }
+
+    @Override
+    public void putElement(long id, Element element) {
+        _elements.put(Long.valueOf(id), element);
+    }
+
 }
