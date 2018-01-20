@@ -60,7 +60,7 @@ public class Wrapper {
 
         for(Method method : cls.getMethods()) {
             String name = method.getName();
-            if (method.getDeclaringClass().equals(cls) && Modifier.isPublic(method.getModifiers()) && !name.startsWith("access$")) {
+            if (method.getDeclaringClass().equals(cls) && Modifier.isPublic(method.getModifiers()) && !method.isSynthetic()) {
                 Log.i(TAG, "wrapping method " + name);
                 Class<?>[] argTypes = method.getParameterTypes();
                 if (argTypes.length == 1 && argTypes[0].equals(V8Array.class))
