@@ -80,19 +80,20 @@ public class ExecutionEnvironment extends Service {
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
         _rootElement = registerRuntime(_v8);
-        Log.v(TAG, "executing script...");
 
         String script;
+        final String assetName = "main.js";
         try {
-            InputStream input = getAssets().open("main.js");
+            InputStream input = getAssets().open(assetName);
             script = readScript(input);
         } catch (IOException e) {
             Log.e(TAG, "failed opening main.js", e);
             return;
         }
-        _v8.executeVoidScript(script);
+        _v8.executeVoidScript(script, assetName, 0);
         V8Object exports = _v8.getObject("module").getObject("exports");
 
+        Log.v(TAG, "executing script...");
         Object result = exports.executeJSFunction("run", _rootElement);
         Log.i(TAG, "script finished: " + result.toString());
         exports.release();
