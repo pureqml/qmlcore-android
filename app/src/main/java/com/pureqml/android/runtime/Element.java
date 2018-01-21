@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 
@@ -71,7 +72,8 @@ public class Element {
             throw new Exception("invalid style invocation");
     }
 
-    public void on(String name, V8Value callback) {
+    public void on(String name, V8Function callback) {
         Log.i(TAG, "on " + name);
+        callback.release();
     }
 }

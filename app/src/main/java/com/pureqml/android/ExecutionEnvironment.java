@@ -169,6 +169,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     @Override
     public void putElement(long id, Element element) {
+        if (element == null)
+            throw new NullPointerException("putting null is not allowed");
         _elements.put(Long.valueOf(id), element);
     }
 

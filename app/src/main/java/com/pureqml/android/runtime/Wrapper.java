@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
+import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
@@ -17,13 +18,17 @@ import java.lang.reflect.Modifier;
 public class Wrapper {
     public final static String TAG = "ClassWrapper";
 
-    private static Object getValue(IExecutionEnvironment env, Object object) {
-        if (object instanceof V8Value) {
+    private static Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
+        if (object.getClass() == type) {
+            return object;
+        } else if (object instanceof V8Value) {
             V8Value value = (V8Value)object;
             if (value.getV8Type() == V8Value.V8_OBJECT) {
-                return env.getElementById(value.hashCode());
+                Object element = env.getElementById(value.hashCode());
+                value.release();
+                return element;
             } else
-                return value;
+                throw new Error("can't convert value of type " + value.getClass());
         } else
             return object;
     }
@@ -37,17 +42,19 @@ public class Wrapper {
         public Object invoke(V8Object self, V8Array arguments) {
             Element element = _env.getElementById(self.hashCode());
             int n = arguments.length();
+            Class<?> argsType [] = _method.getParameterTypes();
             Object [] targetArguments = new Object[n];
-            for(int i = 0; i < n; ++i)
-                targetArguments[i] = getValue(_env, arguments.get(i));
+            for(int i = 0; i < n; ++i) {
+                Object value = arguments.get(i);
+                targetArguments[i] = getValue(_env, argsType[i], value);
+            }
             try {
                 return _method.invoke(element, targetArguments);
             } catch (IllegalAccessException e) {
-                Log.e(TAG, "invocation failed", e);
+                throw new RuntimeException("invoke failed: " + e);
             } catch (InvocationTargetException e) {
-                Log.e(TAG, "invocation failed", e);
+                throw new RuntimeException("invoke failed: " + e);
             }
-            return null;
         }
     }
 
@@ -63,11 +70,10 @@ public class Wrapper {
             try {
                 return _method.invoke(element, arguments);
             } catch (IllegalAccessException e) {
-                Log.e(TAG, "invocation failed", e);
+                throw new RuntimeException("invoke failed: " + e);
             } catch (InvocationTargetException e) {
-                Log.e(TAG, "invocation failed", e);
+                throw new RuntimeException("invoke failed: " + e);
             }
-            return null;
         }
     }
 
@@ -105,7 +111,7 @@ public class Wrapper {
             Object args[] = new Object[n];
             args[0] = _env;
             for(int i = 1; i < n; ++i) {
-                args[i] = getValue(_env, arguments.get(i - 1));
+                args[i] = getValue(_env, ctorArgs[i], arguments.get(i - 1));
             }
             try {
                 Object obj = _ctor.newInstance(args);
