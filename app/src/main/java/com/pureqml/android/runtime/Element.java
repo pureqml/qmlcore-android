@@ -28,6 +28,10 @@ public class Element {
     }
 
     public void append(Element el) throws AlreadyHasAParentException {
+        if (el == null) {
+            Log.e(TAG, "appending null element!");
+            return;
+        }
         if (el._parent != null)
             throw new AlreadyHasAParentException();
         el._parent = this;
@@ -45,12 +49,13 @@ public class Element {
     public Rect getRect() { return _rect; }
 
     protected void removeChild(Element child) {
-        Log.i(TAG, "remove child");
+        if (_children != null)
+            _children.remove(child);
         _dirty.union(child._dirty);
     }
 
     protected void style(String name, Object value) {
-        Log.i(TAG, "style " + name + ": " + value);
+        Log.v(TAG, "style " + name + ": " + value);
     }
 
     public void style(V8Array arguments) throws Exception {

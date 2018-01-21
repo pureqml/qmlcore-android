@@ -42,6 +42,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private Map<Long, Element>  _elements;
     Rect                        _surfaceGeometry;
     V8Object                    _rootElement;
+    V8Object                    _exports;
 
     @Nullable
     @Override
@@ -108,15 +109,34 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         }
         _v8.executeVoidScript(script, assetName, 0);
         V8Object exports = _v8.getObject("module").getObject("exports");
+        _exports = exports;
 
         Log.v(TAG, "creating root element...");
         _rootElement = _v8.executeObjectScript("new fd.Element()");
-        Log.v(TAG, "executing script...");
-        Object result = exports.executeJSFunction("run", _rootElement);
 
-        Log.i(TAG, "script finished: " + result.toString());
-        exports.release();
-        //_v8.release();
+        if (_surfaceGeometry != null) { //already signalled
+            setup();
+        }
+    }
+
+    private void setup() {
+        if (_rootElement != null && _surfaceGeometry != null) { //signal geometry
+            Log.v(TAG, "updating window geometry");
+            _rootElement.add("left", 0);
+            _rootElement.add("top", 0);
+            _rootElement.add("width", _surfaceGeometry.width());
+            _rootElement.add("height", _surfaceGeometry.height());
+        }
+        if (_exports != null) {
+            Log.v(TAG, "executing script...");
+
+            Log.i(TAG, "calling run()...");
+            _exports.executeJSFunction("run", _rootElement);
+
+            Log.i(TAG, "run() finished");
+            _exports.release();
+            _exports = null;
+        }
     }
 
     public ExecutionEnvironment() {
@@ -127,6 +147,19 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 ExecutionEnvironment.this.start();
             }
         }).start();
+    }
+
+    @Override
+    public void onDestroy() {
+        _elements = null;
+        if (_rootElement != null) {
+            _rootElement.release();
+            _rootElement = null;
+        }
+        if (_exports != null) {
+            _exports.release();
+        }
+        _v8.release();
     }
 
     @Override
@@ -142,6 +175,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     public void setSurfaceFrame(Rect rect) {
         _surfaceGeometry = rect;
         Log.i(TAG, "new surface frame: " + _surfaceGeometry);
+        setup();
     }
 
     public void repaint(SurfaceHolder surface) {
