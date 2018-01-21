@@ -164,7 +164,10 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     @Override
     public Element getElementById(long id) {
-        return _elements.get(Long.valueOf(id));
+        Element element = _elements.get(Long.valueOf(id));
+        if (element == null)
+            throw new NullPointerException("object " + id + " was never registered or garbage collected");
+        return element;
     }
 
     @Override
