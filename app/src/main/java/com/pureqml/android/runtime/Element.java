@@ -3,6 +3,7 @@ package com.pureqml.android.runtime;
 import android.graphics.Rect;
 import android.util.Log;
 
+import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
@@ -66,12 +67,13 @@ public class Element {
             V8Object styles = (V8Object) arg0;
             for (String key : styles.getKeys())
                 style(key, styles.getString(key));
-            styles.release();
         } else if (arguments.length() == 2) {
             style(arguments.getString(0), Wrapper.getValue(_env, null, arguments.get(1)));
         }
         else
-            throw new Exception("invalid style invocation");
+            throw new Exception("invalid style invocation");//fixme: leak of resources here
+        if (arg0 instanceof Releasable)
+            ((Releasable)arg0).release();
     }
 
     public void on(String name, V8Function callback) {

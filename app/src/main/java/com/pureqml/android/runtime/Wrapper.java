@@ -23,12 +23,19 @@ public class Wrapper {
             return object;
         } else if (object instanceof V8Value) {
             V8Value value = (V8Value)object;
-            if (value.getV8Type() == V8Value.V8_OBJECT) {
-                Object element = env.getElementById(value.hashCode());
-                value.release();
-                return element;
-            } else
-                throw new Error("can't convert value of type " + value.getClass());
+            switch(value.getV8Type()) {
+                case V8Value.UNDEFINED:
+                case V8Value.NULL:
+                    value.release();
+                    return null;
+                case V8Value.V8_OBJECT:
+                    Object element = env.getElementById(value.hashCode());
+                    value.release();
+                    return element;
+                default:
+                    value.release();
+                    throw new Error("can't convert value of type " + value.getClass());
+            }
         } else
             return object;
     }
