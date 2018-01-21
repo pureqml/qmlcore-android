@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 
 import java.util.LinkedList;
@@ -41,13 +42,27 @@ public class Element {
         _parent = null;
     }
 
+    public Rect getRect() { return _rect; }
+
     protected void removeChild(Element child) {
         Log.i(TAG, "remove child");
         _dirty.union(child._dirty);
     }
 
-    public void style(V8Array arguments) {
-        Log.i(TAG, "style " + arguments.toString());
+    protected void style(String name, Object value) {
+        Log.i(TAG, "style " + name + ": " + value);
+    }
+
+    public void style(V8Array arguments) throws Exception {
+        Object arg0 = arguments.get(0);
+        if (arg0 instanceof V8Object) {
+            V8Object styles = (V8Object) arg0;
+            for (String key : styles.getKeys())
+                style(key, styles.getString(key));
+        } else if (arguments.length() == 2)
+            style(arguments.getString(0), arguments.get(1));
+        else
+            throw new Exception("invalid style invocation");
     }
 
     public void on(String name, V8Value callback) {
