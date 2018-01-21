@@ -66,8 +66,10 @@ public class Element {
             V8Object styles = (V8Object) arg0;
             for (String key : styles.getKeys())
                 style(key, styles.getString(key));
-        } else if (arguments.length() == 2)
-            style(arguments.getString(0), arguments.get(1));
+            styles.release();
+        } else if (arguments.length() == 2) {
+            style(arguments.getString(0), Wrapper.getValue(_env, null, arguments.get(1)));
+        }
         else
             throw new Exception("invalid style invocation");
     }

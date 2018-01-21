@@ -18,8 +18,8 @@ import java.lang.reflect.Modifier;
 public class Wrapper {
     public final static String TAG = "ClassWrapper";
 
-    private static Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
-        if (object.getClass() == type) {
+    public static final Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
+        if (type != null && object.getClass() == type) {
             return object;
         } else if (object instanceof V8Value) {
             V8Value value = (V8Value)object;
