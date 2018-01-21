@@ -12,6 +12,7 @@ import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.utils.V8Executor;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
 import com.pureqml.android.runtime.IExecutionEnvironment;
@@ -57,19 +58,19 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         V8Object v8FD = new V8Object(_v8);
         _v8.add("fd", v8FD);
 
-        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Element.class, new Class<?>[] { }), "Element");
-        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Rectangle.class, new Class<?>[] { }), "Rectangle");
-        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Image.class, new Class<?>[] { }), "Image");
-        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Text.class, new Class<?>[] { }), "Text");
+        V8Object elementProto   = Wrapper.generateClass(this, _v8, v8FD, "Element", Element.class, new Class<?>[] { });
+        V8Object rectangleProto = Wrapper.generateClass(this, _v8, v8FD, "Rectangle", Rectangle.class, new Class<?>[] { });
+        rectangleProto.setPrototype(elementProto);
+        V8Object imageProto     = Wrapper.generateClass(this, _v8, v8FD, "Image", Image.class, new Class<?>[] { });
+        imageProto.setPrototype(elementProto);
+        V8Object textProto      = Wrapper.generateClass(this, _v8, v8FD, "Text", Text.class, new Class<?>[] { });
+        textProto.setPrototype(elementProto);
 
         v8FD.release();
 
         V8Object v8Module = new V8Object(_v8);
         _v8.add("module", v8Module);
         v8Module.release();
-
-        //create root element to pass it to context
-        //return new Element(v8, elementPrototype);
     }
 
     private static final String readScript(InputStream input) throws IOException {

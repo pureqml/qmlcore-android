@@ -8,7 +8,6 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
-import com.eclipsesource.v8.utils.V8ObjectUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -92,12 +91,10 @@ public class Wrapper {
 
     private static final class ConstructorWrapper implements JavaVoidCallback {
         IExecutionEnvironment   _env;
-        V8Object                _proto;
         Constructor<?>          _ctor;
 
-        public ConstructorWrapper(IExecutionEnvironment env, V8Object proto, Constructor<?> ctor) {
+        public ConstructorWrapper(IExecutionEnvironment env, Constructor<?> ctor) {
             _env = env;
-            _proto = proto;
             _ctor = ctor;
         }
 
@@ -119,18 +116,20 @@ public class Wrapper {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
-            self.setPrototype(_proto);
         }
     }
 
-    public static JavaVoidCallback generateClass(IExecutionEnvironment env, V8 v8, Class<?> cls, Class<?> ctorArgs[]) {
+    public static V8Object generateClass(IExecutionEnvironment env, V8 v8, V8Object namespace, String className, Class<?> cls, Class<?> ctorArgs[]) {
         try {
-            V8Object prototype = new V8Object(v8);
-
-            generatePrototype(env, v8, prototype, cls);
             Constructor<?> ctor = cls.getConstructor(ctorArgs);
             Log.i(TAG, "wrapping ctor of " + cls.getName());
-            return new ConstructorWrapper(env, prototype, ctor);
+            namespace.registerJavaMethod(new ConstructorWrapper(env, ctor), className);
+
+            V8Object prototype = namespace.getObject(className).getObject("prototype");
+
+            generatePrototype(env, v8, prototype, cls);
+
+            return prototype;
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
