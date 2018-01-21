@@ -16,12 +16,13 @@ public class Element {
     };
 
     public static final String TAG = "rt.Element";
+    IExecutionEnvironment       _env;
     protected Element           _parent;
     protected Rect              _rect;
     protected Rect              _dirty;
     protected List<Element>     _children;
 
-    public Element() {
+    public Element(IExecutionEnvironment env) {
         _parent = null;
         _rect = new Rect();
         _dirty = new Rect();

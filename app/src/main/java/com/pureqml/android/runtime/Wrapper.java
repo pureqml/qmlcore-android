@@ -103,8 +103,9 @@ public class Wrapper {
             Class<?> ctorArgs[] = _ctor.getParameterTypes();
             int n = ctorArgs.length;
             Object args[] = new Object[n];
-            for(int i = 0; i < n; ++i) {
-                args[i] = getValue(_env, arguments.get(i));
+            args[0] = _env;
+            for(int i = 1; i < n; ++i) {
+                args[i] = getValue(_env, arguments.get(i - 1));
             }
             try {
                 Object obj = _ctor.newInstance(args);
