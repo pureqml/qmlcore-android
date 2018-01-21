@@ -2,10 +2,13 @@ package com.pureqml.android;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.Surface;
+import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Object;
@@ -32,7 +35,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private V8 _v8;
 
     //Element collection
-    private Map<Long, Element> _elements;
+    private Map<Long, Element>  _elements;
+    Rect                        _surfaceGeometry;
+    V8Object                    _rootElement;
 
     @Nullable
     @Override
@@ -98,9 +103,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         V8Object exports = _v8.getObject("module").getObject("exports");
 
         Log.v(TAG, "creating root element...");
-        V8Object rootElement = _v8.executeObjectScript("new fd.Element()");
+        _rootElement = _v8.executeObjectScript("new fd.Element()");
         Log.v(TAG, "executing script...");
-        Object result = exports.executeJSFunction("run", rootElement);
+        Object result = exports.executeJSFunction("run", _rootElement);
 
         Log.i(TAG, "script finished: " + result.toString());
         exports.release();
@@ -125,6 +130,15 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     @Override
     public void putElement(long id, Element element) {
         _elements.put(Long.valueOf(id), element);
+    }
+
+    public void setSurfaceFrame(Rect rect) {
+        _surfaceGeometry = rect;
+        Log.i(TAG, "new surface frame: " + _surfaceGeometry);
+    }
+
+    public void repaint(SurfaceHolder surface) {
+        Log.i(TAG, "repaint");
     }
 
 }

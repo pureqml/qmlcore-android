@@ -22,6 +22,8 @@ public class Element {
 
     public Element() {
         _parent = null;
+        _rect = new Rect();
+        _dirty = new Rect();
     }
 
     public void append(Element el) throws AlreadyHasAParentException {
