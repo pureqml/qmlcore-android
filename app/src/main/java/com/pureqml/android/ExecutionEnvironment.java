@@ -15,6 +15,9 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
 import com.pureqml.android.runtime.IExecutionEnvironment;
+import com.pureqml.android.runtime.Image;
+import com.pureqml.android.runtime.Rectangle;
+import com.pureqml.android.runtime.Text;
 import com.pureqml.android.runtime.Wrapper;
 
 import java.io.ByteArrayOutputStream;
@@ -55,6 +58,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         _v8.add("fd", v8FD);
 
         v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Element.class, new Class<?>[] { }), "Element");
+        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Rectangle.class, new Class<?>[] { }), "Rectangle");
+        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Image.class, new Class<?>[] { }), "Image");
+        v8FD.registerJavaMethod(Wrapper.generateClass(this, _v8, Text.class, new Class<?>[] { }), "Text");
 
         v8FD.release();
 
