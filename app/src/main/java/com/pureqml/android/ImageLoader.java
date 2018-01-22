@@ -56,8 +56,12 @@ public class ImageLoader {
             } catch(Exception ex) {
                 Log.e(TAG, "image loading failed", ex);
             } finally {
-                _holder.setBitmap(bitmap);
-                _env.imageLoaded(_url);
+                synchronized (_cache) {
+                    _cache.remove(_url);
+                    _holder.setBitmap(bitmap);
+                    _env.imageLoaded(_url);
+                    _cache.put(_url, _holder);
+                }
             }
         }
     }
@@ -79,11 +83,18 @@ public class ImageLoader {
         synchronized public void setBitmap(Bitmap bitmap) {
             _image = bitmap;
         }
+
+        synchronized int byteCount() { return _url.toString().length() + (_image != null? _image.getByteCount(): 0); }
     }
 
     private IExecutionEnvironment _env;
 
-    private LruCache<URL, ImageHolder> _cache = new LruCache<URL, ImageHolder>(CacheSize);
+    private LruCache<URL, ImageHolder> _cache = new LruCache<URL, ImageHolder>(CacheSize) {
+        @Override
+        protected int sizeOf(URL key, ImageHolder value) {
+            return value.byteCount();
+        }
+    };
 
     public ImageLoader(IExecutionEnvironment env) { _env = env; }
 
