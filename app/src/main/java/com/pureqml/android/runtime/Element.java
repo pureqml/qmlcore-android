@@ -27,6 +27,7 @@ public class Element {
     protected float             _opacity;
     protected boolean           _visible;
     protected List<Element>     _children;
+    protected boolean           _updated;
 
     public Element(IExecutionEnvironment env) {
         _env = env;
@@ -65,7 +66,14 @@ public class Element {
 
     public Rect getRect()       { return _rect; }
     public Rect getLastRect()   { return _lastRect; }
-    void update() { }
+
+    void update() {
+        Element current = this;
+        while(current != null && !current._updated) {
+            current._updated = true;
+            current = current._parent;
+        }
+    }
 
     protected void removeChild(Element child) {
         if (_children != null)
