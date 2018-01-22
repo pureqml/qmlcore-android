@@ -51,6 +51,18 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     ExecutorService             _executor;
     ImageLoader                 _imageLoader;
 
+    public ExecutionEnvironment() {
+        Log.i(TAG, "starting execution environment thread...");
+        _executor = Executors.newSingleThreadExecutor();
+        _executor.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                ExecutionEnvironment.this.start();
+                return null;
+            }
+        });
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -144,18 +156,6 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _exports.release();
             _exports = null;
         }
-    }
-
-    public ExecutionEnvironment() {
-        Log.i(TAG, "starting execution environment thread...");
-        _executor = Executors.newSingleThreadExecutor();
-        _executor.submit(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                ExecutionEnvironment.this.start();
-                return null;
-            }
-        });
     }
 
     @Override
