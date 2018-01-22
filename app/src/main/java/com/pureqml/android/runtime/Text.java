@@ -1,7 +1,8 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Color;
-import android.util.Log;
+
+import com.pureqml.android.IExecutionEnvironment;
 
 public class Text extends Element {
     private final static String TAG = "rt.Text";

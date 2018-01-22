@@ -7,14 +7,12 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
-import com.pureqml.android.runtime.IExecutionEnvironment;
 import com.pureqml.android.runtime.Image;
 import com.pureqml.android.runtime.Rectangle;
 import com.pureqml.android.runtime.Text;
@@ -23,9 +21,15 @@ import com.pureqml.android.runtime.Wrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,14 +42,16 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         }
     }
     private final IBinder _binder = new LocalBinder();
-    private V8 _v8;
+    V8 _v8;
 
     //Element collection
-    private Map<Long, Element>  _elements;
+    Map<Long, Element>                  _elements = new HashMap<Long, Element>(10000);
+    HashMap<URL, List<ImageListener>>   _imageWaiters = new HashMap<>();
     Rect                        _surfaceGeometry;
     V8Object                    _rootElement;
     V8Object                    _exports;
     ExecutorService             _executor;
+    ImageLoader                 _imageLoader;
 
     @Nullable
     @Override
@@ -95,7 +101,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     private void start() {
         Log.i(TAG, "starting execution environment...");
-        _elements = new HashMap<Long, Element>(10000);
+        _imageLoader = new ImageLoader(this);
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
@@ -156,6 +162,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     @Override
     public void onDestroy() {
+        _executor.shutdownNow();
+
+        _executor = null;
         _elements = null;
         if (_rootElement != null) {
             _rootElement.release();
@@ -165,6 +174,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _exports.release();
         }
         _v8.release();
+    }
+
+    @Override
+    public V8 getRuntime() {
+        return _v8;
     }
 
     @Override
@@ -185,6 +199,44 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     @Override
     public void removeElement(long id) {
         _elements.remove(id);
+    }
+
+    @Override
+    public Executor getExecutor() {
+        return _executor;
+    }
+
+    @Override
+    public ImageLoader.ImageResource loadImage(URL url, ImageListener listener) {
+        List<ImageListener> list = _imageWaiters.get(url);
+        if (list == null) {
+            list = new LinkedList<ImageListener>();
+        }
+        list.add(listener);
+        return _imageLoader.load(url);
+    }
+
+    @Override
+    public void imageLoaded(final URL url) {
+        _executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                _imageLoaded(url);
+            }
+        });
+    }
+
+    void _imageLoaded(URL url) {
+        Log.i(TAG, "loaded image" + url);
+        List<ImageListener> list = _imageWaiters.get(url);
+        if (list == null)
+            return;
+        for (ImageListener l : list) {
+            try {
+                l.onImageLoaded(url);
+            } catch(Exception e) {Log.e(TAG, "image listener failed", e); }
+        }
+        _imageWaiters.remove(url);
     }
 
     public void setSurfaceFrame(Rect rect) {

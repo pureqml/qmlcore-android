@@ -4,11 +4,11 @@ import android.util.Log;
 
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
-import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
+import com.pureqml.android.IExecutionEnvironment;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
