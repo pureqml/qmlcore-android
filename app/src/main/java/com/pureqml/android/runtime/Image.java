@@ -24,7 +24,7 @@ public class Image extends Element implements ImageListener {
 
     public void load(String name, V8Function callback) {
         if (name.indexOf("://") < 0)
-            name = "file:///android_asset/" + name;
+            name = "file:///" + name;
         _url = null;
         try {
             _url = new URL(name);
