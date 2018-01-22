@@ -1,5 +1,7 @@
 package com.pureqml.android;
 
+import android.content.res.AssetManager;
+
 import com.eclipsesource.v8.V8;
 import com.pureqml.android.runtime.Element;
 
@@ -18,6 +20,7 @@ public interface IExecutionEnvironment {
     Executor getExecutor();
 
     //image loader api
+    AssetManager getAssets();
     ImageLoader.ImageResource loadImage(URL url, ImageListener listener);
     void imageLoaded(URL url);
 }

@@ -1,5 +1,6 @@
 package com.pureqml.android;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.Nullable;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.util.LruCache;
 
 import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,7 +53,16 @@ public class ImageLoader {
             Log.i(TAG, "starting loading task on " + _url);
             Bitmap bitmap = null;
             try {
-                BufferedInputStream stream = new BufferedInputStream(_url.openStream());
+                InputStream rawStream = null;
+                if (_url.getProtocol().equals("file")) {
+                    String path = _url.getPath();
+                    int pos = 0;
+                    while(pos < path.length() && path.charAt(pos) == '/')
+                        ++pos;
+                    rawStream = _env.getAssets().open(path.substring(pos)); //strip leading slash
+                } else
+                    rawStream = _url.openStream();
+                BufferedInputStream stream = new BufferedInputStream(rawStream);
                 bitmap = BitmapFactory.decodeStream(stream);
             } catch(Exception ex) {
                 Log.e(TAG, "image loading failed", ex);
