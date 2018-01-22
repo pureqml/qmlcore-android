@@ -12,7 +12,6 @@ import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Object;
-import com.eclipsesource.v8.utils.V8Executor;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
 import com.pureqml.android.runtime.IExecutionEnvironment;
@@ -26,6 +25,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ExecutionEnvironment extends Service implements IExecutionEnvironment {
     public static final String TAG = "ExecutionEnvironment";
@@ -43,6 +45,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     Rect                        _surfaceGeometry;
     V8Object                    _rootElement;
     V8Object                    _exports;
+    ExecutorService             _executor;
 
     @Nullable
     @Override
@@ -141,12 +144,14 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
-        new Thread(new Runnable() {
+        _executor = Executors.newSingleThreadExecutor();
+        _executor.submit(new Callable<Void>() {
             @Override
-            public void run() {
+            public Void call() throws Exception {
                 ExecutionEnvironment.this.start();
+                return null;
             }
-        }).start();
+        });
     }
 
     @Override
