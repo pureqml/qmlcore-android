@@ -12,11 +12,11 @@ public class Image extends Element {
     }
 
     public void load(String name, V8Function callback) {
-        Log.v(TAG, "loading " + name + " " + callback);
+        Log.v(TAG, "loading " + name);
         callback.release();
     }
 
     protected void setStyle(String name, Object value) {
-        Log.v(TAG, "setStyle " + name + ": " + value);
+        super.setStyle(name, value);
     }
 }

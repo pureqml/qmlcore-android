@@ -12,28 +12,33 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Element {
+    public static final String TAG = "rt.Element";
+
     public static final class AlreadyHasAParentException extends Exception {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     };
 
-    public static final String TAG = "rt.Element";
     IExecutionEnvironment       _env;
     protected Element           _parent;
     protected Rect              _rect;
-    protected Rect              _dirty;
+    protected int               _z;
+    protected Rect              _lastRect;
+    protected float             _opacity;
+    protected boolean           _visible;
     protected List<Element>     _children;
 
     public Element(IExecutionEnvironment env) {
-        _parent = null;
+        _env = env;
         _rect = new Rect();
-        _dirty = new Rect();
+        _lastRect = new Rect();
+        _opacity = 1;
+        _visible = true;
     }
 
     public void append(Element el) throws AlreadyHasAParentException {
-        if (el == null) {
-            Log.e(TAG, "appending null element!");
-            return;
-        }
+        if (el == null)
+            throw new NullPointerException("appending null element");
+
         if (el._parent != null)
             throw new AlreadyHasAParentException();
         el._parent = this;
@@ -53,16 +58,34 @@ public class Element {
         //_env.removeElement(this.hashCode()); //fixme: find out why it's not working
     }
 
-    public Rect getRect() { return _rect; }
+    public void on(String name, V8Function callback) {
+        Log.i(TAG, "on " + name);
+    }
+
+    public Rect getRect()       { return _rect; }
+    public Rect getLastRect()   { return _lastRect; }
+    void update() { }
 
     protected void removeChild(Element child) {
         if (_children != null)
             _children.remove(child);
-        _dirty.union(child._dirty);
+        _lastRect.union(child._lastRect);
     }
 
     protected void setStyle(String name, Object value) {
-        Log.v(TAG, "setStyle " + name + ": " + value);
+        switch(name) {
+            case "left":    { int left = TypeConverter.toInteger(value);    _rect.right += left - _rect.left; _rect.left = left; } break;
+            case "top":     { int top = TypeConverter.toInteger(value);     _rect.bottom += top - _rect.top; _rect.top = top; } break;
+            case "width":   { int width = TypeConverter.toInteger(value);   _rect.right = _rect.left + width; } break;
+            case "height":  { int height = TypeConverter.toInteger(value);  _rect.bottom = _rect.top + height; } break;
+            case "opacity":     _opacity = TypeConverter.toFloat(value); break;
+            case "z-index":     _z = TypeConverter.toInteger(value); break;
+            case "visibility":  _visible = value.equals("visible"); break;
+            default:
+                Log.v(TAG, "setStyle " + name + ": " + value);
+                return;
+        }
+        update();
     }
 
     public void style(V8Array arguments) throws Exception {
@@ -80,8 +103,4 @@ public class Element {
             ((Releasable)arg0).release();
     }
 
-    public void on(String name, V8Function callback) {
-        Log.i(TAG, "on " + name);
-        callback.release();
-    }
 }
