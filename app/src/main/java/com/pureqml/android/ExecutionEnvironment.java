@@ -24,8 +24,8 @@ import com.pureqml.android.runtime.Wrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 public class ExecutionEnvironment extends Service implements IExecutionEnvironment {
     public static final String TAG = "ExecutionEnvironment";
@@ -92,7 +92,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     private void start() {
         Log.i(TAG, "starting execution environment...");
-        _elements = new WeakHashMap<Long, Element>(10000);
+        _elements = new HashMap<Long, Element>(10000);
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
@@ -175,6 +175,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         if (element == null)
             throw new NullPointerException("putting null is not allowed");
         _elements.put(Long.valueOf(id), element);
+    }
+
+    @Override
+    public void removeElement(long id) {
+        _elements.remove(id);
     }
 
     public void setSurfaceFrame(Rect rect) {

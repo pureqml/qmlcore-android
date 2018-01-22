@@ -48,6 +48,11 @@ public class Element {
         _parent = null;
     }
 
+    public void discard() {
+        remove();
+        //_env.removeElement(this.hashCode()); //fixme: find out why it's not working
+    }
+
     public Rect getRect() { return _rect; }
 
     protected void removeChild(Element child) {
