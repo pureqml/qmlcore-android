@@ -225,7 +225,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     void _imageLoaded(URL url) {
-        Log.i(TAG, "loaded image" + url);
+        Log.i(TAG, "loaded image " + url);
         List<ImageListener> list = _imageWaiters.get(url);
         if (list == null)
             return;
