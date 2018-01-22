@@ -7,7 +7,6 @@ import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
-import com.eclipsesource.v8.V8Value;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -57,8 +56,8 @@ public class Element {
         _dirty.union(child._dirty);
     }
 
-    protected void style(String name, Object value) {
-        Log.v(TAG, "style " + name + ": " + value);
+    protected void setStyle(String name, Object value) {
+        Log.v(TAG, "setStyle " + name + ": " + value);
     }
 
     public void style(V8Array arguments) throws Exception {
@@ -66,12 +65,12 @@ public class Element {
         if (arg0 instanceof V8Object) {
             V8Object styles = (V8Object) arg0;
             for (String key : styles.getKeys())
-                style(key, styles.getString(key));
+                setStyle(key, styles.getString(key));
         } else if (arguments.length() == 2) {
-            style(arguments.getString(0), Wrapper.getValue(_env, null, arguments.get(1)));
+            setStyle(arguments.getString(0), Wrapper.getValue(_env, null, arguments.get(1)));
         }
         else
-            throw new Exception("invalid style invocation");//fixme: leak of resources here
+            throw new Exception("invalid setStyle invocation");//fixme: leak of resources here
         if (arg0 instanceof Releasable)
             ((Releasable)arg0).release();
     }

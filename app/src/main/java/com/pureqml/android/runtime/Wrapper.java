@@ -90,6 +90,7 @@ public class Wrapper {
         for(Method method : cls.getMethods()) {
             String name = method.getName();
             int mods = method.getModifiers();
+            //for some reasons android always return public (1) here :\
             if (!method.getDeclaringClass().equals(cls) || Modifier.isPrivate(mods) || Modifier.isProtected(mods) || method.isSynthetic())
                 continue;
 

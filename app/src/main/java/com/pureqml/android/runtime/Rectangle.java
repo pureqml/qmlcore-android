@@ -9,7 +9,7 @@ public class Rectangle extends Element {
         super(env);
     }
 
-    protected void style(String name, Object value) {
-        Log.v(TAG, "style " + name + ": " + value);
+    protected void setStyle(String name, Object value) {
+        Log.v(TAG, "setStyle " + name + ": " + value);
     }
 }
