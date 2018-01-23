@@ -267,16 +267,16 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         final Future<Void> f = _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                Surface surface = holder.getSurface();
                 Canvas canvas = null;
                 Rect rect = _rootElement.getCombinedDirtyRect();
                 try {
-                    canvas = surface.lockCanvas(rect);
+                    canvas = holder.lockCanvas(rect);
                     _rootElement.paint(canvas, 0, 0);
                 } catch (Exception e) {
                     Log.e(TAG, "paint failed", e);
                 } finally {
-                    surface.unlockCanvasAndPost(canvas);
+                    if (canvas != null)
+                        holder.unlockCanvasAndPost(canvas);
                 }
                 return null;
             }
