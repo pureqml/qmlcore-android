@@ -2,11 +2,13 @@ package com.pureqml.android;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
@@ -27,9 +29,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ExecutionEnvironment extends Service implements IExecutionEnvironment {
     public static final String TAG = "ExecutionEnvironment";
@@ -46,7 +50,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private Map<Long, Element>                  _elements = new HashMap<Long, Element>(10000);
     private HashMap<URL, List<ImageListener>>   _imageWaiters = new HashMap<>();
     private Rect                        _surfaceGeometry;
-    private V8Object                    _rootElement;
+    private V8Object                    _rootObject;
+    private Element                     _rootElement;
     private V8Object                    _exports;
     private ExecutorService             _executor;
     private ImageLoader                 _imageLoader;
@@ -136,7 +141,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         _exports = exports;
 
         Log.v(TAG, "creating root element...");
-        _rootElement = _v8.executeObjectScript("new fd.Element()");
+        _rootObject = _v8.executeObjectScript("new fd.Element()");
+        _rootElement = getElementById(_rootObject.hashCode());
 
         if (_surfaceGeometry != null) { //already signalled
             setup();
@@ -144,18 +150,18 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     private void setup() {
-        if (_rootElement != null && _surfaceGeometry != null) { //signal geometry
+        if (_rootObject != null && _surfaceGeometry != null) { //signal geometry
             Log.v(TAG, "updating window geometry");
-            _rootElement.add("left", 0);
-            _rootElement.add("top", 0);
-            _rootElement.add("width", _surfaceGeometry.width());
-            _rootElement.add("height", _surfaceGeometry.height());
+            _rootObject.add("left", 0);
+            _rootObject.add("top", 0);
+            _rootObject.add("width", _surfaceGeometry.width());
+            _rootObject.add("height", _surfaceGeometry.height());
         }
         if (_exports != null) {
             Log.v(TAG, "executing script...");
 
             Log.i(TAG, "calling run()...");
-            _exports.executeJSFunction("run", _rootElement);
+            _exports.executeJSFunction("run", _rootObject);
 
             Log.i(TAG, "run() finished");
             _exports.release();
@@ -170,9 +176,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
         _executor = null;
         _elements = null;
-        if (_rootElement != null) {
-            _rootElement.release();
-            _rootElement = null;
+        if (_rootObject != null) {
+            _rootObject.release();
+            _rootObject = null;
         }
         if (_exports != null) {
             _exports.release();
@@ -257,21 +263,39 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         });
     }
 
-    protected void repaint(SurfaceHolder surface) {
-        _executor.execute(new Runnable() {
+    protected void repaint(final SurfaceHolder holder) {
+        final Future<Void> f = _executor.submit(new Callable<Void>() {
             @Override
-            public void run() {
-                Log.i(TAG,"PAINT HERE TO THE SURFACE");
+            public Void call() throws Exception {
+                Surface surface = holder.getSurface();
+                Canvas canvas = null;
+                Rect rect = _rootElement.getCombinedDirtyRect();
+                try {
+                    canvas = surface.lockCanvas(rect);
+                    _rootElement.paint(canvas, 0, 0);
+                } catch (Exception e) {
+                    Log.e(TAG, "paint failed", e);
+                } finally {
+                    surface.unlockCanvasAndPost(canvas);
+                }
+                return null;
             }
         });
+        try {
+            f.get();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "repaint interrupted", e);
+        } catch (ExecutionException e) {
+            Log.e(TAG, "repaint failed", e);
+        }
     }
 
     private void paint() {
-        if (_rootElement == null)
+        Element root = _rootElement;
+        if (root == null)
             return;
 
-        Element root = getElementById(_rootElement.hashCode());
-        root.updateCurrentGeometry();
+        root.updateCurrentGeometry(0, 0);
         Log.i(TAG,"paint rect " + root.getCombinedDirtyRect());
         if (_renderer != null) {
             _renderer.invalidateRect(root.getCombinedDirtyRect());

@@ -1,5 +1,6 @@
 package com.pureqml.android.runtime;
 
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.util.Log;
 
@@ -114,24 +115,41 @@ public class Element {
     protected Rect getEffectiveRect()   { return null; }
     public Rect getCombinedDirtyRect()  { return _nextRect; }
 
-    public void updateCurrentGeometry() {
+    public void updateCurrentGeometry(int baseX, int baseY) {
         if (!_updated)
             return;
 
         _nextRect = new Rect();
         Rect rect = getEffectiveRect();
-        if (rect != null)
-            _nextRect.union(rect);
+        if (rect != null) {
+            _nextRect.union(translateRect(rect, baseX, baseY));
+        }
         if (_lastRect != null)
             _nextRect.union(_lastRect);
 
+        baseX += _rect.left;
+        baseY += _rect.top;
         if (_children != null) {
             for (Element child : _children) {
-                child.updateCurrentGeometry();
-                _nextRect.union(child._nextRect);
+                child.updateCurrentGeometry(baseX, baseY);
+                _nextRect.union(translateRect(child._nextRect, baseX, baseY));
             }
         }
         _updated = false;
     }
 
+    public void paint(Canvas canvas, int baseX, int baseY) {
+        Log.v(TAG,"paint element " + this + " at " + _rect + " with base " + baseX + "," + baseY);
+        if (_children != null) {
+            for (Element child : _children) {
+                child.paint(canvas, _rect.left + baseX, _rect.top + baseY);
+            }
+        }
+    }
+
+    static final Rect translateRect(Rect rect, int dx, int dy) {
+        Rect r = new Rect(rect);
+        r.offset(dx, dy);
+        return r;
+    }
 }
