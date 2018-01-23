@@ -1,5 +1,7 @@
 package com.pureqml.android.runtime;
 
+import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8;
@@ -51,5 +53,10 @@ public class Image extends Element implements ImageListener {
     public void onImageLoaded(URL url) {
         if (url.equals(_url))
             update();
+    }
+
+    @Override
+    protected Rect getEffectiveRect() {
+        return _rect;
     }
 }

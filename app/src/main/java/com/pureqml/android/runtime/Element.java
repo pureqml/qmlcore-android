@@ -23,6 +23,7 @@ public class Element {
     protected Element           _parent;
     protected Rect              _rect;
     protected int               _z;
+    protected Rect              _nextRect;
     protected Rect              _lastRect;
     protected float             _opacity;
     protected boolean           _visible;
@@ -32,7 +33,6 @@ public class Element {
     public Element(IExecutionEnvironment env) {
         _env = env;
         _rect = new Rect();
-        _lastRect = new Rect();
         _opacity = 1;
         _visible = true;
     }
@@ -47,6 +47,7 @@ public class Element {
         if (_children == null)
             _children = new LinkedList<Element>();
         _children.add(el);
+        el.update();
     }
 
     public void remove() {
@@ -64,9 +65,6 @@ public class Element {
         Log.i(TAG, "on " + name);
     }
 
-    public Rect getRect()       { return _rect; }
-    public Rect getLastRect()   { return _lastRect; }
-
     void update() {
         Element current = this;
         while(current != null && !current._updated) {
@@ -78,7 +76,8 @@ public class Element {
     protected void removeChild(Element child) {
         if (_children != null)
             _children.remove(child);
-        _lastRect.union(child._lastRect);
+        if (child._lastRect != null)
+            _lastRect.union(child._lastRect);
     }
 
     protected void setStyle(String name, Object value) {
@@ -110,6 +109,29 @@ public class Element {
             throw new Exception("invalid setStyle invocation");//fixme: leak of resources here
         if (arg0 instanceof Releasable)
             ((Releasable)arg0).release();
+    }
+
+    protected Rect getEffectiveRect()   { return null; }
+    public Rect getCombinedDirtyRect()  { return _nextRect; }
+
+    public void updateCurrentGeometry() {
+        if (!_updated)
+            return;
+
+        _nextRect = new Rect();
+        Rect rect = getEffectiveRect();
+        if (rect != null)
+            _nextRect.union(rect);
+        if (_lastRect != null)
+            _nextRect.union(_lastRect);
+
+        if (_children != null) {
+            for (Element child : _children) {
+                child.updateCurrentGeometry();
+                _nextRect.union(child._nextRect);
+            }
+        }
+        _updated = false;
     }
 
 }

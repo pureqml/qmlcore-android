@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Color;
+import android.graphics.Rect;
 
 import com.pureqml.android.IExecutionEnvironment;
 
@@ -20,5 +21,10 @@ public class Text extends Element {
                 return;
         }
         update();
+    }
+
+    @Override
+    protected Rect getEffectiveRect() {
+        return _rect;
     }
 }

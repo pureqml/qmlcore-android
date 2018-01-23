@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Color;
+import android.graphics.Rect;
 
 import com.pureqml.android.IExecutionEnvironment;
 
@@ -20,5 +21,10 @@ public class Rectangle extends Element {
             default:
                 super.setStyle(name, value);
         }
+    }
+
+    @Override
+    protected Rect getEffectiveRect() {
+        return _rect;
     }
 }

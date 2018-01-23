@@ -156,6 +156,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _exports.release();
             _exports = null;
         }
+        scheduleRepaint();
     }
 
     @Override
@@ -225,16 +226,19 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     void _imageLoaded(URL url) {
-        Log.i(TAG, "loaded image " + url);
+        Log.v(TAG, "loaded image " + url);
         List<ImageListener> list = _imageWaiters.get(url);
-        if (list == null)
-            return;
-        for (ImageListener l : list) {
-            try {
-                l.onImageLoaded(url);
-            } catch(Exception e) {Log.e(TAG, "image listener failed", e); }
+        if (list != null) {
+            for (ImageListener l : list) {
+                try {
+                    l.onImageLoaded(url);
+                } catch (Exception e) {
+                    Log.e(TAG, "image listener failed", e);
+                }
+            }
         }
         _imageWaiters.remove(url);
+        scheduleRepaint();
     }
 
     public void setSurfaceFrame(Rect rect) {
@@ -245,6 +249,17 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     public void repaint(SurfaceHolder surface) {
         Log.i(TAG, "repaint");
+        scheduleRepaint();
+        //paint here
     }
 
+    public void scheduleRepaint() {
+        if (_rootElement == null)
+            return;
+
+        Log.v(TAG, "root element updated, calculating geometry");
+        Element root = getElementById(_rootElement.hashCode());
+        root.updateCurrentGeometry();
+        Log.i(TAG,"paint rect" + root.getCombinedDirtyRect());
+    }
 }
