@@ -23,6 +23,17 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
+            _executionEnvironment.setRenderer(new IRenderer() {
+                @Override
+                public void invalidateRect(final Rect rect) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.this._surfaceView.invalidate(rect);
+                        }
+                    });
+                }
+            });
 
             if (_surfaceFrame != null) {
                 _executionEnvironment.setSurfaceFrame(_surfaceFrame);
@@ -91,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (_executionEnvironment != null)
+            _executionEnvironment.setRenderer(null);
         if (_executionEnvironmentBound)
             unbindService(_executionEnvironmentConnection);
     }

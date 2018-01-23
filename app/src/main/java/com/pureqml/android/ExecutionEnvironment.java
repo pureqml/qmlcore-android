@@ -40,16 +40,17 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         }
     }
     private final IBinder _binder = new LocalBinder();
-    V8 _v8;
+    private V8 _v8;
 
     //Element collection
-    Map<Long, Element>                  _elements = new HashMap<Long, Element>(10000);
-    HashMap<URL, List<ImageListener>>   _imageWaiters = new HashMap<>();
-    Rect                        _surfaceGeometry;
-    V8Object                    _rootElement;
-    V8Object                    _exports;
-    ExecutorService             _executor;
-    ImageLoader                 _imageLoader;
+    private Map<Long, Element>                  _elements = new HashMap<Long, Element>(10000);
+    private HashMap<URL, List<ImageListener>>   _imageWaiters = new HashMap<>();
+    private Rect                        _surfaceGeometry;
+    private V8Object                    _rootElement;
+    private V8Object                    _exports;
+    private ExecutorService             _executor;
+    private ImageLoader                 _imageLoader;
+    private IRenderer                   _renderer;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -61,6 +62,10 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 return null;
             }
         });
+    }
+
+    void setRenderer(IRenderer renderer) {
+        _renderer = renderer;
     }
 
     @Nullable
@@ -261,5 +266,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         Element root = getElementById(_rootElement.hashCode());
         root.updateCurrentGeometry();
         Log.i(TAG,"paint rect" + root.getCombinedDirtyRect());
+        if (_renderer != null)
+            _renderer.invalidateRect(root.getCombinedDirtyRect());
     }
 }
