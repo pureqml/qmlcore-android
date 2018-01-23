@@ -161,7 +161,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _exports.release();
             _exports = null;
         }
-        scheduleRepaint();
+        paint();
     }
 
     @Override
@@ -243,30 +243,38 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             }
         }
         _imageWaiters.remove(url);
-        scheduleRepaint();
+        paint();
     }
 
-    public void setSurfaceFrame(Rect rect) {
-        _surfaceGeometry = rect;
-        Log.i(TAG, "new surface frame: " + _surfaceGeometry);
-        setup();
+    protected void setSurfaceFrame(final Rect rect) {
+        _executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                _surfaceGeometry = rect;
+                Log.i(TAG, "new surface frame: " + _surfaceGeometry);
+                setup();
+            }
+        });
     }
 
-    public void repaint(SurfaceHolder surface) {
-        Log.i(TAG, "repaint");
-        scheduleRepaint();
-        //paint here
+    protected void repaint(SurfaceHolder surface) {
+        _executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG,"PAINT HERE TO THE SURFACE");
+            }
+        });
     }
 
-    public void scheduleRepaint() {
+    private void paint() {
         if (_rootElement == null)
             return;
 
-        Log.v(TAG, "root element updated, calculating geometry");
         Element root = getElementById(_rootElement.hashCode());
         root.updateCurrentGeometry();
-        Log.i(TAG,"paint rect" + root.getCombinedDirtyRect());
-        if (_renderer != null)
+        Log.i(TAG,"paint rect " + root.getCombinedDirtyRect());
+        if (_renderer != null) {
             _renderer.invalidateRect(root.getCombinedDirtyRect());
+        }
     }
 }
