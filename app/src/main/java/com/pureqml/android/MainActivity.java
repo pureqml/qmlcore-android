@@ -26,12 +26,7 @@ public class MainActivity extends AppCompatActivity {
             _executionEnvironment.setRenderer(new IRenderer() {
                 @Override
                 public void invalidateRect(final Rect rect) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            MainActivity.this._surfaceView.invalidate(rect);
-                        }
-                    });
+                    MainActivity.this._surfaceView.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
                 }
             });
 
