@@ -12,6 +12,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
+import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
@@ -258,6 +259,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             public void run() {
                 _surfaceGeometry = rect;
                 Log.i(TAG, "new surface frame: " + _surfaceGeometry);
+                if (_rootElement != null) {
+                    _rootElement.emit(_rootObject, "resize", _surfaceGeometry.width(), _surfaceGeometry.height());
+                }
                 setup();
             }
         });

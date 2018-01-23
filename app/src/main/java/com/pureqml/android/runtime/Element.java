@@ -10,8 +10,10 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class Element {
     public static final String TAG = "rt.Element";
@@ -30,6 +32,7 @@ public class Element {
     protected boolean           _visible;
     protected List<Element>     _children;
     protected boolean           _updated;
+    private Map<String, List<V8Function>> _callbacks;
 
     public Element(IExecutionEnvironment env) {
         _env = env;
@@ -64,6 +67,35 @@ public class Element {
 
     public void on(String name, V8Function callback) {
         Log.i(TAG, "on " + name);
+        if (_callbacks == null)
+            _callbacks = new HashMap<>();
+        List<V8Function> callbacks = _callbacks.get(name);
+        if (callbacks == null) {
+            callbacks = new LinkedList<V8Function>();
+            _callbacks.put(name, callbacks);
+        }
+        callbacks.add(callback);
+    }
+
+    public void emit(V8Object target, String name, Object ... args) {
+        Log.i(TAG, "emitting " + name);
+        if (_callbacks == null)
+            return;
+        List<V8Function> callbacks = _callbacks.get(name);
+        if (callbacks == null)
+            return;
+        V8Array v8args = new V8Array(_env.getRuntime());
+        for (int i = 0; i < args.length; ++i) {
+            v8args.push(args[i]);
+        }
+        for(V8Function callback : callbacks) {
+            try {
+                callback.call(target, v8args);
+            } catch (Exception e) {
+                Log.e(TAG, "callback for " + name + " failed", e);
+            }
+        }
+        v8args.release();
     }
 
     void update() {
