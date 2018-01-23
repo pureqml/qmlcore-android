@@ -24,7 +24,7 @@ public class TypeConverter {
         throw new RuntimeException("value " + value + " could not be converted to int");
     }
 
-    public static final Color toColor(String value) {
-        return new Color();
+    public static final int toColor(String value) {
+        return 0xff00ff;
     }
 }

@@ -1,5 +1,6 @@
 package com.pureqml.android.runtime;
 
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 
@@ -7,7 +8,7 @@ import com.pureqml.android.IExecutionEnvironment;
 
 public class Text extends Element {
     private final static String TAG = "rt.Text";
-    protected Color _color;
+    protected int _color;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -26,5 +27,10 @@ public class Text extends Element {
     @Override
     protected Rect getEffectiveRect() {
         return _rect;
+    }
+
+    @Override
+    public void paint(Canvas canvas, int baseX, int baseY) {
+        super.paint(canvas, baseX, baseY);
     }
 }

@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.util.Log;
 
@@ -58,5 +59,10 @@ public class Image extends Element implements ImageListener {
     @Override
     protected Rect getEffectiveRect() {
         return _rect;
+    }
+
+    @Override
+    public void paint(Canvas canvas, int baseX, int baseY) {
+        super.paint(canvas, baseX, baseY);
     }
 }
