@@ -171,7 +171,6 @@ public class Element {
     }
 
     public void paint(Canvas canvas, int baseX, int baseY) {
-        Log.v(TAG,"paint element " + this + " at " + _rect + " with base " + baseX + "," + baseY);
         if (_children != null) {
             for (Element child : _children) {
                 child.paint(canvas, _rect.left + baseX, _rect.top + baseY);

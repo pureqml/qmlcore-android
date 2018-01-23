@@ -39,7 +39,6 @@ public class Rectangle extends Element {
     @Override
     public void paint(Canvas canvas, int baseX, int baseY) {
         Rect rect = translateRect(_rect, baseX, baseY);
-        Log.v(TAG, "paint rect " + rect + " on " + canvas.getClipBounds());
         if (_radius > 0)
             canvas.drawRoundRect(new RectF(rect), _radius, _radius, _background);
         else
