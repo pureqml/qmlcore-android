@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -55,13 +56,13 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private ExecutorService             _executor;
     private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
+    private TextRenderer                _textRenderer;
     private IRenderer                   _renderer;
+    private DisplayMetrics              _metrics;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
         _executor = Executors.newSingleThreadExecutor();
-        _threadPool = Executors.newCachedThreadPool();
-
         _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -125,7 +126,12 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     private void start() {
         Log.i(TAG, "starting execution environment...");
+        _metrics = getBaseContext().getResources().getDisplayMetrics();
+
+        _threadPool = Executors.newCachedThreadPool();
+
         _imageLoader = new ImageLoader(this);
+        _textRenderer = new TextRenderer(this);
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
@@ -196,6 +202,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     @Override
+    public DisplayMetrics getDisplayMetrics() {
+        return _metrics;
+    }
+
+    @Override
     public Element getElementById(long id) {
         Element element = _elements.get(Long.valueOf(id));
         if (element == null)
@@ -241,6 +252,21 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             @Override
             public void run() {
                 _imageLoaded(url);
+            }
+        });
+    }
+
+    @Override
+    public void layoutText(String text, Rect rect, final TextLayoutCallback callback) {
+        _textRenderer.layoutText(text, rect, new TextLayoutCallback() {
+            @Override
+            public void onTextLayedOut(final TextLayout layout) {
+                _executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onTextLayedOut(layout);
+                    }
+                });
             }
         });
     }

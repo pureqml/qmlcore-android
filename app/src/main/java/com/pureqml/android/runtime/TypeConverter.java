@@ -37,4 +37,8 @@ public class TypeConverter {
         } else
             return 0xffff00ff; //invalid color
     }
+
+    public static final int toFontSize(String value) {
+        return 12;
+    }
 }

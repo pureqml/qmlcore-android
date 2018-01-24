@@ -1,13 +1,20 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 
+import com.eclipsesource.v8.V8Function;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.TextLayout;
+import com.pureqml.android.TextLayoutCallback;
 
 public class Text extends Element {
     private final static String TAG = "rt.Text";
-    protected int _color;
+    Paint       _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    String      _text;
+    TextLayout  _layout;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -15,7 +22,8 @@ public class Text extends Element {
 
     protected void setStyle(String name, Object value) {
         switch(name) {
-            case "color": _color = TypeConverter.toColor((String)value); break;
+            case "color":           _paint.setColor(TypeConverter.toColor((String)value)); break;
+            case "font-size":       _paint.setTextSize(TypeConverter.toFontSize((String)value)); break;
             default:
                 super.setStyle(name, value);
                 return;
@@ -33,6 +41,33 @@ public class Text extends Element {
         if (!_visible)
             return;
 
+        int x = baseX + _rect.left;
+        int y = baseY + _rect.top;
+        if (_layout == null) {
+            canvas.drawText(_text, x, y, _paint);
+        } else {
+            //fixme: stub
+            for ( TextLayout.Stripe stripe : _layout.stripes) {
+                canvas.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
+                y += _paint.getTextSize();
+            }
+        }
         super.paint(canvas, baseX, baseY, opacity);
+    }
+
+    public void setText(String text) {
+        //Log.i(TAG, "setText " + text);
+        _text = text;
+    }
+
+    public void layoutText(V8Function callback) {
+        _env.layoutText(_text, _rect, new TextLayoutCallback() {
+            @Override
+            public void onTextLayedOut(TextLayout layout) {
+                _layout = layout;
+
+                update();
+            }
+        });
     }
 }

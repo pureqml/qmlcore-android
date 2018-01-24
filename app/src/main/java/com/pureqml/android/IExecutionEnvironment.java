@@ -1,6 +1,8 @@
 package com.pureqml.android;
 
 import android.content.res.AssetManager;
+import android.graphics.Rect;
+import android.util.DisplayMetrics;
 
 import com.eclipsesource.v8.V8;
 import com.pureqml.android.runtime.Element;
@@ -14,6 +16,7 @@ public interface IExecutionEnvironment {
     ExecutorService getThreadPool();
 
     V8 getRuntime();
+    DisplayMetrics getDisplayMetrics();
 
     Element getElementById(long id);
 
@@ -25,4 +28,7 @@ public interface IExecutionEnvironment {
     AssetManager getAssets();
     ImageLoader.ImageResource loadImage(URL url, ImageListener listener);
     void imageLoaded(URL url);
+
+    //text layout api
+    void layoutText(String text, Rect rect, TextLayoutCallback callback);
 }

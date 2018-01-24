@@ -9,6 +9,7 @@ import android.util.Log;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
+import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.ImageListener;
 import com.pureqml.android.ImageLoader;
@@ -40,6 +41,7 @@ public class Image extends Element implements ImageListener {
             V8Array args = new V8Array(v8);
             args.push((Object)null);
             callback.call(null, args); //indicate error
+            args.release();
             return;
         }
         //Log.v(TAG, "loading " + url);
@@ -54,8 +56,28 @@ public class Image extends Element implements ImageListener {
 
     @Override
     public void onImageLoaded(URL url) {
-        if (url.equals(_url))
+        if (url.equals(_url)) {
+            V8Array args = new V8Array(_env.getRuntime());
+            V8Object metrics = new V8Object(_env.getRuntime());
+            Bitmap bitmap = _image.getBitmap();
+            if (bitmap == null)
+                return;
+
+            metrics.add("width", bitmap.getWidth());
+            metrics.add("height", bitmap.getHeight());
+
+            try {
+                args.push(metrics);
+                _callback.call(null, args); //indicate error
+            } catch (Exception e) {
+                Log.e(TAG, "callback invocation failed", e);
+            } finally {
+                args.release();
+                metrics.release();
+            }
+
             update();
+        }
     }
 
     @Override
