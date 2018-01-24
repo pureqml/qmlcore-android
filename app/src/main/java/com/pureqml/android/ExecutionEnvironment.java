@@ -72,6 +72,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     void setRenderer(IRenderer renderer) {
         _renderer = renderer;
+        if (renderer != null)
+            renderer.invalidateRect(null); //fullscreen update
     }
 
     @Nullable

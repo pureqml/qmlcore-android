@@ -23,12 +23,6 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
-            _executionEnvironment.setRenderer(new IRenderer() {
-                @Override
-                public void invalidateRect(final Rect rect) {
-                    MainActivity.this._surfaceView.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
-                }
-            });
 
             if (_surfaceFrame != null) {
                 _executionEnvironment.setSurfaceFrame(_surfaceFrame);
@@ -49,9 +43,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
             Log.i(TAG, "surface created " + holder.getSurfaceFrame());
-            if (_executionEnvironment != null)
+            if (_executionEnvironment != null) {
+                _executionEnvironment.setRenderer(new IRenderer() {
+                    @Override
+                    public void invalidateRect(final Rect rect) {
+                        if (rect != null)
+                            MainActivity.this._surfaceView.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
+                        else
+                            MainActivity.this._surfaceView.postInvalidate();
+                    }
+                });
                 _executionEnvironment.setSurfaceFrame(holder.getSurfaceFrame());
-            else
+            } else
                 _surfaceFrame = holder.getSurfaceFrame();
         }
 
@@ -67,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void surfaceDestroyed(SurfaceHolder holder) {
             Log.i(TAG, "surface destroyed");
+            if (_executionEnvironment != null)
+                _executionEnvironment.setRenderer(null);
             _surfaceFrame = null;
         }
 
@@ -98,8 +103,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (_executionEnvironment != null)
-            _executionEnvironment.setRenderer(null);
         if (_executionEnvironmentBound)
             unbindService(_executionEnvironmentConnection);
     }
