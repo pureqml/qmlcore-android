@@ -21,7 +21,7 @@ public class Image extends Element implements ImageListener {
     URL                         _url;
     ImageLoader.ImageResource   _image;
     V8Function                  _callback;
-    Paint                       _paint = new Paint();
+    Paint                       _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     public Image(IExecutionEnvironment env) {
         super(env);
@@ -73,7 +73,7 @@ public class Image extends Element implements ImageListener {
             if (bitmap != null) {
                 Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
                 Rect dst = translateRect(_rect, baseX, baseY);
-                Log.i(TAG, "drawing image "  + src + " " + dst);
+                //Log.i(TAG, "drawing image "  + src + " " + dst + " " + dst.width() + "x" + dst.height());
                 canvas.drawBitmap(bitmap, src, dst, patchAlpha(_paint, opacity));
             }
         }
