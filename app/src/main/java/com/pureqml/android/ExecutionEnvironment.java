@@ -8,11 +8,9 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
@@ -277,7 +275,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 Rect rect = _rootElement.getCombinedDirtyRect();
                 try {
                     canvas = holder.lockCanvas(rect);
-                    _rootElement.paint(canvas, 0, 0);
+                    _rootElement.paint(canvas, 0, 0, 1);
                 } catch (Exception e) {
                     Log.e(TAG, "paint failed", e);
                 } finally {
@@ -302,9 +300,10 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             return;
 
         root.updateCurrentGeometry(0, 0);
-        Log.i(TAG,"paint rect " + root.getCombinedDirtyRect());
+        Rect rect = root.getCombinedDirtyRect();
         if (_renderer != null) {
-            _renderer.invalidateRect(root.getCombinedDirtyRect());
+            Log.i(TAG,"paint rect " + rect);
+            _renderer.invalidateRect(rect);
         }
     }
 }

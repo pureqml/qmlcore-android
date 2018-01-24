@@ -2,6 +2,7 @@ package com.pureqml.android.runtime;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
@@ -20,6 +21,7 @@ public class Image extends Element implements ImageListener {
     URL                         _url;
     ImageLoader.ImageResource   _image;
     V8Function                  _callback;
+    Paint                       _paint = new Paint();
 
     public Image(IExecutionEnvironment env) {
         super(env);
@@ -62,7 +64,19 @@ public class Image extends Element implements ImageListener {
     }
 
     @Override
-    public void paint(Canvas canvas, int baseX, int baseY) {
-        super.paint(canvas, baseX, baseY);
+    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+        if (!_visible)
+            return;
+
+        if (_image != null) {
+            Bitmap bitmap = _image.getBitmap();
+            if (bitmap != null) {
+                Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+                Rect dst = translateRect(_rect, baseX, baseY);
+                Log.i(TAG, "drawing image "  + src + " " + dst);
+                canvas.drawBitmap(bitmap, src, dst, patchAlpha(_paint, opacity));
+            }
+        }
+        super.paint(canvas, baseX, baseY, opacity);
     }
 }

@@ -27,8 +27,9 @@ public class Rectangle extends Element {
             case "border-width":        _background.setStrokeWidth(toInteger(value)); break;
             case "border-radius":       _radius = toInteger(value); break;
             default:
-                super.setStyle(name, value);
+                super.setStyle(name, value); return;
         }
+        update();
     }
 
     @Override
@@ -37,12 +38,15 @@ public class Rectangle extends Element {
     }
 
     @Override
-    public void paint(Canvas canvas, int baseX, int baseY) {
+    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+        if (!_visible)
+            return;
+
         Rect rect = translateRect(_rect, baseX, baseY);
         if (_radius > 0)
-            canvas.drawRoundRect(new RectF(rect), _radius, _radius, _background);
+            canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, opacity));
         else
-            canvas.drawRect(rect, _background);
-        super.paint(canvas, baseX, baseY);
+            canvas.drawRect(rect, patchAlpha(_background, opacity));
+        super.paint(canvas, baseX, baseY, opacity);
     }
 }

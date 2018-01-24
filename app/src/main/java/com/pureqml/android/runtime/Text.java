@@ -1,7 +1,6 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Rect;
 
 import com.pureqml.android.IExecutionEnvironment;
@@ -30,7 +29,10 @@ public class Text extends Element {
     }
 
     @Override
-    public void paint(Canvas canvas, int baseX, int baseY) {
-        super.paint(canvas, baseX, baseY);
+    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+        if (!_visible)
+            return;
+
+        super.paint(canvas, baseX, baseY, opacity);
     }
 }

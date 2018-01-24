@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
@@ -23,22 +24,19 @@ public class Element {
     };
 
     IExecutionEnvironment _env;
+    protected Rect              _rect       = new Rect();
+    protected float             _opacity    = 1;
+    protected boolean           _visible    = true;
+    protected boolean           _updated    = true;
     protected Element           _parent;
-    protected Rect              _rect;
     protected int               _z;
     protected Rect              _nextRect;
     protected Rect              _lastRect;
-    protected float             _opacity;
-    protected boolean           _visible;
     protected List<Element>     _children;
-    protected boolean           _updated;
     private Map<String, List<V8Function>> _callbacks;
 
     public Element(IExecutionEnvironment env) {
         _env = env;
-        _rect = new Rect();
-        _opacity = 1;
-        _visible = true;
     }
 
     public void append(Element el) throws AlreadyHasAParentException {
@@ -121,9 +119,9 @@ public class Element {
             case "height":  { int height = TypeConverter.toInteger(value);  _rect.bottom = _rect.top + height; } break;
             case "opacity":     _opacity = TypeConverter.toFloat(value); break;
             case "z-index":     _z = TypeConverter.toInteger(value); break;
-            case "visibility":  _visible = value.equals("visible"); break;
+            case "visibility":  _visible = value.equals("inherit") || value.equals("visible"); break;
             default:
-                Log.v(TAG, "setStyle " + name + ": " + value);
+                Log.v(TAG, "ignoring setStyle " + name + ": " + value);
                 return;
         }
         update();
@@ -170,10 +168,13 @@ public class Element {
         _updated = false;
     }
 
-    public void paint(Canvas canvas, int baseX, int baseY) {
+    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+        if (!_visible)
+            return;
+
         if (_children != null) {
             for (Element child : _children) {
-                child.paint(canvas, _rect.left + baseX, _rect.top + baseY);
+                child.paint(canvas, _rect.left + baseX, _rect.top + baseY, opacity * _opacity);
             }
         }
     }
@@ -182,5 +183,10 @@ public class Element {
         Rect r = new Rect(rect);
         r.offset(dx, dy);
         return r;
+    }
+    static final Paint patchAlpha(Paint paint, float opacity) {
+        Paint alphaPaint = new Paint(paint);
+        alphaPaint.setAlpha((int)(alphaPaint.getAlpha() * opacity));
+        return alphaPaint;
     }
 }
