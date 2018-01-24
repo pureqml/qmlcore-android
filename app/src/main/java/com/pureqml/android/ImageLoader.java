@@ -11,13 +11,10 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ImageLoader {
     public static final String TAG = "ImageLoader";
     public static final int CacheSize = 4 * 1024 * 1024;
-
-    ExecutorService _executor = Executors.newCachedThreadPool();
 
     public class ImageResource {
         private URL     _url;
@@ -83,7 +80,7 @@ public class ImageLoader {
 
         ImageHolder(URL url) {
             _url = url;
-            _executor.execute(new ImageLoaderTask(url, this));
+            _threadPool.execute(new ImageLoaderTask(url, this));
         }
 
         @Nullable
@@ -98,7 +95,8 @@ public class ImageLoader {
         synchronized int byteCount() { return _url.toString().length() + (_image != null? _image.getByteCount(): 0); }
     }
 
-    private IExecutionEnvironment _env;
+    private IExecutionEnvironment   _env;
+    private ExecutorService         _threadPool;
 
     private LruCache<URL, ImageHolder> _cache = new LruCache<URL, ImageHolder>(CacheSize) {
         @Override
@@ -107,7 +105,7 @@ public class ImageLoader {
         }
     };
 
-    public ImageLoader(IExecutionEnvironment env) { _env = env; }
+    public ImageLoader(IExecutionEnvironment env) { _env = env; _threadPool = env.getThreadPool(); }
 
     public ImageResource load(URL url) {
         return new ImageResource(url);

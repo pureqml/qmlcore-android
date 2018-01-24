@@ -7,8 +7,12 @@ import com.pureqml.android.runtime.Element;
 
 import java.net.URL;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 public interface IExecutionEnvironment {
+    ExecutorService getExecutor();
+    ExecutorService getThreadPool();
+
     V8 getRuntime();
 
     Element getElementById(long id);
@@ -16,8 +20,6 @@ public interface IExecutionEnvironment {
     void putElement(long id, Element element);
 
     void removeElement(long id);
-
-    Executor getExecutor();
 
     //image loader api
     AssetManager getAssets();

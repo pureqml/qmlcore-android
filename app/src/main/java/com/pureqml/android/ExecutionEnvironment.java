@@ -53,12 +53,15 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private Element                     _rootElement;
     private V8Object                    _exports;
     private ExecutorService             _executor;
+    private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
     private IRenderer                   _renderer;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
         _executor = Executors.newSingleThreadExecutor();
+        _threadPool = Executors.newCachedThreadPool();
+
         _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -213,8 +216,13 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     @Override
-    public Executor getExecutor() {
+    public ExecutorService getExecutor() {
         return _executor;
+    }
+
+    @Override
+    public ExecutorService getThreadPool() {
+        return _threadPool;
     }
 
     @Override
