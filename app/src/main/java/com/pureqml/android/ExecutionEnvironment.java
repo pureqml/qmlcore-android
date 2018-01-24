@@ -240,6 +240,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         List<ImageLoadedCallback> list = _imageWaiters.get(url);
         if (list == null) {
             list = new LinkedList<ImageLoadedCallback>();
+            _imageWaiters.put(url, list);
         }
         list.add(listener);
         return _imageLoader.load(url);
