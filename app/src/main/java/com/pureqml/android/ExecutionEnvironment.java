@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -48,7 +47,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     //Element collection
     private Map<Long, Element>                  _elements = new HashMap<Long, Element>(10000);
-    private HashMap<URL, List<ImageListener>>   _imageWaiters = new HashMap<>();
+    private HashMap<URL, List<ImageLoadedCallback>>   _imageWaiters = new HashMap<>();
     private Rect                        _surfaceGeometry;
     private V8Object                    _rootObject;
     private Element                     _rootElement;
@@ -237,10 +236,10 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     @Override
-    public ImageLoader.ImageResource loadImage(URL url, ImageListener listener) {
-        List<ImageListener> list = _imageWaiters.get(url);
+    public ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener) {
+        List<ImageLoadedCallback> list = _imageWaiters.get(url);
         if (list == null) {
-            list = new LinkedList<ImageListener>();
+            list = new LinkedList<ImageLoadedCallback>();
         }
         list.add(listener);
         return _imageLoader.load(url);
@@ -273,9 +272,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     void _imageLoaded(URL url) {
         Log.v(TAG, "loaded image " + url);
-        List<ImageListener> list = _imageWaiters.get(url);
+        List<ImageLoadedCallback> list = _imageWaiters.get(url);
         if (list != null) {
-            for (ImageListener l : list) {
+            for (ImageLoadedCallback l : list) {
                 try {
                     l.onImageLoaded(url);
                 } catch (Exception e) {

@@ -11,13 +11,13 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
-import com.pureqml.android.ImageListener;
+import com.pureqml.android.ImageLoadedCallback;
 import com.pureqml.android.ImageLoader;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class Image extends Element implements ImageListener {
+public class Image extends Element implements ImageLoadedCallback {
     private final static String TAG = "rt.Image";
     URL                         _url;
     ImageLoader.ImageResource   _image;

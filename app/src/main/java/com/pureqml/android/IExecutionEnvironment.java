@@ -8,7 +8,6 @@ import com.eclipsesource.v8.V8;
 import com.pureqml.android.runtime.Element;
 
 import java.net.URL;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 public interface IExecutionEnvironment {
@@ -26,7 +25,7 @@ public interface IExecutionEnvironment {
 
     //image loader api
     AssetManager getAssets();
-    ImageLoader.ImageResource loadImage(URL url, ImageListener listener);
+    ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener);
     void imageLoaded(URL url);
 
     //text layout api
