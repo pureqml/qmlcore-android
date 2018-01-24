@@ -20,10 +20,10 @@ public class Text extends Element {
         super(env);
     }
 
-    protected void setStyle(String name, Object value) {
+    protected void setStyle(String name, Object value) throws Exception {
         switch(name) {
             case "color":           _paint.setColor(TypeConverter.toColor((String)value)); break;
-            case "font-size":       _paint.setTextSize(TypeConverter.toFontSize((String)value)); break;
+            case "font-size":       _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getDisplayMetrics())); break;
             default:
                 super.setStyle(name, value);
                 return;
@@ -41,15 +41,17 @@ public class Text extends Element {
         if (!_visible)
             return;
 
-        int x = baseX + _rect.left;
-        int y = baseY + _rect.top;
+        float textSize = _paint.getTextSize();
+        float lineHeight = textSize * 1.2f; //fixme: support proper line height/baseline
+        float x = baseX + _rect.left;
+        float y = baseY + _rect.top + lineHeight;
         if (_layout == null) {
             canvas.drawText(_text, x, y, _paint);
         } else {
             //fixme: stub
             for ( TextLayout.Stripe stripe : _layout.stripes) {
                 canvas.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
-                y += _paint.getTextSize();
+                y += lineHeight;
             }
         }
         super.paint(canvas, baseX, baseY, opacity);

@@ -111,7 +111,7 @@ public class Element {
             _lastRect.union(child._lastRect);
     }
 
-    protected void setStyle(String name, Object value) {
+    protected void setStyle(String name, Object value) throws Exception {
         switch(name) {
             case "left":    { int left = TypeConverter.toInteger(value);    _rect.right += left - _rect.left; _rect.left = left; } break;
             case "top":     { int top = TypeConverter.toInteger(value);     _rect.bottom += top - _rect.top; _rect.top = top; } break;

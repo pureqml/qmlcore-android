@@ -21,7 +21,7 @@ public class Rectangle extends Element {
         _background.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
-    protected void setStyle(String name, Object value) {
+    protected void setStyle(String name, Object value) throws Exception {
         switch(name) {
             case "background-color":    _background.setColor(toColor((String)value)); break;
             case "border-width":        _background.setStrokeWidth(toInteger(value)); break;

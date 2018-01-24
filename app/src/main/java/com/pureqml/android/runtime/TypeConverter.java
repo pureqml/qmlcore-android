@@ -2,6 +2,7 @@ package com.pureqml.android.runtime;
 
 
 import android.graphics.Color;
+import android.util.DisplayMetrics;
 
 public class TypeConverter {
     public static final int toInteger(Object value) {
@@ -38,7 +39,13 @@ public class TypeConverter {
             return 0xffff00ff; //invalid color
     }
 
-    public static final int toFontSize(String value) {
-        return 12;
+    public static final int toFontSize(String value, DisplayMetrics metrics) throws Exception {
+        if (value.endsWith("px")) {
+            return Integer.valueOf(value.substring(0, value.length() - 2));
+        } else if (value.endsWith("pt")) {
+            int pt = Integer.valueOf(value.substring(0, value.length() - 2));
+            return (int)(pt / 72.0f * metrics.ydpi);
+        } else
+            throw new Exception("invalid font size");
     }
 }

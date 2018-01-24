@@ -50,7 +50,7 @@ public class Image extends Element implements ImageListener {
         _callback = callback;
     }
 
-    protected void setStyle(String name, Object value) {
+    protected void setStyle(String name, Object value) throws Exception {
         super.setStyle(name, value);
     }
 
