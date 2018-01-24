@@ -10,7 +10,7 @@ import com.pureqml.android.runtime.Element;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 
-public interface IExecutionEnvironment {
+public interface IExecutionEnvironment extends ImageLoadedCallback {
     ExecutorService getExecutor();
     ExecutorService getThreadPool();
 
@@ -26,7 +26,6 @@ public interface IExecutionEnvironment {
     //image loader api
     AssetManager getAssets();
     ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener);
-    void imageLoaded(URL url);
 
     //text layout api
     void layoutText(String text, Rect rect, TextLayoutCallback callback);

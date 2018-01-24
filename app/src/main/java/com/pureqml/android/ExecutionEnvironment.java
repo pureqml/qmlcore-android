@@ -46,8 +46,9 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private V8 _v8;
 
     //Element collection
-    private Map<Long, Element>                  _elements = new HashMap<Long, Element>(10000);
-    private HashMap<URL, List<ImageLoadedCallback>>   _imageWaiters = new HashMap<>();
+    private Map<Long, Element>           _elements = new HashMap<Long, Element>(10000);
+    private HashMap<URL, List<ImageLoadedCallback>>
+                                        _imageWaiters = new HashMap<>();
     private Rect                        _surfaceGeometry;
     private V8Object                    _rootObject;
     private Element                     _rootElement;
@@ -243,11 +244,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _imageWaiters.put(url, list);
         }
         list.add(listener);
-        return _imageLoader.load(url);
+        return _imageLoader.load(url, this);
     }
 
     @Override
-    public void imageLoaded(final URL url) {
+    public void onImageLoaded(final URL url) {
         _executor.execute(new Runnable() {
             @Override
             public void run() {

@@ -67,7 +67,7 @@ public class ImageLoader {
                 synchronized (_cache) {
                     _cache.remove(_url);
                     _holder.setBitmap(bitmap);
-                    _env.imageLoaded(_url);
+                    _env.onImageLoaded(_url);
                     _cache.put(_url, _holder);
                 }
             }
@@ -105,9 +105,19 @@ public class ImageLoader {
         }
     };
 
-    public ImageLoader(IExecutionEnvironment env) { _env = env; _threadPool = env.getThreadPool(); }
+    public ImageLoader(IExecutionEnvironment env) {
+        _env = env;
+        _threadPool = env.getThreadPool();
+    }
 
-    public ImageResource load(URL url) {
+    public ImageResource load(URL url, ImageLoadedCallback callback) {
+        synchronized (_cache) {
+            ImageHolder holder = _cache.get(url);
+            if (holder != null && holder.getBitmap() != null) {
+                callback.onImageLoaded(holder._url);
+            }
+        }
         return new ImageResource(url);
     }
+
 }
