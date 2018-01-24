@@ -250,7 +250,19 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         _executor.execute(new Runnable() {
             @Override
             public void run() {
-                _imageLoaded(url);
+                Log.v(TAG, "loaded image " + url);
+                List<ImageLoadedCallback> list = _imageWaiters.get(url);
+                if (list != null) {
+                    for (ImageLoadedCallback l : list) {
+                        try {
+                            l.onImageLoaded(url);
+                        } catch (Exception e) {
+                            Log.e(TAG, "image listener failed", e);
+                        }
+                    }
+                }
+                _imageWaiters.remove(url);
+                paint();
             }
         });
     }
@@ -268,22 +280,6 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 });
             }
         });
-    }
-
-    void _imageLoaded(URL url) {
-        Log.v(TAG, "loaded image " + url);
-        List<ImageLoadedCallback> list = _imageWaiters.get(url);
-        if (list != null) {
-            for (ImageLoadedCallback l : list) {
-                try {
-                    l.onImageLoaded(url);
-                } catch (Exception e) {
-                    Log.e(TAG, "image listener failed", e);
-                }
-            }
-        }
-        _imageWaiters.remove(url);
-        paint();
     }
 
     protected void setSurfaceFrame(final Rect rect) {
