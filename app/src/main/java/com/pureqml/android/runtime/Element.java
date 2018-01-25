@@ -120,6 +120,7 @@ public class Element {
             case "opacity":     _opacity = TypeConverter.toFloat(value); break;
             case "z-index":     _z = TypeConverter.toInteger(value); break;
             case "visibility":  _visible = value.equals("inherit") || value.equals("visible"); break;
+            case "cursor": break; //ignoring
             default:
                 Log.v(TAG, "ignoring setStyle " + name + ": " + value);
                 return;
