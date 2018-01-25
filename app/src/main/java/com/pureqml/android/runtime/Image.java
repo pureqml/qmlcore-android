@@ -60,10 +60,10 @@ public class Image extends Element implements ImageLoadedCallback {
     @Override
     public void onImageLoaded(URL url) {
         if (url.equals(_url)) {
-            V8Array args = new V8Array(_env.getRuntime());
-            V8Object metrics = new V8Object(_env.getRuntime());
             Bitmap bitmap = _image.getBitmap();
             if (bitmap != null) {
+                V8Array args = new V8Array(_env.getRuntime());
+                V8Object metrics = new V8Object(_env.getRuntime());
                 metrics.add("width", bitmap.getWidth());
                 metrics.add("height", bitmap.getHeight());
 
@@ -75,9 +75,9 @@ public class Image extends Element implements ImageLoadedCallback {
                 } catch (Exception e) {
                     Log.e(TAG, "callback invocation failed", e);
                 }
+                args.release();
+                metrics.release();
             }
-            args.release();
-            metrics.release();
 
             update();
         }
