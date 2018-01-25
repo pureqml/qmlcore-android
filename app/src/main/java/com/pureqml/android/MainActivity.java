@@ -83,10 +83,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void repaint() {
-        _surfaceView.invalidate();
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
