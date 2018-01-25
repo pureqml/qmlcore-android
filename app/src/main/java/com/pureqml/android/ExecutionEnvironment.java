@@ -182,18 +182,31 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
     @Override
     public void onDestroy() {
+        Future<Void> future = _executor.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                if (_rootObject != null) {
+                    _rootObject.release();
+                    _rootObject = null;
+                }
+                if (_exports != null) {
+                    _exports.release();
+                }
+                _v8.release();
+                return null;
+            }
+        });
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "stopping environment failed", e);
+        } catch (ExecutionException e) {
+            Log.e(TAG, "stopping environment failed", e);
+        }
         _executor.shutdownNow();
 
         _executor = null;
         _elements = null;
-        if (_rootObject != null) {
-            _rootObject.release();
-            _rootObject = null;
-        }
-        if (_exports != null) {
-            _exports.release();
-        }
-        _v8.release();
     }
 
     @Override
