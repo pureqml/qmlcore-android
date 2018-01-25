@@ -18,9 +18,7 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     DisplayMetrics getDisplayMetrics();
 
     Element getElementById(long id);
-
     void putElement(long id, Element element);
-
     void removeElement(long id);
 
     //image loader api
