@@ -3,6 +3,7 @@ package com.pureqml.android.runtime;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Function;
@@ -24,6 +25,12 @@ public class Text extends Element {
         switch(name) {
             case "color":           _paint.setColor(TypeConverter.toColor((String)value)); break;
             case "font-size":       _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getDisplayMetrics())); break;
+            case "font-weight":
+                if (value.equals("bold"))
+                    _paint.setTypeface(Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD));
+                else
+                    Log.v(TAG, "ignoring font-weight " + value);
+                break;
             default:
                 super.setStyle(name, value);
                 return;
