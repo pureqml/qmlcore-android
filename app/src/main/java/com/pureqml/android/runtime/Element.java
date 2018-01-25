@@ -135,7 +135,10 @@ public class Element {
             for (String key : styles.getKeys())
                 setStyle(key, styles.getString(key));
         } else if (arguments.length() == 2) {
-            setStyle(arguments.getString(0), Wrapper.getValue(_env, null, arguments.get(1)));
+            Object value = arguments.get(1);
+            setStyle(arguments.getString(0), Wrapper.getValue(_env, null, value));
+            if (value instanceof Releasable)
+                ((Releasable)value).release();
         }
         else
             throw new Exception("invalid setStyle invocation");//fixme: leak of resources here
