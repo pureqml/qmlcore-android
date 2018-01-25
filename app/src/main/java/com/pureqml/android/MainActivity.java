@@ -98,8 +98,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         if (_executionEnvironmentBound)
             unbindService(_executionEnvironmentConnection);
+        _surfaceView = null;
+        super.onDestroy();
     }
 }
