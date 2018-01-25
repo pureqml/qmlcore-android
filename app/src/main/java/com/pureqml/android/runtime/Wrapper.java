@@ -52,8 +52,7 @@ public class Wrapper {
             Class<?> argsType [] = _method.getParameterTypes();
             Object [] targetArguments = new Object[n];
             for(int i = 0; i < n; ++i) {
-                Object value = arguments.get(i);
-                targetArguments[i] = getValue(_env, argsType[i], value);
+                targetArguments[i] = getValue(_env, argsType[i], arguments.get(i));
             }
             try {
                 return _method.invoke(element, targetArguments);

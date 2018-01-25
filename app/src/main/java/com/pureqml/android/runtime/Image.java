@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
+import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
@@ -40,7 +41,9 @@ public class Image extends Element implements ImageLoadedCallback {
 
             V8Array args = new V8Array(v8);
             args.push((Object)null);
-            callback.call(null, args); //indicate error
+            Object r = callback.call(null, args); //indicate error
+            if (r instanceof Releasable)
+                ((Releasable)r).release();
             args.release();
             return;
         }
@@ -68,7 +71,9 @@ public class Image extends Element implements ImageLoadedCallback {
 
             try {
                 args.push(metrics);
-                _callback.call(null, args); //indicate error
+                Object r = _callback.call(null, args); //indicate error
+                if (r instanceof Releasable)
+                    ((Releasable)r).release();
             } catch (Exception e) {
                 Log.e(TAG, "callback invocation failed", e);
             } finally {

@@ -3,6 +3,7 @@ package com.pureqml.android.runtime;
 import android.util.Log;
 
 import com.eclipsesource.v8.JavaVoidCallback;
+import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 
@@ -18,6 +19,8 @@ public class Console {
                 if (i > 0)
                     b.append(' ');
                 b.append(value.toString());
+                if (value instanceof Releasable)
+                    ((Releasable)value).release();
             }
             Log.i(TAG, b.toString());
         }

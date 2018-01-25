@@ -88,7 +88,9 @@ public class Element {
         }
         for(V8Function callback : callbacks) {
             try {
-                callback.call(target, v8args);
+                Object r = callback.call(target, v8args);
+                if (r instanceof Releasable)
+                    ((Releasable)r).release();
             } catch (Exception e) {
                 Log.e(TAG, "callback for " + name + " failed", e);
             }
