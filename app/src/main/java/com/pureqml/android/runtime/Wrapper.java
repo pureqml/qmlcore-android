@@ -140,9 +140,12 @@ public class Wrapper {
             Log.i(TAG, "wrapping ctor of " + cls.getName());
             namespace.registerJavaMethod(new ConstructorWrapper(env, ctor), className);
 
-            V8Object prototype = namespace.getObject(className).getObject("prototype");
+            V8Object function = namespace.getObject(className);
+            V8Object prototype = function.getObject("prototype");
 
             generatePrototype(env, v8, prototype, cls);
+
+            function.release();
 
             return prototype;
         } catch (NoSuchMethodException e) {
