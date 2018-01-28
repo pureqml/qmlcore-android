@@ -36,12 +36,9 @@ public class Timers {
                 public void run() {
                     //Log.v(TAG, "timer task " + _id + " fired");
                     V8Function func = (V8Function)_callback;
-                    try { func.call(null, null); }
-                    catch(Exception ex) { Log.v(TAG, "timer task failed", ex); }
-                    finally {
-                        if (_singleShot)
-                            cancel();
-                    }
+                    _env.invokeCallback(func, null, null);
+                    if (_singleShot)
+                        cancel();
                 }
             });
         }

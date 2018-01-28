@@ -13,8 +13,10 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.JavaCallback;
+import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
@@ -250,6 +252,25 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     @Override
+    public Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments) {
+        try {
+            return callback.call(null, arguments);
+        } catch (Exception e) {
+            Log.e(TAG, "callback invocation failed", e);
+        } finally {
+            paint();
+        }
+        return null;
+    }
+
+    @Override
+    public void invokeVoidCallback(V8Function callback, V8Object receiver, V8Array arguments) {
+        Object r = invokeCallback(callback, receiver, arguments);
+        if (r instanceof Releasable)
+            ((Releasable) r).release();
+    }
+
+    @Override
     public ExecutorService getExecutor() {
         return _executor;
     }
@@ -348,7 +369,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         }
     }
 
-    private void paint() {
+    public void paint() {
         Element root = _rootElement;
         if (root == null)
             return;
@@ -373,6 +394,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 } catch(Exception e) {
                     Log.e(TAG, "click handler failed", e);
                     return false;
+                } finally {
+                    paint();
                 }
             }
         });

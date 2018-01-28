@@ -5,6 +5,9 @@ import android.graphics.Rect;
 import android.util.DisplayMetrics;
 
 import com.eclipsesource.v8.V8;
+import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8Function;
+import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Element;
 
 import java.net.URL;
@@ -20,6 +23,11 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     Element getElementById(long id);
     void putElement(long id, Element element);
     void removeElement(long id);
+
+    //invoke function + paint
+    Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments);
+    void invokeVoidCallback(V8Function callback, V8Object receiver, V8Array arguments);
+    void paint();
 
     //image loader api
     AssetManager getAssets();

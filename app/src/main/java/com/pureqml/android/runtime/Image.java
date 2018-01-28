@@ -66,15 +66,9 @@ public class Image extends Element implements ImageLoadedCallback {
                 V8Object metrics = new V8Object(_env.getRuntime());
                 metrics.add("width", bitmap.getWidth());
                 metrics.add("height", bitmap.getHeight());
+                args.push(metrics);
 
-                try {
-                    args.push(metrics);
-                    Object r = _callback.call(null, args); //indicate error
-                    if (r instanceof Releasable)
-                        ((Releasable) r).release();
-                } catch (Exception e) {
-                    Log.e(TAG, "callback invocation failed", e);
-                }
+                _env.invokeVoidCallback(_callback, null, args);
                 args.release();
                 metrics.release();
             }
