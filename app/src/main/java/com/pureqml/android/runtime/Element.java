@@ -75,6 +75,10 @@ public class Element {
         callbacks.add(callback);
     }
 
+    protected boolean hasCallbackFor(String name) {
+        return _callbacks != null && _callbacks.get(name) != null;
+    }
+
     public void emit(V8Object target, String name, Object ... args) {
         Log.i(TAG, "emitting " + name);
         if (_callbacks == null)
@@ -185,11 +189,35 @@ public class Element {
         }
     }
 
+    public boolean sendEvent(String name, int x, int y) {
+        int baseX = _rect.left, baseY = _rect.top;
+
+        //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
+        x -= baseX;
+        y -= baseY;
+
+        Log.v(TAG, this + ": " + name + ", position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y) + " " + hasCallbackFor(name));
+
+        if (_children != null) {
+            for (Element child : _children) {
+                if (child.sendEvent(name, x, y))
+                    return true;
+            }
+        }
+
+        if (_rect.contains(x, y) && hasCallbackFor(name)) {
+            emit(null, "click");
+            return true;
+        }
+        return false;
+    }
+
     static final Rect translateRect(Rect rect, int dx, int dy) {
         Rect r = new Rect(rect);
         r.offset(dx, dy);
         return r;
     }
+
     static final Paint patchAlpha(Paint paint, float opacity) {
         Paint alphaPaint = new Paint(paint);
         alphaPaint.setAlpha((int)(alphaPaint.getAlpha() * opacity));

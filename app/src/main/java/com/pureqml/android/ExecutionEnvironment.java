@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
@@ -350,4 +351,16 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _renderer.invalidateRect(rect);
         }
     }
+
+    public Future<Boolean> sendEvent(final MotionEvent event) {
+        return _executor.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                boolean r = _rootElement != null? _rootElement.sendEvent("click", (int)event.getX(), (int)event.getY()): false;
+                Log.v(TAG,"click processed = "  + r);
+                return r;
+            }
+        });
+    }
+
 }

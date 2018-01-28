@@ -9,8 +9,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,6 +96,14 @@ public class MainActivity extends AppCompatActivity {
 
         _surfaceView = (SurfaceView)findViewById(R.id.contextView);
         _surfaceView.getHolder().addCallback(new SurfaceHolderCallback());
+        _surfaceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (_executionEnvironment != null)
+                    _executionEnvironment.sendEvent(event);
+                return false;
+            }
+        });
     }
 
     @Override
