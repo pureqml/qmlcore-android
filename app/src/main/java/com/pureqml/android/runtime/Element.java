@@ -197,24 +197,38 @@ public class Element {
         }
     }
 
+    public Rect getScreenRect() {
+        Rect rect = new Rect(_rect);
+        Element el = _parent;
+        while(el != null) {
+            rect.offset(el._rect.left, el._rect.top);
+            el = el._parent;
+        }
+        return rect;
+    }
+
     public boolean sendEvent(String name, int x, int y) {
-        int baseX = _rect.left, baseY = _rect.top;
-
         //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
-        x -= baseX;
-        y -= baseY;
+        int baseX = _rect.left;
+        int baseY = _rect.top;
+        int offsetX = x - baseX;
+        int offsetY = y - baseY;
 
-        Log.v(TAG, this + ": " + name + ", position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y) + " " + hasCallbackFor(name));
+        //Log.v(TAG, this + ": " + name + ", position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y) + " " + hasCallbackFor(name));
 
         if (_children != null) {
             for (Element child : _children) {
-                if (child.sendEvent(name, x, y))
+                if (child.sendEvent(name, offsetX, offsetY))
                     return true;
             }
         }
 
         if (_rect.contains(x, y) && hasCallbackFor(name)) {
-            emit(null, "click");
+            V8Object mouseEvent = new V8Object(_env.getRuntime());
+            mouseEvent.add("offsetX", offsetX);
+            mouseEvent.add("offsetY", offsetY);
+            emit(null, "click", mouseEvent);
+            mouseEvent.release();
             return true;
         }
         return false;

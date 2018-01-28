@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
+import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
@@ -359,9 +360,15 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         return _executor.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                boolean r = _rootElement != null? _rootElement.sendEvent("click", (int)event.getX(), (int)event.getY()): false;
-                Log.v(TAG,"click processed = "  + r);
-                return r;
+                try {
+                    Log.v(TAG,"click coordinates " + event.getX() + ", " + event.getY());
+                    boolean r = _rootElement != null ? _rootElement.sendEvent("click", (int) event.getX(), (int) event.getY()) : false;
+                    //Log.v(TAG, "click processed = " + r);
+                    return r;
+                } catch(Exception e) {
+                    Log.e(TAG, "click handler failed", e);
+                    return false;
+                }
             }
         });
     }
