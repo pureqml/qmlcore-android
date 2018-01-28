@@ -60,6 +60,14 @@ public class Element {
 
     public void discard() {
         remove();
+        if (_callbacks != null) {
+            for(String name : _callbacks.keySet()) {
+                List<V8Function> callbacks = _callbacks.get(name);
+                for(V8Function callback : callbacks)
+                    callback.release();
+            }
+            _callbacks = null;
+        }
         //_env.removeElement(this.hashCode()); //fixme: find out why it's not working
     }
 
