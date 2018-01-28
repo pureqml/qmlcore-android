@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
+import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
@@ -20,6 +21,7 @@ import com.pureqml.android.runtime.Element;
 import com.pureqml.android.runtime.Image;
 import com.pureqml.android.runtime.Rectangle;
 import com.pureqml.android.runtime.Text;
+import com.pureqml.android.runtime.Timers;
 import com.pureqml.android.runtime.Wrapper;
 
 import java.io.ByteArrayOutputStream;
@@ -56,6 +58,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private Element                     _rootElement;
     private V8Object                    _exports;
     private ExecutorService             _executor;
+    private Timers                      _timers;
     private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
     private TextRenderer                _textRenderer;
@@ -87,6 +90,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     void registerRuntime() {
+        _timers = new Timers(this);
         V8Object v8Console = new V8Object(_v8);
         _v8.add("console", v8Console);
         v8Console.registerJavaMethod(new Console.LogMethod(), "log");
@@ -187,6 +191,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         Future<Void> future = _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
+                _timers.cancel();
                 try { _rootObject.executeVoidFunction("discard", null); }
                 catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
