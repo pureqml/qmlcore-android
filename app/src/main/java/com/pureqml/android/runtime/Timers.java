@@ -34,7 +34,7 @@ public class Timers {
             _env.getExecutor().execute(new Runnable() {
                 @Override
                 public void run() {
-                    Log.v(TAG, "timer task " + _id + " fired");
+                    //Log.v(TAG, "timer task " + _id + " fired");
                     V8Function func = (V8Function)_callback;
                     try { func.call(null, null); }
                     catch(Exception ex) { Log.v(TAG, "timer task failed", ex); }
@@ -88,7 +88,7 @@ public class Timers {
                 if (task != null) {
                     task.cancel();
                 } else {
-                    Log.w(TAG, "invalid task " + id  + " cancelled");
+                    //Log.v(TAG, "invalid/completed task " + id  + " cancelled");
                 }
             }
         };
