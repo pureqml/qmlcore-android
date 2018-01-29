@@ -107,7 +107,7 @@ public class Element {
                 Log.e(TAG, "callback for " + name + " failed", e);
             }
         }
-        _env.paint();
+        _env.schedulePaint();
         v8args.release();
     }
 

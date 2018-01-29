@@ -3,6 +3,7 @@ package com.pureqml.android;
 import android.content.res.AssetManager;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
+import android.view.SurfaceHolder;
 
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
@@ -24,10 +25,11 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     void putElement(long id, Element element);
     void removeElement(long id);
 
-    //invoke function + paint
+    //invoke function + schedulePaint
     Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments);
     void invokeVoidCallback(V8Function callback, V8Object receiver, V8Array arguments);
-    void paint();
+    void schedulePaint();
+    void repaint(SurfaceHolder holder);
 
     //image loader api
     AssetManager getAssets();

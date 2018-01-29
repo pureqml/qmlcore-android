@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
-import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
@@ -186,7 +185,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _exports.release();
             _exports = null;
         }
-        paint();
+        schedulePaint();
     }
 
     @Override
@@ -259,7 +258,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         } catch (Exception e) {
             Log.e(TAG, "callback invocation failed", e);
         } finally {
-            paint();
+            schedulePaint();
         }
         return null;
     }
@@ -309,7 +308,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                     }
                 }
                 _imageWaiters.remove(url);
-                paint();
+                schedulePaint();
             }
         });
     }
@@ -343,7 +342,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         });
     }
 
-    protected void repaint(final SurfaceHolder holder) {
+    public void repaint(final SurfaceHolder holder) {
         final Future<Void> f = _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -353,7 +352,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                     canvas = holder.lockCanvas(rect);
                     _rootElement.paint(canvas, 0, 0, 1);
                 } catch (Exception e) {
-                    Log.e(TAG, "paint failed", e);
+                    Log.e(TAG, "schedulePaint failed", e);
                 } finally {
                     if (canvas != null)
                         holder.unlockCanvasAndPost(canvas);
@@ -370,7 +369,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         }
     }
 
-    public void paint() {
+    public void schedulePaint() {
         Element root = _rootElement;
         if (root == null)
             return;
@@ -378,7 +377,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         root.updateCurrentGeometry(0, 0);
         Rect rect = root.getCombinedDirtyRect();
         if (_renderer != null) {
-            Log.i(TAG,"paint rect " + rect);
+            Log.i(TAG,"schedulePaint rect " + rect);
             _renderer.invalidateRect(rect);
         }
     }
@@ -396,7 +395,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                     Log.e(TAG, "click handler failed", e);
                     return false;
                 } finally {
-                    paint();
+                    schedulePaint();
                 }
             }
         });

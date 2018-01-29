@@ -20,8 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "main";
     private boolean                 _executionEnvironmentBound = false;
     private ExecutionEnvironment    _executionEnvironment;
-    private SurfaceView             _surfaceView;
-    private Surface                 _surface;
+    private MainView                _mainView;
     private Rect                    _surfaceFrame;
     private IRenderer               _uiRenderer;
 
@@ -30,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
             Log.i(TAG, "connected to execution service...");
             synchronized (MainActivity.this) {
+                _mainView.setExecutionEnvironment(_executionEnvironment);
                 if (_surfaceFrame != null)
                     _executionEnvironment.setSurfaceFrame(_surfaceFrame);
                 if (_uiRenderer != null) {
@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName name) {
             Log.i(TAG, "execution environment service died...");
             synchronized (MainActivity.this) {
+                _mainView.setExecutionEnvironment(null);
                 _executionEnvironment = null;
             }
         }
@@ -50,21 +51,22 @@ public class MainActivity extends AppCompatActivity {
     private class SurfaceHolderCallback implements SurfaceHolder.Callback2 {
 
         @Override
-        public void surfaceCreated(SurfaceHolder holder) {
+        public void surfaceCreated(final SurfaceHolder holder) {
             Log.i(TAG, "surface created " + holder.getSurfaceFrame());
             synchronized (MainActivity.this) {
-                _surface = holder.getSurface();
                 _surfaceFrame = holder.getSurfaceFrame();
 
-                final SurfaceView view = _surfaceView;
+                final SurfaceView view = _mainView;
                 _uiRenderer = new IRenderer() {
                     @Override
                     public void invalidateRect(Rect rect) {
                         Log.v(TAG, "invalidateRect " + rect);
-                        if (rect != null)
-                            view.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
-                        else
-                            view.postInvalidate();
+                        synchronized (holder) {
+                            if (rect != null)
+                                view.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
+                            else
+                                view.postInvalidate();
+                        }
                     }
                 };
                 if (_executionEnvironment != null)
@@ -76,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             Log.i(TAG, "surface changed " + holder.getSurfaceFrame());
             synchronized (MainActivity.this) {
-                _surface = holder.getSurface();
                 _surfaceFrame = holder.getSurfaceFrame();
                 if (_executionEnvironment != null)
                     _executionEnvironment.setSurfaceFrame(_surfaceFrame);
@@ -90,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
                 if (_executionEnvironment != null)
                     _executionEnvironment.setRenderer(null);
                 _surfaceFrame = null;
-                _surface = null;
             }
         }
 
@@ -108,9 +108,9 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-        _surfaceView = (SurfaceView)findViewById(R.id.contextView);
-        _surfaceView.getHolder().addCallback(new SurfaceHolderCallback());
-        _surfaceView.setOnTouchListener(new View.OnTouchListener() {
+        _mainView = (MainView) findViewById(R.id.contextView);
+        _mainView.getHolder().addCallback(new SurfaceHolderCallback());
+        _mainView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (_executionEnvironment != null)
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (_executionEnvironmentBound)
             unbindService(_executionEnvironmentConnection);
-        _surfaceView = null;
+        _mainView = null;
         super.onDestroy();
     }
 }
