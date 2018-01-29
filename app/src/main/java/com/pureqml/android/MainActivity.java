@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -19,24 +20,30 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "main";
     private boolean                 _executionEnvironmentBound = false;
     private ExecutionEnvironment    _executionEnvironment;
-    private Rect                    _surfaceFrame;
     private SurfaceView             _surfaceView;
+    private Surface                 _surface;
+    private Rect                    _surfaceFrame;
+    private IRenderer               _uiRenderer;
 
     private ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
-
-            if (_surfaceFrame != null) {
-                _executionEnvironment.setSurfaceFrame(_surfaceFrame);
-            }
-
             Log.i(TAG, "connected to execution service...");
+            synchronized (MainActivity.this) {
+                if (_surfaceFrame != null)
+                    _executionEnvironment.setSurfaceFrame(_surfaceFrame);
+                if (_uiRenderer != null) {
+                    _executionEnvironment.setRenderer(_uiRenderer);
+                }
+            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             Log.i(TAG, "execution environment service died...");
-            _executionEnvironment = null;
+            synchronized (MainActivity.this) {
+                _executionEnvironment = null;
+            }
         }
     };
 
@@ -45,36 +52,46 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
             Log.i(TAG, "surface created " + holder.getSurfaceFrame());
-            if (_executionEnvironment != null) {
-                _executionEnvironment.setRenderer(new IRenderer() {
-                    @Override
-                    public void invalidateRect(final Rect rect) {
-                        if (rect != null)
-                            MainActivity.this._surfaceView.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
-                        else
-                            MainActivity.this._surfaceView.postInvalidate();
-                    }
-                });
-                _executionEnvironment.setSurfaceFrame(holder.getSurfaceFrame());
-            } else
+            synchronized (MainActivity.this) {
+                _surface = holder.getSurface();
                 _surfaceFrame = holder.getSurfaceFrame();
+
+                final SurfaceView view = _surfaceView;
+                _uiRenderer = new IRenderer() {
+                    @Override
+                    public void invalidateRect(Rect rect) {
+                        Log.v(TAG, "invalidateRect " + rect);
+                        if (rect != null)
+                            view.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
+                        else
+                            view.postInvalidate();
+                    }
+                };
+                if (_executionEnvironment != null)
+                    _executionEnvironment.setRenderer(_uiRenderer);
+            }
         }
 
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             Log.i(TAG, "surface changed " + holder.getSurfaceFrame());
-            if (_executionEnvironment != null)
-                _executionEnvironment.setSurfaceFrame(holder.getSurfaceFrame());
-            else
+            synchronized (MainActivity.this) {
+                _surface = holder.getSurface();
                 _surfaceFrame = holder.getSurfaceFrame();
+                if (_executionEnvironment != null)
+                    _executionEnvironment.setSurfaceFrame(_surfaceFrame);
+            }
         }
 
         @Override
         public void surfaceDestroyed(SurfaceHolder holder) {
             Log.i(TAG, "surface destroyed");
-            if (_executionEnvironment != null)
-                _executionEnvironment.setRenderer(null);
-            _surfaceFrame = null;
+            synchronized (MainActivity.this) {
+                if (_executionEnvironment != null)
+                    _executionEnvironment.setRenderer(null);
+                _surfaceFrame = null;
+                _surface = null;
+            }
         }
 
         @Override
@@ -90,9 +107,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
-        bindService(new Intent(this,
-                ExecutionEnvironment.class), _executionEnvironmentConnection, Context.BIND_AUTO_CREATE | Context.BIND_ADJUST_WITH_ACTIVITY);
-        _executionEnvironmentBound = true;
 
         _surfaceView = (SurfaceView)findViewById(R.id.contextView);
         _surfaceView.getHolder().addCallback(new SurfaceHolderCallback());
@@ -104,6 +118,10 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        bindService(new Intent(this,
+                ExecutionEnvironment.class), _executionEnvironmentConnection, Context.BIND_AUTO_CREATE | Context.BIND_ADJUST_WITH_ACTIVITY);
+        _executionEnvironmentBound = true;
     }
 
     @Override

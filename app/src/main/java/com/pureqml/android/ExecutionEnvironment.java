@@ -79,7 +79,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         });
     }
 
-    void setRenderer(IRenderer renderer) {
+    synchronized void setRenderer(IRenderer renderer) {
+        Log.v(TAG, "setRenderer " + renderer);
         _renderer = renderer;
         if (renderer != null)
             renderer.invalidateRect(null); //fullscreen update
