@@ -94,6 +94,7 @@ public class Image extends Element implements ImageLoadedCallback {
                 Rect dst = translateRect(_rect, baseX, baseY);
                 //Log.i(TAG, "drawing image "  + src + " " + dst + " " + dst.width() + "x" + dst.height());
                 canvas.drawBitmap(bitmap, src, dst, patchAlpha(_paint, opacity));
+                _lastRect = dst;
             }
         }
         super.paint(canvas, baseX, baseY, opacity);

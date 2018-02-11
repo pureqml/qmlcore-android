@@ -61,6 +61,7 @@ public class Text extends Element {
                 y += lineHeight;
             }
         }
+        _lastRect = new Rect(getEffectiveRect()); //fixme: get actual bounding box
         super.paint(canvas, baseX, baseY, opacity);
     }
 

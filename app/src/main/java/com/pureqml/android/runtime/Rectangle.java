@@ -63,6 +63,7 @@ public class Rectangle extends Element {
                 canvas.drawRect(rect, patchAlpha(_border, opacity));
             }
         }
+        _lastRect = rect;
 
         super.paint(canvas, baseX, baseY, opacity);
     }

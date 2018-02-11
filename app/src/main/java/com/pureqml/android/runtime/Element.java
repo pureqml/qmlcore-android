@@ -24,10 +24,11 @@ public class Element {
     };
 
     IExecutionEnvironment _env;
-    protected Rect              _rect       = new Rect();
-    protected float             _opacity    = 1;
-    protected boolean           _visible    = true;
-    protected boolean           _updated    = true;
+    protected Rect              _rect           = new Rect();
+    protected float             _opacity        = 1;
+    protected boolean           _visible        = true;
+    protected boolean           _updated        = true;
+    protected boolean           _updatedChild   = true;
     protected Element           _parent;
     protected int               _z;
     protected Rect              _nextRect;
@@ -112,9 +113,10 @@ public class Element {
     }
 
     void update() {
-        Element current = this;
-        while(current != null && !current._updated) {
-            current._updated = true;
+        _updated = true;
+        Element current = this._parent;
+        while(current != null && !current._updatedChild) {
+            current._updatedChild = true;
             current = current._parent;
         }
     }
@@ -124,6 +126,7 @@ public class Element {
             _children.remove(child);
         if (child._lastRect != null)
             _lastRect.union(child._lastRect);
+        update();
     }
 
     protected void setStyle(String name, Object value) throws Exception {
@@ -165,35 +168,49 @@ public class Element {
     public Rect getCombinedDirtyRect()  { return _nextRect; }
 
     public void updateCurrentGeometry(int baseX, int baseY) {
-        if (!_updated)
+        if (!_updated && !_updatedChild)
             return;
 
+        //Log.i(TAG, "updateGeometry: " + this + " childupdated: " + _updatedChild + " updated: " + _updated + " " + _rect + " @ " + baseX + ", " + baseY);
         _nextRect = new Rect();
-        Rect rect = getEffectiveRect();
-        if (rect != null) {
-            _nextRect.union(translateRect(rect, baseX, baseY));
+        if (_updated) {
+            Rect rect = getEffectiveRect();
+            if (rect != null)
+                _nextRect.union(translateRect(rect, baseX, baseY));
+            if (_lastRect != null) //clear old position
+                _nextRect.union(_lastRect);
         }
-        if (_lastRect != null)
-            _nextRect.union(_lastRect);
 
         baseX += _rect.left;
         baseY += _rect.top;
         if (_children != null) {
             for (Element child : _children) {
                 child.updateCurrentGeometry(baseX, baseY);
-                _nextRect.union(translateRect(child._nextRect, baseX, baseY));
+                Rect translatedRect = translateRect(child._nextRect, baseX, baseY);
+                _nextRect.union(translatedRect);
+                //Log.i(TAG, "updateGeometry: " + this + " merging child rect " + translatedRect + " → " + _nextRect);
             }
         }
+        //Log.i(TAG, "updateGeometry: " + this + " results in " + _nextRect);
         _updated = false;
+        _updatedChild = false;
     }
 
     public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
-        if (!_visible)
+        if (!_visible) {
+            _lastRect = null;
             return;
+        }
 
         if (_children != null) {
             for (Element child : _children) {
                 child.paint(canvas, _rect.left + baseX, _rect.top + baseY, opacity * _opacity);
+                if (child._lastRect != null) {
+                    if (_lastRect == null)
+                        _lastRect = new Rect(child._lastRect);
+                    else
+                        _lastRect.union(child._lastRect);
+                }
             }
         }
     }
