@@ -197,6 +197,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 try { _rootObject.executeVoidFunction("discard", null); }
                 catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
+                for(Map.Entry<Long, Element> entry : _elements.entrySet()) {
+                    entry.getValue().discard();
+                }
+                _elements.clear();
+
                 if (_rootElement != null) {
                     _rootElement.discard();
                     _rootElement = null;
@@ -210,6 +215,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                     _exports.close();
                     _exports = null;
                 }
+
                 _v8.close();
                 return null;
             }
