@@ -193,7 +193,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         Future<Void> future = _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                _timers.cancel();
+                _timers.discard();
+
                 try { _rootObject.executeVoidFunction("discard", null); }
                 catch(Exception e) { Log.e(TAG, "discard failed", e); }
 

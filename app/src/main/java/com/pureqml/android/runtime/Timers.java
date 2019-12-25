@@ -11,6 +11,7 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.ExecutionEnvironment;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -93,5 +94,11 @@ public class Timers {
         v8.registerJavaMethod(cancel, "clearInterval");
     }
 
-    public void cancel() { _timer.cancel(); }
+    public void discard() {
+        _timer.cancel();
+        for(Map.Entry<Integer, TimerTask> entry : _tasks.entrySet()) {
+            entry.getValue().cancel();
+        }
+        _tasks.clear();
+    }
 }
