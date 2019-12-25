@@ -197,6 +197,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 try { _rootObject.executeVoidFunction("discard", null); }
                 catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
+                if (_rootElement != null) {
+                    _rootElement.discard();
+                    _rootElement = null;
+                }
+
                 if (_rootObject != null) {
                     _rootObject.close();
                     _rootObject = null;
