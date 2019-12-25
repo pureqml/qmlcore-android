@@ -203,6 +203,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 }
                 if (_exports != null) {
                     _exports.close();
+                    _exports = null;
                 }
                 _v8.close();
                 return null;
