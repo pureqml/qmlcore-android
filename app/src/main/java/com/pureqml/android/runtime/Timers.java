@@ -45,7 +45,7 @@ public class Timers {
 
         @Override
         public boolean cancel() {
-            _callback.release();
+            _callback.close();
             _tasks.remove(_id);
             return super.cancel();
         }
@@ -61,7 +61,7 @@ public class Timers {
                 int id = _nextId++;
                 TimerTask task = new Task(id, arguments.getObject(0), true);
                 _timer.schedule(task, timeout);
-                arguments.release();
+                arguments.close();
                 return id;
             }
         }, "setTimeout");
@@ -72,7 +72,7 @@ public class Timers {
                 int id = _nextId++;
                 TimerTask task = new Task(id, arguments.getObject(0), false);
                 _timer.schedule(task, period, period);
-                arguments.release();
+                arguments.close();
                 return id;
             }
         }, "setInterval");

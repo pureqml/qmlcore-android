@@ -44,7 +44,7 @@ public class Image extends Element implements ImageLoadedCallback {
             Object r = callback.call(null, args); //indicate error
             if (r instanceof Releasable)
                 ((Releasable)r).release();
-            args.release();
+            args.close();
             return;
         }
         //Log.v(TAG, "loading " + url);
@@ -69,8 +69,8 @@ public class Image extends Element implements ImageLoadedCallback {
                 args.push(metrics);
 
                 _env.invokeVoidCallback(_callback, null, args);
-                args.release();
-                metrics.release();
+                args.close();
+                metrics.close();
             }
 
             update();

@@ -96,7 +96,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         V8Object v8Console = new V8Object(_v8);
         _v8.add("console", v8Console);
         v8Console.registerJavaMethod(new Console.LogMethod(), "log");
-        v8Console.release();
+        v8Console.close();
 
         V8Object v8FD = new V8Object(_v8);
         _v8.add("fd", v8FD);
@@ -109,11 +109,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         V8Object textProto      = Wrapper.generateClass(this, _v8, v8FD, "Text", Text.class, new Class<?>[] { IExecutionEnvironment.class });
         textProto.setPrototype(elementProto);
 
-        v8FD.release();
+        v8FD.close();
 
         V8Object v8Module = new V8Object(_v8);
         _v8.add("module", v8Module);
-        v8Module.release();
+        v8Module.close();
     }
 
     private static final String readScript(InputStream input) throws IOException {
@@ -182,7 +182,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _exports.executeJSFunction("run", _rootObject);
 
             Log.i(TAG, "run() finished");
-            _exports.release();
+            _exports.close();
             _exports = null;
         }
         schedulePaint();
@@ -198,13 +198,13 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
                 if (_rootObject != null) {
-                    _rootObject.release();
+                    _rootObject.close();
                     _rootObject = null;
                 }
                 if (_exports != null) {
-                    _exports.release();
+                    _exports.close();
                 }
-                _v8.release();
+                _v8.close();
                 return null;
             }
         });

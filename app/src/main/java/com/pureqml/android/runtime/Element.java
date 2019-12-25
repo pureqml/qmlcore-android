@@ -65,7 +65,7 @@ public class Element {
             for(String name : _callbacks.keySet()) {
                 List<V8Function> callbacks = _callbacks.get(name);
                 for(V8Function callback : callbacks)
-                    callback.release();
+                    callback.close();
             }
             _callbacks = null;
         }
@@ -109,7 +109,7 @@ public class Element {
             }
         }
         _env.schedulePaint();
-        v8args.release();
+        v8args.close();
     }
 
     void update() {
@@ -246,7 +246,7 @@ public class Element {
             mouseEvent.add("offsetX", offsetX);
             mouseEvent.add("offsetY", offsetY);
             emit(null, "click", mouseEvent);
-            mouseEvent.release();
+            mouseEvent.close();
             return true;
         }
         return false;

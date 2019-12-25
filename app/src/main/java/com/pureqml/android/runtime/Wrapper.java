@@ -26,14 +26,14 @@ public class Wrapper {
             switch(value.getV8Type()) {
                 case V8Value.UNDEFINED:
                 case V8Value.NULL:
-                    value.release();
+                    value.close();
                     return null;
                 case V8Value.V8_OBJECT:
                     Object element = env.getElementById(value.hashCode());
-                    value.release();
+                    value.close();
                     return element;
                 default:
-                    value.release();
+                    value.close();
                     throw new Error("can't convert value of type " + value.getClass());
             }
         } else
@@ -144,7 +144,7 @@ public class Wrapper {
 
             generatePrototype(env, v8, prototype, cls);
 
-            function.release();
+            function.close();
 
             return prototype;
         } catch (NoSuchMethodException e) {
