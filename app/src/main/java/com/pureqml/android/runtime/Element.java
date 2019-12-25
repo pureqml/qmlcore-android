@@ -24,21 +24,30 @@ public class Element {
     };
 
     IExecutionEnvironment _env;
+
     protected Rect              _rect           = new Rect();
+    protected Rect              _combinedRect   = new Rect();
+    protected Rect              _lastRect       = new Rect();
+
     protected float             _opacity        = 1;
     protected boolean           _visible        = true;
     protected boolean           _updated        = true;
     protected boolean           _updatedChild   = true;
     protected Element           _parent;
     protected int               _z;
-    protected Rect              _nextRect;
-    protected Rect              _lastRect;
     protected List<Element>     _children;
     private Map<String, List<V8Function>> _callbacks;
 
     public Element(IExecutionEnvironment env) {
         _env = env;
     }
+
+    public Rect getRect()
+    { return _rect; }
+    public Rect getCombinedRect()
+    { return _combinedRect; }
+    public Rect getLastRenderedRect()
+    { return _lastRect; }
 
     public void append(Element el) throws AlreadyHasAParentException {
         if (el == null)
@@ -124,8 +133,7 @@ public class Element {
     protected void removeChild(Element child) {
         if (_children != null)
             _children.remove(child);
-        if (child._lastRect != null)
-            _lastRect.union(child._lastRect);
+        _lastRect.union(child._lastRect);
         update();
     }
 
@@ -164,55 +172,30 @@ public class Element {
             ((Releasable)arg0).release();
     }
 
-    protected Rect getEffectiveRect()   { return null; }
-    public Rect getCombinedDirtyRect()  { return _nextRect; }
-
-    public void updateCurrentGeometry(int baseX, int baseY) {
-        if (!_updated && !_updatedChild)
-            return;
-
-        //Log.i(TAG, "updateGeometry: " + this + " childupdated: " + _updatedChild + " updated: " + _updated + " " + _rect + " @ " + baseX + ", " + baseY);
-        _nextRect = new Rect();
-        if (_updated) {
-            Rect rect = getEffectiveRect();
-            if (rect != null)
-                _nextRect.union(translateRect(rect, baseX, baseY));
-            if (_lastRect != null) //clear old position
-                _nextRect.union(_lastRect);
-        }
-
-        baseX += _rect.left;
-        baseY += _rect.top;
-        if (_children != null) {
-            for (Element child : _children) {
-                child.updateCurrentGeometry(baseX, baseY);
-                Rect translatedRect = translateRect(child._nextRect, baseX, baseY);
-                _nextRect.union(translatedRect);
-                //Log.i(TAG, "updateGeometry: " + this + " merging child rect " + translatedRect + " → " + _nextRect);
-            }
-        }
-        //Log.i(TAG, "updateGeometry: " + this + " results in " + _nextRect);
-        _updated = false;
-        _updatedChild = false;
+    protected final void beginPaint() {
+        _lastRect.setEmpty();
+        _combinedRect.setEmpty();
     }
 
-    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
-        if (!_visible) {
-            _lastRect = null;
-            return;
-        }
+    protected final void endPaint() {
+    }
 
+    public final void paintChildren(Canvas canvas, int baseX, int baseY, float opacity) {
         if (_children != null) {
             for (Element child : _children) {
                 child.paint(canvas, _rect.left + baseX, _rect.top + baseY, opacity * _opacity);
-                if (child._lastRect != null) {
-                    if (_lastRect == null)
-                        _lastRect = new Rect(child._lastRect);
-                    else
-                        _lastRect.union(child._lastRect);
-                }
+                _combinedRect.union(child.getRect());
+                _combinedRect.union(child.getCombinedRect());
+                _lastRect.union(child.getLastRenderedRect());
             }
         }
+    }
+
+    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+        beginPaint();
+        if (_visible)
+            paintChildren(canvas, baseX, baseY, opacity);
+        endPaint();
     }
 
     public Rect getScreenRect() {

@@ -40,31 +40,26 @@ public class Rectangle extends Element {
     }
 
     @Override
-    protected Rect getEffectiveRect() {
-        return _rect;
-    }
-
-    @Override
     public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
-        if (!_visible)
-            return;
-
-        Rect rect = translateRect(_rect, baseX, baseY);
-        if (_radius > 0) {
-            canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, opacity));
-        } else {
-            canvas.drawRect(rect, patchAlpha(_background, opacity));
-        }
-
-        if (_border != null) {
+        beginPaint();
+        if (_visible) {
+            Rect rect = translateRect(_rect, baseX, baseY);
             if (_radius > 0) {
-                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_border, opacity));
+                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, opacity));
             } else {
-                canvas.drawRect(rect, patchAlpha(_border, opacity));
+                canvas.drawRect(rect, patchAlpha(_background, opacity));
             }
-        }
-        _lastRect = rect;
 
-        super.paint(canvas, baseX, baseY, opacity);
+            if (_border != null) {
+                if (_radius > 0) {
+                    canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_border, opacity));
+                } else {
+                    canvas.drawRect(rect, patchAlpha(_border, opacity));
+                }
+            }
+            _lastRect.union(rect);
+            paintChildren(canvas, baseX, baseY, opacity);
+        }
+        endPaint();
     }
 }

@@ -347,7 +347,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             @Override
             public Void call() throws Exception {
                 Canvas canvas = null;
-                Rect rect = _rootElement.getCombinedDirtyRect();
+                Rect rect = _rootElement.getCombinedRect();
                 try {
                     canvas = holder.lockCanvas(rect);
                     _rootElement.paint(canvas, 0, 0, 1);
@@ -374,8 +374,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         if (root == null)
             return;
 
-        root.updateCurrentGeometry(0, 0);
-        Rect rect = root.getCombinedDirtyRect();
+        Rect rect = root.getCombinedRect();
         if (_renderer != null) {
             Log.i(TAG,"schedulePaint rect " + rect);
             _renderer.invalidateRect(rect);
