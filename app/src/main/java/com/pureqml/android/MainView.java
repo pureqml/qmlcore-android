@@ -3,9 +3,8 @@ package com.pureqml.android;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.SurfaceView;
 
 public class MainView extends SurfaceView {
