@@ -20,6 +20,7 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
 import com.pureqml.android.runtime.Image;
+import com.pureqml.android.runtime.PaintState;
 import com.pureqml.android.runtime.Rectangle;
 import com.pureqml.android.runtime.Text;
 import com.pureqml.android.runtime.Timers;
@@ -363,7 +364,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 Rect rect = _rootElement.getCombinedRect();
                 try {
                     canvas = holder.lockCanvas(rect);
-                    _rootElement.paint(canvas, 0, 0, 1);
+                    PaintState paint = new PaintState(canvas);
+                    _rootElement.paint(paint);
                 } catch (Exception e) {
                     Log.e(TAG, "schedulePaint failed", e);
                 } finally {

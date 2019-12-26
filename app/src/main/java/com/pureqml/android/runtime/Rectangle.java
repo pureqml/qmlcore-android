@@ -40,10 +40,12 @@ public class Rectangle extends Element {
     }
 
     @Override
-    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+    public void paint(PaintState state) {
         beginPaint();
-        if (_visible) {
-            Rect rect = translateRect(_rect, baseX, baseY);
+        if (_visible && state.visible()) {
+            Canvas canvas = state.canvas;
+            float opacity = state.opacity;
+            Rect rect = translateRect(_rect, state.baseX, state.baseY);
             if (_radius > 0) {
                 canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, opacity));
             } else {
@@ -58,7 +60,7 @@ public class Rectangle extends Element {
                 }
             }
             _lastRect.union(rect);
-            paintChildren(canvas, baseX, baseY, opacity);
+            paintChildren(state);
         }
         endPaint();
     }

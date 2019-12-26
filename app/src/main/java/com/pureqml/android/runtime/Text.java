@@ -39,11 +39,11 @@ public class Text extends Element {
     }
 
     @Override
-    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+    public void paint(PaintState state) {
         beginPaint();
         if (_visible) {
-            _lastRect.left = baseX + _rect.left;
-            _lastRect.top = baseY + _rect.top; //fixme: get actual bounding box
+            _lastRect.left = state.baseX + _rect.left;
+            _lastRect.top = state.baseY + _rect.top; //fixme: get actual bounding box
 
             float textSize = _paint.getTextSize();
             float lineHeight = textSize * 1.2f; //fixme: support proper line height/baseline
@@ -54,12 +54,12 @@ public class Text extends Element {
                 r = _lastRect.left + (int) Math.round(_paint.measureText(_text, 0, _text.length()));
                 if (r > _lastRect.right)
                     _lastRect.right = r;
-                canvas.drawText(_text, x, y, _paint);
+                state.canvas.drawText(_text, x, y, _paint);
                 y += lineHeight;
             } else {
                 //fixme: stub
                 for (TextLayout.Stripe stripe : _layout.stripes) {
-                    canvas.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
+                    state.canvas.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
                     r = _lastRect.left + (int) Math.round(_paint.measureText(_text, stripe.start, stripe.end) + _lastRect.left);
                     if (r > _lastRect.right)
                         _lastRect.right = r;
@@ -67,7 +67,7 @@ public class Text extends Element {
                 }
             }
             _lastRect.bottom = (int) (y - lineHeight);
-            paintChildren(canvas, baseX, baseY, opacity);
+            paintChildren(state);
         }
         endPaint();
     }

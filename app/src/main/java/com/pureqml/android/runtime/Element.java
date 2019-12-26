@@ -180,10 +180,11 @@ public class Element {
     protected final void endPaint() {
     }
 
-    public final void paintChildren(Canvas canvas, int baseX, int baseY, float opacity) {
+    public final void paintChildren(PaintState parent) {
         if (_children != null) {
             for (Element child : _children) {
-                child.paint(canvas, _rect.left + baseX, _rect.top + baseY, opacity * _opacity);
+                PaintState state = new PaintState(parent, _rect.left, _rect.top, _opacity);
+                child.paint(state);
                 _combinedRect.union(child.getRect());
                 _combinedRect.union(child.getCombinedRect());
                 _lastRect.union(child.getLastRenderedRect());
@@ -191,10 +192,10 @@ public class Element {
         }
     }
 
-    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+    public void paint(PaintState state) {
         beginPaint();
         if (_visible)
-            paintChildren(canvas, baseX, baseY, opacity);
+            paintChildren(state);
         endPaint();
     }
 

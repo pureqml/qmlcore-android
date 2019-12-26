@@ -78,20 +78,20 @@ public class Image extends Element implements ImageLoadedCallback {
     }
 
     @Override
-    public void paint(Canvas canvas, int baseX, int baseY, float opacity) {
+    public void paint(PaintState state) {
         beginPaint();
         if (_visible) {
             if (_image != null) {
                 Bitmap bitmap = _image.getBitmap();
-                if (bitmap != null) {
+                if (bitmap != null && state.visible()) {
                     Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-                    Rect dst = translateRect(_rect, baseX, baseY);
+                    Rect dst = translateRect(_rect, state.baseX, state.baseY);
                     //Log.i(TAG, "drawing image "  + src + " " + dst + " " + dst.width() + "x" + dst.height());
-                    canvas.drawBitmap(bitmap, src, dst, patchAlpha(_paint, opacity));
+                    state.canvas.drawBitmap(bitmap, src, dst, patchAlpha(_paint, state.opacity));
                     _lastRect.set(dst);
                 }
             }
-            paintChildren(canvas, baseX, baseY, opacity);
+            paintChildren(state);
         }
         endPaint();
     }
