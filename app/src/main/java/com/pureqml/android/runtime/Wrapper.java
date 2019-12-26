@@ -59,7 +59,7 @@ public class Wrapper {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("invoke failed: " + e);
             } catch (InvocationTargetException e) {
-                throw new RuntimeException("invoke failed: " + e);
+                throw new RuntimeException("invoke failed: " + e.getTargetException().toString());
             }
         }
     }
@@ -78,7 +78,7 @@ public class Wrapper {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("invoke failed: " + e);
             } catch (InvocationTargetException e) {
-                throw new RuntimeException("invoke failed: " + e);
+                throw new RuntimeException("invoke failed: " + e.getTargetException().toString());
             }
         }
     }
