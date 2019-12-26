@@ -29,7 +29,7 @@ public class Wrapper {
                     value.close();
                     return null;
                 case V8Value.V8_OBJECT:
-                    Object element = env.getElementById(value.hashCode());
+                    Object element = env.getObjectById(value.hashCode());
                     value.close();
                     return element;
                 default:
@@ -47,7 +47,7 @@ public class Wrapper {
 
         @Override
         public Object invoke(V8Object self, V8Array arguments) {
-            Element element = _env.getElementById(self.hashCode());
+            BaseObject element = _env.getObjectById(self.hashCode());
             int n = arguments.length();
             Class<?> argsType [] = _method.getParameterTypes();
             Object [] targetArguments = new Object[n];
@@ -72,9 +72,9 @@ public class Wrapper {
 
         @Override
         public Object invoke(V8Object self, V8Array arguments) {
-            Element element = _env.getElementById(self.hashCode());
+            BaseObject object = _env.getObjectById(self.hashCode());
             try {
-                return _method.invoke(element, arguments);
+                return _method.invoke(object, arguments);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("invoke failed: " + e);
             } catch (InvocationTargetException e) {
@@ -122,7 +122,7 @@ public class Wrapper {
             }
             try {
                 Object obj = _ctor.newInstance(args);
-                _env.putElement(self.hashCode(), (Element)obj);
+                _env.putObject(self.hashCode(), (BaseObject) obj);
             } catch (InstantiationException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {

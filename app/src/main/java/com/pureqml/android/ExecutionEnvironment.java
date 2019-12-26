@@ -54,7 +54,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private V8 _v8;
 
     //Element collection
-    private Map<Long, Element>           _elements = new HashMap<Long, Element>(10000);
+    private Map<Long, BaseObject>       _objects = new HashMap<Long, BaseObject>(10000);
     private HashMap<URL, List<ImageLoadedCallback>>
                                         _imageWaiters = new HashMap<>();
     private Rect                        _surfaceGeometry;
@@ -167,7 +167,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
         Log.v(TAG, "creating root element...");
         _rootObject = _v8.executeObjectScript("new fd.Element()");
-        _rootElement = getElementById(_rootObject.hashCode());
+        _rootElement = (Element)getObjectById(_rootObject.hashCode());
 
         if (_surfaceGeometry != null) { //already signalled
             setup();
@@ -205,10 +205,10 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 try { _rootObject.executeVoidFunction("discard", null); }
                 catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
-                for(Map.Entry<Long, Element> entry : _elements.entrySet()) {
+                for(Map.Entry<Long, BaseObject> entry : _objects.entrySet()) {
                     entry.getValue().discard();
                 }
-                _elements.clear();
+                _objects.clear();
 
                 if (_rootElement != null) {
                     _rootElement.discard();
@@ -238,7 +238,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         _executor.shutdownNow();
 
         _executor = null;
-        _elements = null;
+        _objects = null;
     }
 
     @Override
@@ -252,23 +252,23 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     @Override
-    public Element getElementById(long id) {
-        Element element = _elements.get(Long.valueOf(id));
-        if (element == null)
+    public BaseObject getObjectById(long id) {
+        BaseObject object = _objects.get(Long.valueOf(id));
+        if (object == null)
             throw new NullPointerException("object " + id + " was never registered or garbage collected");
-        return element;
+        return object;
     }
 
     @Override
-    public void putElement(long id, Element element) {
-        if (element == null)
+    public void putObject(long id, BaseObject object) {
+        if (object == null)
             throw new NullPointerException("putting null is not allowed");
-        _elements.put(Long.valueOf(id), element);
+        _objects.put(Long.valueOf(id), object);
     }
 
     @Override
-    public void removeElement(long id) {
-        _elements.remove(id);
+    public void removeObject(long id) {
+        _objects.remove(id);
     }
 
     @Override

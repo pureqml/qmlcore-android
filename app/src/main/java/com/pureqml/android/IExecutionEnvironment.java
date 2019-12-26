@@ -9,6 +9,7 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Element;
 
 import java.net.URL;
@@ -21,9 +22,9 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     V8 getRuntime();
     DisplayMetrics getDisplayMetrics();
 
-    Element getElementById(long id);
-    void putElement(long id, Element element);
-    void removeElement(long id);
+    BaseObject getObjectById(long id);
+    void putObject(long id, BaseObject element);
+    void removeObject(long id);
 
     //invoke function + schedulePaint
     Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments);
