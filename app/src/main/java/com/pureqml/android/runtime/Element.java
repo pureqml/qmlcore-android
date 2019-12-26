@@ -16,14 +16,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class Element {
+public class Element extends BaseObject {
     public static final String TAG = "rt.Element";
 
     public static final class AlreadyHasAParentException extends Exception {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     };
-
-    IExecutionEnvironment _env;
 
     protected Rect              _rect           = new Rect();
     protected Rect              _combinedRect   = new Rect();
@@ -36,10 +34,9 @@ public class Element {
     protected Element           _parent;
     protected int               _z;
     protected List<Element>     _children;
-    private Map<String, List<V8Function>> _callbacks;
 
     public Element(IExecutionEnvironment env) {
-        _env = env;
+        super(env);
     }
 
     public Rect getRect()
@@ -49,10 +46,16 @@ public class Element {
     public Rect getLastRenderedRect()
     { return _lastRect; }
 
-    public void append(Element el) throws AlreadyHasAParentException {
-        if (el == null)
+    public void append(BaseObject child) throws AlreadyHasAParentException {
+        if (child == null)
             throw new NullPointerException("appending null element");
 
+        if (!(child instanceof Element)) {
+            Log.i(TAG, "skipping append(), not an Element instance");
+            return;
+        }
+
+        Element el = (Element)child;
         if (el._parent != null)
             throw new AlreadyHasAParentException();
         el._parent = this;
@@ -70,55 +73,7 @@ public class Element {
 
     public void discard() {
         remove();
-        if (_callbacks != null) {
-            for(String name : _callbacks.keySet()) {
-                List<V8Function> callbacks = _callbacks.get(name);
-                for(V8Function callback : callbacks)
-                    callback.close();
-            }
-            _callbacks = null;
-        }
-        //_env.removeElement(this.hashCode()); //fixme: find out why it's not working
-    }
-
-    public void on(String name, V8Function callback) {
-        Log.i(TAG, "on " + name);
-        if (_callbacks == null)
-            _callbacks = new HashMap<>();
-        List<V8Function> callbacks = _callbacks.get(name);
-        if (callbacks == null) {
-            callbacks = new LinkedList<V8Function>();
-            _callbacks.put(name, callbacks);
-        }
-        callbacks.add(callback);
-    }
-
-    protected boolean hasCallbackFor(String name) {
-        return _callbacks != null && _callbacks.get(name) != null;
-    }
-
-    public void emit(V8Object target, String name, Object ... args) {
-        Log.i(TAG, "emitting " + name);
-        if (_callbacks == null)
-            return;
-        List<V8Function> callbacks = _callbacks.get(name);
-        if (callbacks == null)
-            return;
-        V8Array v8args = new V8Array(_env.getRuntime());
-        for (int i = 0; i < args.length; ++i) {
-            v8args.push(args[i]);
-        }
-        for(V8Function callback : callbacks) {
-            try {
-                Object r = callback.call(target, v8args);
-                if (r instanceof Releasable)
-                    ((Releasable)r).release();
-            } catch (Exception e) {
-                Log.e(TAG, "callback for " + name + " failed", e);
-            }
-        }
-        _env.schedulePaint();
-        v8args.close();
+        super.discard();
     }
 
     void update() {
