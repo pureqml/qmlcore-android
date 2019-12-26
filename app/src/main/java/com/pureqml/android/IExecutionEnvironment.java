@@ -1,5 +1,6 @@
 package com.pureqml.android;
 
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
@@ -16,6 +17,7 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 
 public interface IExecutionEnvironment extends ImageLoadedCallback {
+    Context getContext();
     ExecutorService getExecutor();
     ExecutorService getThreadPool();
 

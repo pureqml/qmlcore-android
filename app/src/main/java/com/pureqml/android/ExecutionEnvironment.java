@@ -1,6 +1,7 @@
 package com.pureqml.android;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -79,6 +80,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 return null;
             }
         });
+    }
+
+    @Override
+    public Context getContext() {
+        return super.getBaseContext();
     }
 
     synchronized void setRenderer(IRenderer renderer) {
