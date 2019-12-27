@@ -35,7 +35,7 @@ public class BaseObject {
     }
 
     public void on(String name, V8Function callback) {
-        Log.i(TAG, "on " + name);
+        //Log.d(TAG, "on " + name);
         if (_callbacks == null)
             _callbacks = new HashMap<>();
         List<V8Function> callbacks = _callbacks.get(name);
