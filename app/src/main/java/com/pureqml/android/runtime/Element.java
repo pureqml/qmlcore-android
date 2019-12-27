@@ -114,7 +114,7 @@ public class Element extends BaseObject {
         if (arg0 instanceof V8Object) {
             V8Object styles = (V8Object) arg0;
             for (String key : styles.getKeys())
-                setStyle(key, styles.getString(key));
+                setStyle(key, styles.get(key));
         } else if (arguments.length() == 2) {
             Object value = arguments.get(1);
             setStyle(arguments.getString(0), Wrapper.getValue(_env, null, value));

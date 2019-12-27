@@ -57,8 +57,10 @@ public class Wrapper {
             try {
                 return _method.invoke(element, targetArguments);
             } catch (IllegalAccessException e) {
+                Log.e(TAG, "MethodWrapper: IllegalAccessException", e);
                 throw new RuntimeException("invoke failed: " + e);
             } catch (InvocationTargetException e) {
+                Log.e(TAG, "MethodWrapper: InvocationTargetException", e);
                 throw new RuntimeException("invoke failed: " + e.getTargetException().toString());
             }
         }
@@ -76,8 +78,10 @@ public class Wrapper {
             try {
                 return _method.invoke(object, arguments);
             } catch (IllegalAccessException e) {
+                Log.e(TAG, "SimpleMethodWrapper: IllegalAccessException", e);
                 throw new RuntimeException("invoke failed: " + e);
             } catch (InvocationTargetException e) {
+                Log.e(TAG, "SimpleMethodWrapper: InvocationTargetException", e);
                 throw new RuntimeException("invoke failed: " + e.getTargetException().toString());
             }
         }
