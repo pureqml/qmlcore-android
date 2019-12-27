@@ -31,7 +31,7 @@ public class BaseObject {
             }
             _callbacks = null;
         }
-        //_env.removeObject(this.hashCode()); //fixme: find out why it's not working
+        _env.removeObject(this.hashCode());
     }
 
     public void on(String name, V8Function callback) {
