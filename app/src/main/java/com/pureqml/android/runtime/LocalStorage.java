@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 
 public class LocalStorage extends BaseObject {
     public static final String TAG = "localstorage";
+    final int MaxStorageSize = 128 * 1024;
 
     public LocalStorage(IExecutionEnvironment env) {
         super(env);
@@ -25,7 +26,6 @@ public class LocalStorage extends BaseObject {
         V8Array args = new V8Array(_env.getRuntime());
         Object ret = null;
         try {
-            final int MaxStorageSize = 128 * 1024;
             FileInputStream file = _env.getContext().openFileInput(name + ".storage");
             Log.i(TAG, "opened file for reading...");
             byte[] data = new byte[MaxStorageSize];
