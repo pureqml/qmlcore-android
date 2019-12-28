@@ -32,4 +32,16 @@ public class Input extends Element {
         else
             return super.getAttribute(name);
     }
+
+    @Override
+    public void blur() {
+        Log.i(TAG, "removing focus...");
+        super.blur();
+    }
+
+    @Override
+    public void focus() {
+        Log.i(TAG, "focusing input...");
+        super.focus();
+    }
 }

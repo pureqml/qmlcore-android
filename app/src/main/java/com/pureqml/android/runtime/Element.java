@@ -200,6 +200,9 @@ public class Element extends BaseObject {
         return "";
     }
 
+    public void focus() {}
+    public void blur() {}
+
     static final Rect translateRect(Rect rect, int dx, int dy) {
         Rect r = new Rect(rect);
         r.offset(dx, dy);
