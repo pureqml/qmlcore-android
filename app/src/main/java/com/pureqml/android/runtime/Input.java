@@ -1,13 +1,23 @@
 package com.pureqml.android.runtime;
 
+import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
 import com.pureqml.android.IExecutionEnvironment;
 
 public class Input extends Element {
+    public static final String TAG = "Input";
+
     String value = new String();
     String placeholder = new String();
+    TextView view;
 
     public Input(IExecutionEnvironment env) {
         super(env);
+
+        view = new TextView(env.getContext());
+        view.setFocusable(true);
     }
 
     @Override
@@ -34,14 +44,38 @@ public class Input extends Element {
     }
 
     @Override
+    void update() {
+        super.update();
+        if (!_rect.isEmpty()) {
+            Log.i(TAG, "input layout " + _rect.toString());
+            view.setLayoutParams(new ViewGroup.LayoutParams(_rect.width(), _rect.height()));
+            Log.i(TAG, "laying out " + view.toString());
+            view.layout(_rect.left, _rect.top, _rect.right, _rect.bottom);
+            view.debug(0);
+        }
+    }
+
+    @Override
+    public void paint(PaintState state) {
+        beginPaint();
+        if (_visible && !_rect.isEmpty()) {
+            Log.i(TAG, "drawing " + view.toString());
+            view.draw(state.canvas);
+        }
+        endPaint();
+    }
+    @Override
     public void blur() {
         Log.i(TAG, "removing focus...");
         super.blur();
+        view.clearFocus();
     }
 
     @Override
     public void focus() {
         Log.i(TAG, "focusing input...");
         super.focus();
+        if (!view.requestFocus())
+            Log.w(TAG, "requestFocus failed");
     }
 }
