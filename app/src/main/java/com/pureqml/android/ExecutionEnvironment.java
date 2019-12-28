@@ -226,32 +226,32 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         Future<Void> future = _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                _timers.discard();
+            _timers.discard();
 
-                try { _rootObject.executeVoidFunction("discard", null); }
-                catch(Exception e) { Log.e(TAG, "discard failed", e); }
+            try { _rootObject.executeVoidFunction("discard", null); }
+            catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
-                for(Map.Entry<Long, BaseObject> entry : _objects.entrySet()) {
-                    entry.getValue().discard();
-                }
-                _objects.clear();
+            for(Map.Entry<Long, BaseObject> entry : _objects.entrySet()) {
+                entry.getValue().discard();
+            }
+            _objects.clear();
 
-                if (_rootElement != null) {
-                    _rootElement.discard();
-                    _rootElement = null;
-                }
+            if (_rootElement != null) {
+                _rootElement.discard();
+                _rootElement = null;
+            }
 
-                if (_rootObject != null) {
-                    _rootObject.close();
-                    _rootObject = null;
-                }
-                if (_exports != null) {
-                    _exports.close();
-                    _exports = null;
-                }
+            if (_rootObject != null) {
+                _rootObject.close();
+                _rootObject = null;
+            }
+            if (_exports != null) {
+                _exports.close();
+                _exports = null;
+            }
 
-                _v8.close();
-                return null;
+            _v8.close();
+            return null;
             }
         });
         try {
