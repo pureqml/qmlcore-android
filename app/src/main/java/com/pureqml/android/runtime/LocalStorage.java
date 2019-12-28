@@ -44,7 +44,7 @@ public class LocalStorage extends BaseObject {
         }
     }
 
-    public void set(String name, String value, V8Function callback, V8Function error, V8Object origin) {
+    public void set(String name, String value, V8Function error, V8Object origin) {
         Log.i(TAG, "setting value " + name);
         V8Array args = new V8Array(_env.getRuntime());
         Object ret = null;
@@ -52,7 +52,6 @@ public class LocalStorage extends BaseObject {
             FileOutputStream file = _env.getContext().openFileOutput(name + ".storage", Context.MODE_PRIVATE);
             Log.i(TAG, "opened file for writing...");
             file.write(value.getBytes("UTF-8"));
-            ret = callback.call(origin, args);
         } catch (Exception ex) {
             Log.e(TAG, "can't open file for writing");
             args.push(ex.toString());
