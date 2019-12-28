@@ -420,7 +420,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
 
         Rect rect = root.getCombinedRect();
         if (_renderer != null) {
-            Log.i(TAG,"schedulePaint rect " + rect);
+            Log.d(TAG,"schedulePaint rect " + rect);
             _renderer.invalidateRect(rect);
         }
     }
