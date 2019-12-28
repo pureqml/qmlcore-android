@@ -26,6 +26,7 @@ import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
 import com.pureqml.android.runtime.Image;
+import com.pureqml.android.runtime.Input;
 import com.pureqml.android.runtime.LocalStorage;
 import com.pureqml.android.runtime.PaintState;
 import com.pureqml.android.runtime.Rectangle;
@@ -136,6 +137,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         imageProto.setPrototype(elementProto);
         V8Object textProto      = Wrapper.generateClass(this, _v8, v8FD, "Text", Text.class, new Class<?>[] { IExecutionEnvironment.class });
         textProto.setPrototype(elementProto);
+        V8Object inputProto     = Wrapper.generateClass(this, _v8, v8FD, "Input", Input.class, new Class<?>[] { IExecutionEnvironment.class });
+        inputProto.setPrototype(elementProto);
         V8Object localStorageProto = Wrapper.generateClass(this, _v8, v8FD, "LocalStorage", LocalStorage.class, new Class<?>[] { IExecutionEnvironment.class });
         localStorageProto.setPrototype(objectProto);
 

@@ -195,6 +195,11 @@ public class Element extends BaseObject {
         Log.w(TAG, "ignoring setAttribute " + name + ", " + value);
     }
 
+    public String getAttribute(String name) {
+        Log.w(TAG, "ignoring getAttribute " + name);
+        return "";
+    }
+
     static final Rect translateRect(Rect rect, int dx, int dy) {
         Rect r = new Rect(rect);
         r.offset(dx, dy);
