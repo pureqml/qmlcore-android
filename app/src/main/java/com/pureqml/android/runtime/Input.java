@@ -1,7 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.util.Log;
-import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.pureqml.android.IExecutionEnvironment;
@@ -48,7 +48,7 @@ public class Input extends Element {
         super.update();
         if (!_rect.isEmpty()) {
             Log.i(TAG, "input layout " + _rect.toString());
-            view.setLayoutParams(new ViewGroup.LayoutParams(_rect.width(), _rect.height()));
+            view.setLayoutParams(new RelativeLayout.LayoutParams(_rect.width(), _rect.height()));
             Log.i(TAG, "laying out " + view.toString());
             view.layout(_rect.left, _rect.top, _rect.right, _rect.bottom);
             view.debug(0);
