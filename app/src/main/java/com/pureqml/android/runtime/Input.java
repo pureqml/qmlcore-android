@@ -18,6 +18,7 @@ public class Input extends Element {
 
         view = new TextView(env.getContext());
         view.setFocusable(true);
+        view.setFocusableInTouchMode(true);
     }
 
     @Override
