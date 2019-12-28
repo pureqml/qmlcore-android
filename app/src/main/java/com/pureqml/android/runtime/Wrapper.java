@@ -6,6 +6,7 @@ import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
+import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.IExecutionEnvironment;
@@ -29,9 +30,14 @@ public class Wrapper {
                     value.close();
                     return null;
                 case V8Value.V8_OBJECT:
-                    Object element = env.getObjectById(value.hashCode());
-                    value.close();
-                    return element;
+                    if (type != V8Object.class && type != V8Function.class) {
+                        Object element = env.getObjectById(value.hashCode());
+                        value.close();
+                        return element;
+                    } else {
+                        value.close();
+                        return object;
+                    }
                 default:
                     value.close();
                     throw new Error("can't convert value of type " + value.getClass());
