@@ -1,8 +1,9 @@
 package com.pureqml.android.runtime;
 
+import android.graphics.Rect;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.pureqml.android.IExecutionEnvironment;
 
@@ -11,12 +12,12 @@ public class Input extends Element {
 
     String value = new String();
     String placeholder = new String();
-    TextView view;
+    EditText view;
 
     public Input(IExecutionEnvironment env) {
         super(env);
 
-        view = new TextView(env.getContext());
+        view = new EditText(env.getContext());
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
     }
@@ -49,10 +50,11 @@ public class Input extends Element {
     void update() {
         super.update();
         if (!_rect.isEmpty()) {
-            Log.i(TAG, "input layout " + _rect.toString());
+            Rect rect = getScreenRect();
+            Log.i(TAG, "input layout " + rect.toString());
             view.setLayoutParams(new RelativeLayout.LayoutParams(_rect.width(), _rect.height()));
             Log.i(TAG, "laying out " + view.toString());
-            view.layout(_rect.left, _rect.top, _rect.right, _rect.bottom);
+            view.layout(rect.left, rect.top, rect.right, rect.bottom);
             view.debug(0);
         }
     }
@@ -77,7 +79,11 @@ public class Input extends Element {
     public void focus() {
         Log.i(TAG, "focusing input...");
         super.focus();
-        if (!view.requestFocus())
-            Log.w(TAG, "requestFocus failed");
+        try {
+            if (!view.requestFocus())
+                Log.w(TAG, "requestFocus failed");
+        } catch (Exception ex) {
+            Log.e(TAG, "requestFocus failed", ex);
+        }
     }
 }
