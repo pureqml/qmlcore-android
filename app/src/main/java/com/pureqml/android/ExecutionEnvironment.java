@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
 
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -82,6 +83,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         _executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
+                Looper.prepare();
                 ExecutionEnvironment.this.start();
                 return null;
             }
