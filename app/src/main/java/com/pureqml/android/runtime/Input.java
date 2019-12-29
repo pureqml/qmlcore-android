@@ -26,9 +26,10 @@ public class Input extends Element {
         if (value == null)
             throw new NullPointerException("setAttribute " + name);
 
-        if (name.equals("placeholder"))
+        if (name.equals("placeholder")) {
             placeholder = value;
-        else if (name.equals("value"))
+            view.setHint(placeholder);
+        } else if (name.equals("value"))
             this.value = value;
         else
             super.setAttribute(name, value);
