@@ -50,12 +50,12 @@ public class Input extends Element {
     void update() {
         super.update();
         if (!_rect.isEmpty()) {
-            Rect rect = getScreenRect();
+            final Rect rect = getScreenRect();
             Log.i(TAG, "input layout " + rect.toString());
-            view.setLayoutParams(new ViewGroup.LayoutParams(_rect.width(), _rect.height()));
+            view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             Log.i(TAG, "laying out " + view.toString());
+            view.measure(rect.width(), rect.height());
             view.layout(rect.left, rect.top, rect.right, rect.bottom);
-            view.debug(0);
         }
     }
 
@@ -63,8 +63,13 @@ public class Input extends Element {
     public void paint(PaintState state) {
         beginPaint();
         if (_visible && !_rect.isEmpty()) {
-            Log.i(TAG, "drawing " + view.toString());
+            final Rect rect = getScreenRect();
+            Log.i(TAG, "drawing " + view.toString() + " at " + _rect.toString());
+
+            state.canvas.save();
+            state.canvas.translate(rect.left, rect.top);
             view.draw(state.canvas);
+            state.canvas.restore();
         }
         endPaint();
     }
