@@ -209,6 +209,12 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             _rootObject.add("top", 0);
             _rootObject.add("width", _surfaceGeometry.width());
             _rootObject.add("height", _surfaceGeometry.height());
+            _executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    _rootElement.emit(_rootObject, "resize", _surfaceGeometry.width(), _surfaceGeometry.height());
+                }
+            });
         }
         if (_exports != null) {
             Log.v(TAG, "executing script...");
