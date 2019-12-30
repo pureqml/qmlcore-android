@@ -14,6 +14,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
+import java.util.concurrent.ExecutionException;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "main";
@@ -112,8 +114,17 @@ public class MainActivity extends AppCompatActivity {
         _mainView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (_executionEnvironment != null)
-                    _executionEnvironment.sendEvent(event);
+                if (_executionEnvironment != null) {
+                    try {
+                        return _executionEnvironment.sendEvent(event).get();
+                    } catch (ExecutionException e) {
+                        Log.e(TAG, "execution exception", e);
+                        return false;
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "interrupted exception", e);
+                        return false;
+                    }
+                }
                 return false;
             }
         });
