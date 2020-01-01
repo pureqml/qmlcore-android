@@ -1,15 +1,11 @@
 package com.pureqml.android.runtime;
 
-import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Function;
 import com.pureqml.android.IExecutionEnvironment;
-import com.pureqml.android.TextLayout;
-import com.pureqml.android.TextLayoutCallback;
 
 public class Text extends Element {
     private final static String TAG = "rt.Text";

@@ -5,13 +5,14 @@ import android.content.res.AssetManager;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.view.SurfaceHolder;
+import android.view.ViewGroup;
 
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.BaseObject;
-import com.pureqml.android.runtime.Element;
+import com.pureqml.android.runtime.TextLayoutCallback;
 
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +21,7 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     Context getContext();
     ExecutorService getExecutor();
     ExecutorService getThreadPool();
+    ViewGroup getRootView();
 
     V8 getRuntime();
     DisplayMetrics getDisplayMetrics();

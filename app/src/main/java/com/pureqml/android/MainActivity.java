@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.concurrent.ExecutionException;
 
@@ -31,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "connected to execution service...");
             synchronized (MainActivity.this) {
                 _mainView.setExecutionEnvironment(_executionEnvironment);
+                ViewGroup rootView = (ViewGroup)findViewById(android.R.id.content);
+                rootView = (ViewGroup)rootView.getChildAt(0);
+                _executionEnvironment.setRootView(rootView);
+
                 if (_surfaceFrame != null)
                     _executionEnvironment.setSurfaceFrame(_surfaceFrame);
                 if (_uiRenderer != null) {
@@ -43,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName name) {
             Log.i(TAG, "execution environment service died...");
             synchronized (MainActivity.this) {
+                _executionEnvironment.setRootView(null);
                 _mainView.setExecutionEnvironment(null);
                 _executionEnvironment = null;
             }
@@ -61,12 +67,16 @@ public class MainActivity extends AppCompatActivity {
                 _uiRenderer = new IRenderer() {
                     @Override
                     public void invalidateRect(Rect rect) {
-                        Log.v(TAG, "invalidateRect " + rect);
                         synchronized (holder) {
-                            if (rect != null)
-                                view.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
-                            else
+                            if (rect != null) {
+                                if (!rect.isEmpty()) {
+                                    //Log.v(TAG, "invalidateRect " + rect);
+                                    view.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
+                                }
+                            } else {
+                                Log.v(TAG, "invalidateAll");
                                 view.postInvalidate();
+                            }
                         }
                     }
                 };

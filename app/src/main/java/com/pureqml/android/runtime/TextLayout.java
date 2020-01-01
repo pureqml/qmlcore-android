@@ -1,4 +1,4 @@
-package com.pureqml.android;
+package com.pureqml.android.runtime;
 
 public class TextLayout {
     public CharSequence    text;

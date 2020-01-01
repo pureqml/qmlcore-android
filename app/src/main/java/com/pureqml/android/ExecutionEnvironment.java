@@ -16,6 +16,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.ViewGroup;
 
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.Releasable;
@@ -32,6 +33,8 @@ import com.pureqml.android.runtime.LocalStorage;
 import com.pureqml.android.runtime.PaintState;
 import com.pureqml.android.runtime.Rectangle;
 import com.pureqml.android.runtime.Text;
+import com.pureqml.android.runtime.TextLayout;
+import com.pureqml.android.runtime.TextLayoutCallback;
 import com.pureqml.android.runtime.Timers;
 import com.pureqml.android.runtime.Wrapper;
 
@@ -76,6 +79,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private TextRenderer                _textRenderer;
     private IRenderer                   _renderer;
     private DisplayMetrics              _metrics;
+    private ViewGroup                   _rootView;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -88,6 +92,15 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 return null;
             }
         });
+    }
+
+    @Override
+    public ViewGroup getRootView() {
+        return _rootView;
+    }
+
+    void setRootView(ViewGroup rootView) {
+        _rootView = rootView;
     }
 
     @Override
@@ -425,13 +438,14 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     public void schedulePaint() {
+        //Log.i(TAG, "schedulePaint");
         Element root = _rootElement;
         if (root == null)
             return;
 
         Rect rect = root.getCombinedRect();
         if (_renderer != null) {
-            Log.d(TAG,"schedulePaint rect " + rect);
+            //Log.d(TAG,"schedulePaint rect " + rect);
             _renderer.invalidateRect(rect);
         }
     }
@@ -442,7 +456,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
             public Boolean call() throws Exception {
                 try {
                     Log.v(TAG,"click coordinates " + event.getX() + ", " + event.getY());
-                    boolean r = _rootElement != null ? _rootElement.sendEvent("click", (int) event.getX(), (int) event.getY()) : false;
+                    boolean r = _rootElement != null ? _rootElement.sendEvent("click", (int) event.getX(), (int) event.getY(), event) : false;
                     //Log.v(TAG, "click processed = " + r);
                     return r;
                 } catch(Exception e) {

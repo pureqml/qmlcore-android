@@ -3,6 +3,8 @@ package com.pureqml.android;
 import android.graphics.Rect;
 import android.util.Log;
 
+import com.pureqml.android.runtime.TextLayoutCallback;
+
 import java.util.concurrent.ExecutorService;
 
 public class TextRenderer {

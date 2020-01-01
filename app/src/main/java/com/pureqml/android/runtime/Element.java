@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.MotionEvent;
 
 import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
@@ -83,6 +84,7 @@ public class Element extends BaseObject {
             current._updatedChild = true;
             current = current._parent;
         }
+        _env.schedulePaint();
     }
 
     protected void removeChild(Element child) {
@@ -164,7 +166,7 @@ public class Element extends BaseObject {
         return rect;
     }
 
-    public boolean sendEvent(String name, int x, int y) {
+    public boolean sendEvent(String name, int x, int y, MotionEvent event) {
         //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
         int baseX = _rect.left;
         int baseY = _rect.top;
@@ -175,7 +177,7 @@ public class Element extends BaseObject {
 
         if (_children != null) {
             for (Element child : _children) {
-                if (child.sendEvent(name, offsetX, offsetY))
+                if (child.sendEvent(name, offsetX, offsetY, event))
                     return true;
             }
         }
