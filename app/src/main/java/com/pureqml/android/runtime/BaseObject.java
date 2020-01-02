@@ -54,9 +54,11 @@ public class BaseObject {
         Log.i(TAG, "emitting " + name);
         if (_callbacks == null)
             return;
+
         List<V8Function> callbacks = _callbacks.get(name);
         if (callbacks == null)
             return;
+
         V8Array v8args = new V8Array(_env.getRuntime());
         for (int i = 0; i < args.length; ++i) {
             v8args.push(args[i]);

@@ -19,6 +19,7 @@ import android.view.SurfaceHolder;
 import android.view.ViewGroup;
 
 import com.eclipsesource.v8.JavaCallback;
+import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
@@ -27,6 +28,7 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
+import com.pureqml.android.runtime.HttpRequest;
 import com.pureqml.android.runtime.Image;
 import com.pureqml.android.runtime.Input;
 import com.pureqml.android.runtime.LocalStorage;
@@ -142,6 +144,12 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 return info;
             }
         }, "getDeviceInfo");
+        v8FD.registerJavaMethod(new JavaVoidCallback() {
+            @Override
+            public void invoke(V8Object v8Object, V8Array v8Array) {
+                HttpRequest.request(v8Array);
+            }
+        }, "httpRequest");
 
         V8Object objectProto    = Wrapper.generateClass(this, _v8, v8FD, "Object", BaseObject.class, new Class<?>[] { IExecutionEnvironment.class });
         V8Object elementProto   = Wrapper.generateClass(this, _v8, v8FD, "Element", Element.class, new Class<?>[] { IExecutionEnvironment.class });

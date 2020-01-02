@@ -195,11 +195,13 @@ public class Element extends BaseObject {
         }
 
         if (_rect.contains(x, y) && hasCallbackFor(name)) {
-            V8Object mouseEvent = new V8Object(_env.getRuntime());
-            mouseEvent.add("offsetX", offsetX);
-            mouseEvent.add("offsetY", offsetY);
-            emit(null, "click", mouseEvent);
-            mouseEvent.close();
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                V8Object mouseEvent = new V8Object(_env.getRuntime());
+                mouseEvent.add("offsetX", offsetX);
+                mouseEvent.add("offsetY", offsetY);
+                emit(null, "click", mouseEvent);
+                mouseEvent.close();
+            }
             return true;
         }
         return false;
