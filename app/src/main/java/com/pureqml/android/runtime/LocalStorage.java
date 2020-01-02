@@ -27,14 +27,14 @@ public class LocalStorage extends BaseObject {
         Object ret = null;
         try {
             FileInputStream file = _env.getContext().openFileInput(name + ".storage");
-            Log.i(TAG, "opened file for reading...");
+            Log.d(TAG, "opened file " + name + " for reading...");
             byte[] data = new byte[MaxStorageSize];
             int r = file.read(data);
             String stringData = new String(data, 0, r, "UTF-8");
             args.push(stringData);
             ret = callback.call(origin, args);
         } catch (Exception ex) {
-            Log.w(TAG, "can't open file for reading");
+            Log.w(TAG, "can't open file " + name + " for reading");
             args.push(ex.toString());
             ret = error.call(origin, args); //indicate error
         } finally {
