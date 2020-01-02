@@ -5,6 +5,13 @@ import android.graphics.Color;
 import android.util.DisplayMetrics;
 
 public class TypeConverter {
+    public static final boolean toBoolean(Object value) {
+        if (value instanceof Boolean)
+            return (boolean)value;
+        else
+            throw new RuntimeException("value " + value + " could not be converted to int");
+    }
+
     public static final int toInteger(Object value) {
         if (value instanceof Integer)
             return (int)value;
@@ -12,7 +19,8 @@ public class TypeConverter {
             return (int)(float)value;
         else if (value instanceof Double)
             return (int)(double)value;
-        throw new RuntimeException("value " + value + " could not be converted to int");
+        else
+            throw new RuntimeException("value " + value + " could not be converted to int");
     }
 
     public static final float toFloat(Object value) {
@@ -22,7 +30,8 @@ public class TypeConverter {
             return (float)(int)value;
         else if (value instanceof Double)
             return (float)(double)value;
-        throw new RuntimeException("value " + value + " could not be converted to int");
+        else
+            throw new RuntimeException("value " + value + " could not be converted to int");
     }
 
     public static final int toColor(String value) {

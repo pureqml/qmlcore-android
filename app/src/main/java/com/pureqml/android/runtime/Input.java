@@ -5,6 +5,7 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
@@ -13,10 +14,11 @@ import com.pureqml.android.IExecutionEnvironment;
 public class Input extends Element {
     public static final String TAG = "Input";
 
-    String      value = new String();
-    String      placeholder = new String();
-    EditText    view;
-    Handler     handler;
+    String                          value = new String();
+    String                          placeholder = new String();
+    EditText                        view;
+    Handler                         handler;
+    RelativeLayout.LayoutParams     layoutParams;
 
     public Input(IExecutionEnvironment env) {
         super(env);
@@ -24,13 +26,6 @@ public class Input extends Element {
         Context context = env.getContext();
         view = new EditText(this, context);
         handler = new Handler(context.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Log.i(TAG, "adding new Input to root view...");
-                _env.getRootView().addView(view);
-            }
-        });
     }
 
     public void discard() {
@@ -40,6 +35,7 @@ public class Input extends Element {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
+                    view.setVisibility(View.GONE);
                     rootView.removeView(view);
                 }
             });
@@ -79,17 +75,20 @@ public class Input extends Element {
             Log.i(TAG, "input layout " + rect.toString());
             final ViewGroup rootView = _env.getRootView();
             if (rootView != null) {
-                final RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(_rect.width(), _rect.height());
+                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(_rect.width(), _rect.height());
                 lp.leftMargin = rect.left;
                 lp.topMargin = rect.top;
                 Log.d(TAG, "layout params = " + lp.debug("RelativeLayout.LayoutParams"));
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(TAG, "updating view layout");
-                        rootView.updateViewLayout(view, lp);
-                    }
-                });
+
+                synchronized (this) {
+                    if (!lp.equals(layoutParams)) {
+                        Log.i(TAG, "installing new layout params");
+                        layoutParams = lp;
+                    } else
+                        lp = null;
+                }
+                if (lp != null)
+                    updateViewState(lp);
             }
         }
     }
@@ -108,21 +107,55 @@ public class Input extends Element {
         return true;
     }
 
-    @Override
-    public void paint(PaintState state) {
-        beginPaint();
-        if (_visible && !_rect.isEmpty()) {
-//            final Rect rect = getScreenRect();
-//            Log.i(TAG, "drawing " + view.toString() + " at " + _rect.toString());
-//
-//            state.canvas.save();
-//            state.canvas.translate(rect.left, rect.top);
-//            view.draw(state.canvas);
-//            view.debug(0);
-//            state.canvas.restore();
+    private void updateViewState(final ViewGroup.LayoutParams lp) {
+        Log.d(TAG, "adding view to layout: " + lp.toString());
+        final ViewGroup rootView = _env.getRootView();
+        boolean visible;
+        synchronized (this) {
+            visible = _globallyVisible;
         }
-        endPaint();
+        if (visible) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (view.getParent() == null) {
+                        view.setVisibility(View.VISIBLE);
+                        if (lp != null)
+                            rootView.addView(view, lp);
+                        else
+                            rootView.addView(view);
+                    } else {
+                        if (lp != null)
+                            rootView.updateViewLayout(view, lp);
+                    }
+                }});
+        } else {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "removing view to layout...");
+                    view.setVisibility(View.GONE);
+                    rootView.removeView(view);
+                }
+            });
+        }
     }
+
+    private void updateVisibility(boolean value) {
+        final ViewGroup.LayoutParams lp;
+        synchronized (this) {
+            lp = layoutParams;
+        }
+        updateViewState(lp);
+    }
+
+    @Override
+    protected void onGloballyVisibleChanged(boolean value) {
+        Log.d(TAG, "onGloballyVisibleChanged " + value);
+        super.onGloballyVisibleChanged(value);
+        updateVisibility(value);
+    }
+
     @Override
     public void blur() {
         Log.i(TAG, "removing focus...");

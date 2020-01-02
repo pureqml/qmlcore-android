@@ -24,14 +24,15 @@ public class Element extends BaseObject {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     };
 
-    protected Rect              _rect           = new Rect();
-    protected Rect              _combinedRect   = new Rect();
-    protected Rect              _lastRect       = new Rect();
+    protected Rect              _rect               = new Rect();
+    protected Rect              _combinedRect       = new Rect();
+    protected Rect              _lastRect           = new Rect();
 
-    protected float             _opacity        = 1;
-    protected boolean           _visible        = true;
-    protected boolean           _updated        = true;
-    protected boolean           _updatedChild   = true;
+    protected float             _opacity            = 1;
+    protected boolean           _visible            = true;
+    protected boolean           _globallyVisible    = false;
+    protected boolean           _updated            = true;
+    protected boolean           _updatedChild       = true;
     protected Element           _parent;
     protected int               _z;
     protected List<Element>     _children;
@@ -103,6 +104,15 @@ public class Element extends BaseObject {
             case "opacity":     _opacity = TypeConverter.toFloat(value); break;
             case "z-index":     _z = TypeConverter.toInteger(value); break;
             case "visibility":  _visible = value.equals("inherit") || value.equals("visible"); break;
+            case "recursive-visibility": {
+                boolean globallyVisible = _globallyVisible;
+                boolean visible = TypeConverter.toBoolean(value);
+                if (globallyVisible != visible) {
+                    _globallyVisible = visible;
+                    onGloballyVisibleChanged(visible);
+                }
+                break;
+            }
             case "cursor": break; //ignoring
             default:
                 Log.v(TAG, "ignoring setStyle " + name + ": " + value);
@@ -110,6 +120,8 @@ public class Element extends BaseObject {
         }
         update();
     }
+
+    protected void onGloballyVisibleChanged(boolean value) { }
 
     public void style(V8Array arguments) throws Exception {
         Object arg0 = arguments.get(0);
