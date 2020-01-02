@@ -2,6 +2,7 @@ package com.pureqml.android.runtime;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
@@ -18,6 +19,7 @@ public class Input extends Element {
     String                          value = new String();
     String                          placeholder = new String();
     String                          inputmode = new String();
+    String                          autocomplete = new String();
     String                          type = new String("text");
     EditText                        view;
     Handler                         handler;
@@ -49,6 +51,14 @@ public class Input extends Element {
         handler.post(new Runnable() {
             @Override
             public void run() {
+                if (Build.VERSION.SDK_INT >= 26) {
+                    if (autocomplete.equals("username"))
+                        view.setAutofillHints(View.AUTOFILL_HINT_USERNAME);
+                    else if (autocomplete.equals("current-password"))
+                        view.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
+                    else
+                        Log.w(TAG, "ignoring autocomplete hint " + autocomplete);
+                }
                 if (type.equals("password")) {
                     view.setInputType(inputmode.equals("numeric") ?
                             InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD :
@@ -77,6 +87,8 @@ public class Input extends Element {
             updateType();
         } else if (name.equals("type")) {
             type = value;
+        } else if (name.equals("autocomplete")) {
+            autocomplete = value;
         } else
             super.setAttribute(name, value);
     }
@@ -91,6 +103,8 @@ public class Input extends Element {
             return type;
         else if (name.equals("inputmode"))
             return inputmode;
+        else if (name.equals("autocomplete"))
+            return autocomplete;
         else
             return super.getAttribute(name);
     }
