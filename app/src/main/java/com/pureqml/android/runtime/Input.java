@@ -3,6 +3,7 @@ package com.pureqml.android.runtime;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,6 +17,8 @@ public class Input extends Element {
 
     String                          value = new String();
     String                          placeholder = new String();
+    String                          inputmode = new String();
+    String                          type = new String("text");
     EditText                        view;
     Handler                         handler;
     RelativeLayout.LayoutParams     layoutParams;
@@ -42,6 +45,22 @@ public class Input extends Element {
         } else
             Log.w(TAG, "no root view...");
     }
+    private void updateType() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (type.equals("password")) {
+                    view.setInputType(inputmode.equals("numeric") ?
+                            InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD :
+                            InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                } else {
+                    view.setInputType(inputmode.equals("numeric") ?
+                            InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_NORMAL :
+                            InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_NORMAL);
+                }
+            }
+        });
+    }
 
     @Override
     public void setAttribute(String name, String value) {
@@ -51,9 +70,14 @@ public class Input extends Element {
         if (name.equals("placeholder")) {
             placeholder = value;
             view.setHint(placeholder);
-        } else if (name.equals("value"))
+        } else if (name.equals("value")) {
             this.value = value;
-        else
+        } else if (name.equals("inputmode")) {
+            inputmode = value;
+            updateType();
+        } else if (name.equals("type")) {
+            type = value;
+        } else
             super.setAttribute(name, value);
     }
 
@@ -63,6 +87,10 @@ public class Input extends Element {
             return placeholder;
         else if (name.equals("value"))
             return value;
+        else if (name.equals("type"))
+            return type;
+        else if (name.equals("inputmode"))
+            return inputmode;
         else
             return super.getAttribute(name);
     }
