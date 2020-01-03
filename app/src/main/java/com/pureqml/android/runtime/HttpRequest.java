@@ -3,6 +3,7 @@ package com.pureqml.android.runtime;
 import android.util.Log;
 
 import com.eclipsesource.v8.Releasable;
+import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
@@ -25,6 +26,7 @@ public class HttpRequest {
         IExecutionEnvironment   _env;
         URL                     _url;
         HttpURLConnection       _connection;
+        byte []                 _body;
         V8Function              _callback;
         V8Function              _error;
 
@@ -44,9 +46,11 @@ public class HttpRequest {
             } else if (key.equals("contentType")) {
                 _connection.setRequestProperty("Content-Type", value.toString());
             } else if (key.equals("data")) {
-                OutputStream out = _connection.getOutputStream();
-                out.write(value.toString().getBytes("UTF-8"));
-                out.close();
+                _body = value.toString().getBytes("UTF-8");
+                if (_body.length > 0)
+                    _connection.setDoOutput(true);
+                else
+                    _body = null;
             } else if (key.equals("done")) {
                 _callback = (V8Function)value;
             } else if (key.equals("error")) {
@@ -57,48 +61,61 @@ public class HttpRequest {
 
         public Request(IExecutionEnvironment env, V8Object request) throws MalformedURLException {
             _env = env;
+            V8 runtime = _env.getRuntime();
+            V8Array arguments = new V8Array(runtime);
+            V8Object result = new V8Object(runtime);
             try {
                 _url = new URL(request.get("url").toString());
                 Log.d(TAG, "url: " + _url);
                 _connection = (HttpURLConnection) _url.openConnection();
+                _connection.setDoInput(true);
 
                 for (String key : request.getKeys()) {
                     Object value = request.get(key);
                     setProperty(key, value);
                 }
+
+                OutputStream out = _connection.getOutputStream();
+                out.write(_body);
+                out.close();
+
                 int code = _connection.getResponseCode();
                 Log.d(TAG, "response code: " + code);
-                InputStream inputStream = _connection.getInputStream();
+
+                InputStream inputStream;
+                if (code >= 200 && code < 400)
+                    inputStream = _connection.getInputStream();
+                else
+                    inputStream = _connection.getErrorStream();
+
                 ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[4096];
                 int length;
                 while ((length = inputStream.read(buffer)) != -1) {
                     dataOutputStream.write(buffer, 0, length);
                 }
 
-                String data = dataOutputStream.toString("UTF-8");
-                V8Array arguments = new V8Array(_env.getRuntime());
-                arguments.push(data);
-                try {
+                String body = dataOutputStream.toString("UTF-8");
+                Log.d(TAG, "response body: " + body);
+                V8Object target = new V8Object(runtime);
+                result.add("target", target);
+                target.add("status", code);
+                target.add("responseText", body);
+                arguments.push(result);
+                if (_callback != null)
                     _callback.call(null, arguments);
-                } finally {
-                    arguments.close();
-                }
             } catch (Exception e) {
                 Log.w(TAG, "connection failed", e);
                 if (_error != null) {
-                    V8Object error = new V8Object(_env.getRuntime());
-                    V8Array args = new V8Array(_env.getRuntime());
-                    args.push(error);
-                    try {
-                        _error.call(null, args);
-                    } finally {
-                        args.close();
-                        error.close();
-                    }
+                    arguments.push(result);
+                    _error.call(null, arguments);
                 }
             } finally {
+                result.close();
+                arguments.close();
                 request.close();
+                if (_connection != null)
+                    _connection.disconnect();
             }
         }
     }
