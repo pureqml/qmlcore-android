@@ -34,9 +34,12 @@ public class HttpRequest {
             } else if (key.equals("headers")) {
                 V8Object headers = (V8Object) value;
                 for (String k : headers.getKeys()) {
-                    _connection.setRequestProperty(k, headers.get(k).toString());
+                    String v = headers.get(k).toString();
+                    Log.v(TAG, "request header " + k + ": " + v);
+                    _connection.setRequestProperty(k, v);
                 }
             } else if (key.equals("method")) {
+                Log.v(TAG, "request method " + value);
                 _connection.setRequestMethod(value.toString());
             } else if (key.equals("contentType")) {
                 _connection.setRequestProperty("Content-Type", value.toString());
@@ -63,6 +66,8 @@ public class HttpRequest {
                     Object value = request.get(key);
                     setProperty(key, value);
                 }
+                int code = _connection.getResponseCode();
+                Log.d(TAG, "response code: " + code);
                 InputStream inputStream = _connection.getInputStream();
                 ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
                 byte[] buffer = new byte[1024];
