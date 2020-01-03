@@ -147,7 +147,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         v8FD.registerJavaMethod(new JavaVoidCallback() {
             @Override
             public void invoke(V8Object v8Object, V8Array v8Array) {
-                HttpRequest.request(v8Array);
+                HttpRequest.request(ExecutionEnvironment.this, v8Array);
             }
         }, "httpRequest");
 
