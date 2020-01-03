@@ -38,6 +38,7 @@ import com.pureqml.android.runtime.Text;
 import com.pureqml.android.runtime.TextLayout;
 import com.pureqml.android.runtime.TextLayoutCallback;
 import com.pureqml.android.runtime.Timers;
+import com.pureqml.android.runtime.VideoPlayer;
 import com.pureqml.android.runtime.Wrapper;
 
 import java.io.ByteArrayOutputStream;
@@ -164,6 +165,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         inputProto.setPrototype(elementProto);
         V8Object localStorageProto = Wrapper.generateClass(this, _v8, v8FD, "LocalStorage", LocalStorage.class, new Class<?>[] { IExecutionEnvironment.class });
         localStorageProto.setPrototype(objectProto);
+        V8Object videoPlayerProto = Wrapper.generateClass(this, _v8, v8FD, "VideoPlayer", VideoPlayer.class, new Class<?>[] { IExecutionEnvironment.class });
+        videoPlayerProto.setPrototype(elementProto);
 
         v8FD.close();
 
