@@ -9,7 +9,9 @@ import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.IExecutionEnvironment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -58,16 +60,23 @@ public class HttpRequest {
 
                 for (String key : request.getKeys()) {
                     Object value = request.get(key);
-                    try {
-                        setProperty(key, value);
-                    } catch (Exception e) {
-                        Log.e(TAG, "request parameter " + key + " failure:", e);
-                    } finally {
-                        if (value instanceof V8Value)
-                            ((V8Value) value).close();
-                        else if (value instanceof Releasable)
-                            ((Releasable) value).release();
-                    }
+                    setProperty(key, value);
+                }
+                InputStream inputStream = _connection.getInputStream();
+                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = inputStream.read(buffer)) != -1) {
+                    dataOutputStream.write(buffer, 0, length);
+                }
+
+                String data = dataOutputStream.toString("UTF-8");
+                V8Array arguments = new V8Array(_env.getRuntime());
+                arguments.push(data);
+                try {
+                    _callback.call(null, arguments);
+                } finally {
+                    arguments.close();
                 }
             } catch (Exception e) {
                 if (_error != null) {

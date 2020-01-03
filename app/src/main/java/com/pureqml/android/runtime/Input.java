@@ -175,9 +175,11 @@ public class Input extends Element {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(TAG, "removing view to layout...");
-                    view.setVisibility(View.GONE);
-                    rootView.removeView(view);
+                    if (view.getParent() != null) {
+                        Log.d(TAG, "removing view from layout...");
+                        view.setVisibility(View.GONE);
+                        rootView.removeView(view);
+                    }
                 }
             });
         }
