@@ -4,7 +4,9 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,7 +15,7 @@ import android.widget.RelativeLayout;
 
 import com.pureqml.android.IExecutionEnvironment;
 
-public class Input extends Element {
+public final class Input extends Element {
     public static final String TAG = "Input";
 
     String                          value = new String();
@@ -43,6 +45,28 @@ public class Input extends Element {
                 });
             }
         });
+        view.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                Input.this.setValue(s.toString());
+            }
+        });
+    }
+
+    private void setValue(String value) {
+        this.value = value;
+        _env.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                Input.this.emit(null, "input");
+            }
+        });
     }
 
     public void discard() {
@@ -59,6 +83,7 @@ public class Input extends Element {
         } else
             Log.w(TAG, "no root view...");
     }
+
     private void updateType() {
         handler.post(new Runnable() {
             @Override
