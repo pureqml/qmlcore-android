@@ -8,8 +8,16 @@ public class TypeConverter {
     public static final boolean toBoolean(Object value) {
         if (value instanceof Boolean)
             return (boolean)value;
+        else if (value instanceof Integer)
+            return (int)value != 0;
+        else if (value instanceof Double)
+            return (int)(double)value != 0;
+        else if (value.equals("true"))
+            return true;
+        else if (value.equals("false"))
+            return false;
         else
-            throw new RuntimeException("value " + value + " could not be converted to int");
+            throw new RuntimeException("value " + value + " could not be converted to boolean");
     }
 
     public static final int toInteger(Object value) {
