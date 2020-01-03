@@ -31,6 +31,18 @@ public class Input extends Element {
         Context context = env.getContext();
         view = new EditText(context);
         handler = new Handler(context.getMainLooper());
+
+        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, final boolean hasFocus) {
+                _env.getExecutor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        Input.this.emitFocusEvent(hasFocus);
+                    }
+                });
+            }
+        });
     }
 
     public void discard() {
@@ -221,6 +233,15 @@ public class Input extends Element {
             public void run() {
                 if (!view.requestFocus())
                     Log.w(TAG, "requestFocus failed");
+            }
+        });
+    }
+
+    private void emitFocusEvent(final boolean hasFocus) {
+        _env.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                emit(null, hasFocus? "focus": "blur");
             }
         });
     }
