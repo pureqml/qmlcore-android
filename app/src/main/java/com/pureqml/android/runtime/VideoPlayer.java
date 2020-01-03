@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -49,7 +50,10 @@ public final class VideoPlayer extends BaseObject {
     public void setSource(String url) {
         Log.i(TAG, "Player.setSource " + url);
         DataSource.Factory factory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
-        player.prepare(new ExtractorMediaSource.Factory(factory).createMediaSource(Uri.parse(url)));
+        if (url.endsWith("m3u8"))
+            player.prepare(new HlsMediaSource.Factory(factory).createMediaSource(Uri.parse(url)));
+        else
+            player.prepare(new ExtractorMediaSource.Factory(factory).createMediaSource(Uri.parse(url)));
     }
 
     public void setLoop(boolean loop) {
@@ -75,7 +79,10 @@ public final class VideoPlayer extends BaseObject {
 
     public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
-        player.setPlayWhenReady(TypeConverter.toBoolean(value));
+        if (name.equals("autoplay"))
+            player.setPlayWhenReady(TypeConverter.toBoolean(value));
+        else
+            Log.w(TAG, "ignoring option " + name);
     }
 
     public Object getVideoTracks() {
