@@ -46,6 +46,9 @@ public class HttpRequest {
             } else if (key.equals("contentType")) {
                 _connection.setRequestProperty("Content-Type", value.toString());
             } else if (key.equals("data")) {
+                if (value instanceof V8Value && ((V8Value) value).isUndefined()) {
+                    return;
+                }
                 _body = value.toString().getBytes("UTF-8");
                 if (_body.length > 0)
                     _connection.setDoOutput(true);
