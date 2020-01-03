@@ -1,17 +1,40 @@
 package com.pureqml.android.runtime;
 
+import android.net.Uri;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
+import com.google.android.exoplayer2.Renderer;
 import com.pureqml.android.IExecutionEnvironment;
+
 
 public final class VideoPlayer extends BaseObject {
     private static final String TAG = "VideoPlayer";
+    private ExoPlayer player;
 
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
+        player = ExoPlayerFactory.newInstance(
+                new Renderer[]{
+                        new MediaCodecVideoRenderer(env.getContext(), MediaCodecSelector.DEFAULT),
+                        new MediaCodecAudioRenderer(env.getContext(), MediaCodecSelector.DEFAULT)
+                },
+                new DefaultTrackSelector(),
+                new DefaultLoadControl()
+        );
     }
 
     public void setupDrm(String type, V8Object options, V8Function callback, V8Function error) {
@@ -20,10 +43,13 @@ public final class VideoPlayer extends BaseObject {
 
     public void stop() {
         Log.i(TAG, "Player.stop");
+        player.stop();
     }
 
     public void setSource(String url) {
         Log.i(TAG, "Player.setSource " + url);
+        DataSource.Factory factory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
+        player.prepare(new ExtractorMediaSource.Factory(factory).createMediaSource(Uri.parse(url)));
     }
 
     public void setLoop(boolean loop) {
@@ -44,10 +70,12 @@ public final class VideoPlayer extends BaseObject {
 
     public void seekTo(int pos) {
         Log.i(TAG, "Player.seekTo " + pos);
+        player.seekTo(pos);
     }
 
     public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
+        player.setPlayWhenReady(TypeConverter.toBoolean(value));
     }
 
     public Object getVideoTracks() {
