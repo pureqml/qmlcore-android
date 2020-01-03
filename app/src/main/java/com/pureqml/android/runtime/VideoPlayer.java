@@ -7,7 +7,7 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 
-public final class VideoPlayer extends Element {
+public final class VideoPlayer extends BaseObject {
     private static final String TAG = "VideoPlayer";
 
     public VideoPlayer(IExecutionEnvironment env) {

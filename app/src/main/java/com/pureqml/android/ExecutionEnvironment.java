@@ -166,7 +166,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         V8Object localStorageProto = Wrapper.generateClass(this, _v8, v8FD, "LocalStorage", LocalStorage.class, new Class<?>[] { IExecutionEnvironment.class });
         localStorageProto.setPrototype(objectProto);
         V8Object videoPlayerProto = Wrapper.generateClass(this, _v8, v8FD, "VideoPlayer", VideoPlayer.class, new Class<?>[] { IExecutionEnvironment.class });
-        videoPlayerProto.setPrototype(elementProto);
+        videoPlayerProto.setPrototype(objectProto);
 
         v8FD.close();
 
