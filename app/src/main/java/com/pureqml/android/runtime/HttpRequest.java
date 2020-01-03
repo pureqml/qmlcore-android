@@ -56,6 +56,7 @@ public class HttpRequest {
             _env = env;
             try {
                 _url = new URL(request.get("url").toString());
+                Log.d(TAG, "url: " + _url);
                 _connection = (HttpURLConnection) _url.openConnection();
 
                 for (String key : request.getKeys()) {
@@ -79,6 +80,7 @@ public class HttpRequest {
                     arguments.close();
                 }
             } catch (Exception e) {
+                Log.w(TAG, "connection failed", e);
                 if (_error != null) {
                     V8Object error = new V8Object(_env.getRuntime());
                     V8Array args = new V8Array(_env.getRuntime());
