@@ -9,7 +9,7 @@ import com.pureqml.android.IExecutionEnvironment;
 
 import static com.pureqml.android.runtime.TypeConverter.*;
 
-public class Rectangle extends Element {
+public final class Rectangle extends Element {
     private final static String TAG = "rt.Rectangle";
     private Paint   _background = new Paint();
     private Paint   _border;

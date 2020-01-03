@@ -1,6 +1,5 @@
 package com.pureqml.android.runtime;
 
-import android.graphics.Color;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Array;
@@ -8,7 +7,7 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 
-public class VideoPlayer extends Element {
+public final class VideoPlayer extends Element {
     private static final String TAG = "VideoPlayer";
 
     public VideoPlayer(IExecutionEnvironment env) {

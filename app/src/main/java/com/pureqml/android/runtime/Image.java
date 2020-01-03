@@ -18,7 +18,7 @@ import com.pureqml.android.ImageLoader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class Image extends Element implements ImageLoadedCallback {
+public final class Image extends Element implements ImageLoadedCallback {
     private final static String TAG = "rt.Image";
     URL                         _url;
     ImageLoader.ImageResource   _image;

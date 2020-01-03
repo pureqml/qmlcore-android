@@ -18,7 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class HttpRequest {
+public final class HttpRequest {
     private static final String TAG = "HttpRequestDispatcher";
 
     static class Request implements Runnable {

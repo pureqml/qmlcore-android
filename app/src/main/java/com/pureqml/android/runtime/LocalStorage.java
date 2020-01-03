@@ -12,7 +12,7 @@ import com.pureqml.android.IExecutionEnvironment;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-public class LocalStorage extends BaseObject {
+public final class LocalStorage extends BaseObject {
     public static final String TAG = "localstorage";
     final int MaxStorageSize = 128 * 1024;
 

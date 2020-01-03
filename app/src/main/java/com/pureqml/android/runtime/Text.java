@@ -7,7 +7,7 @@ import android.util.Log;
 import com.eclipsesource.v8.V8Function;
 import com.pureqml.android.IExecutionEnvironment;
 
-public class Text extends Element {
+public final class Text extends Element {
     private final static String TAG = "rt.Text";
     Paint       _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     String      _text;
