@@ -47,7 +47,7 @@ public class VideoPlayer extends Element {
         Log.i(TAG, "Player.seekTo " + pos);
     }
 
-    public void setOption(String name, String value) {
+    public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
     }
 
