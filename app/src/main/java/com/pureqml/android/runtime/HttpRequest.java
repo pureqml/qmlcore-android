@@ -21,7 +21,7 @@ import java.net.URL;
 public class HttpRequest {
     private static final String TAG = "HttpRequestDispatcher";
 
-    static class Request {
+    static class Request implements Runnable {
         private static final String TAG = "HttpRequest";
         IExecutionEnvironment   _env;
         URL                     _url;
@@ -60,11 +60,79 @@ public class HttpRequest {
                 Log.w(TAG, "unhandled request field " + key);
         }
 
-        public Request(IExecutionEnvironment env, V8Object request) throws MalformedURLException {
-            _env = env;
+        @Override
+        public void run() {
+            int code = 0;
+            String text;
+            try {
+                code = _connection.getResponseCode();
+                Log.d(TAG, "response code: " + code);
+
+                InputStream inputStream;
+                if (code >= 200 && code < 400)
+                    inputStream = _connection.getInputStream();
+                else
+                    inputStream = _connection.getErrorStream();
+
+                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
+                byte[] buffer = new byte[4096];
+                int length;
+                while ((length = inputStream.read(buffer)) != -1) {
+                    dataOutputStream.write(buffer, 0, length);
+                }
+
+                text = dataOutputStream.toString("UTF-8");
+                Log.d(TAG, "response text: " + text);
+
+                final int argCode = code;
+                final String argText = text;
+                _env.getExecutor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (_callback != null)
+                            _callback.call(null, createEventArguments(argCode, argText));
+                    }
+                });
+            } catch (final Exception e) {
+                e.printStackTrace();
+                _env.getExecutor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        emitError(e);
+                    }
+                });
+            }
+            finally {
+                _connection.disconnect();
+            }
+        }
+
+        V8Array createEventArguments(int code, String text) {
             V8 runtime = _env.getRuntime();
             V8Array arguments = new V8Array(runtime);
             V8Object result = new V8Object(runtime);
+            {
+                V8Object target = new V8Object(runtime);
+                target.add("status", code);
+                target.add("responseText", text != null? text: "");
+                result.add("target", target);
+                target.close();
+            }
+            arguments.push(result);
+            result.close();
+            return arguments;
+        }
+
+
+        private void emitError(final Exception e) {
+            if (_error != null)
+                _error.call(null, createEventArguments(400, e.toString()));
+            else
+                Log.w(TAG, "no error handler for request found", e);
+        }
+
+        public Request(IExecutionEnvironment env, V8Object request) {
+            _env = env;
             try {
                 _url = new URL(request.get("url").toString());
                 Log.d(TAG, "url: " + _url);
@@ -81,41 +149,12 @@ public class HttpRequest {
                     out.write(_body);
                     out.close();
                 }
-
-                int code = _connection.getResponseCode();
-                Log.d(TAG, "response code: " + code);
-
-                InputStream inputStream;
-                if (code >= 200 && code < 400)
-                    inputStream = _connection.getInputStream();
-                else
-                    inputStream = _connection.getErrorStream();
-
-                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[4096];
-                int length;
-                while ((length = inputStream.read(buffer)) != -1) {
-                    dataOutputStream.write(buffer, 0, length);
-                }
-
-                String body = dataOutputStream.toString("UTF-8");
-                Log.d(TAG, "response body: " + body);
-                V8Object target = new V8Object(runtime);
-                result.add("target", target);
-                target.add("status", code);
-                target.add("responseText", body);
-                arguments.push(result);
-                if (_callback != null)
-                    _callback.call(null, arguments);
+                Log.v(TAG, "starting request thread...");
+                new Thread(this).start();
             } catch (Exception e) {
                 Log.w(TAG, "connection failed", e);
-                if (_error != null) {
-                    arguments.push(result);
-                    _error.call(null, arguments);
-                }
+                emitError(e);
             } finally {
-                result.close();
-                arguments.close();
                 request.close();
                 if (_connection != null)
                     _connection.disconnect();
@@ -130,13 +169,7 @@ public class HttpRequest {
         V8Object request = (V8Object)arguments.get(0);
         arguments.close();
 
-        try {
-            Request r = new Request(env, request);
-        } catch (Exception e) {
-            Log.e(TAG, "request", e);
-        }
-        finally {
-            request.close();
-        }
+        new Request(env, request);
+        request.close();
     }
 }
