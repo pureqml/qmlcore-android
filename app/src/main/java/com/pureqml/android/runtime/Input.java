@@ -29,7 +29,7 @@ public class Input extends Element {
         super(env);
 
         Context context = env.getContext();
-        view = new EditText(this, context);
+        view = new EditText(context);
         handler = new Handler(context.getMainLooper());
     }
 
