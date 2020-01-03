@@ -49,8 +49,6 @@ public class HttpRequest {
                 _body = value.toString().getBytes("UTF-8");
                 if (_body.length > 0)
                     _connection.setDoOutput(true);
-                else
-                    _body = null;
             } else if (key.equals("done")) {
                 _callback = (V8Function)value;
             } else if (key.equals("error")) {
@@ -75,9 +73,11 @@ public class HttpRequest {
                     setProperty(key, value);
                 }
 
-                OutputStream out = _connection.getOutputStream();
-                out.write(_body);
-                out.close();
+                if (_body != null && _connection.getDoOutput()) {
+                    OutputStream out = _connection.getOutputStream();
+                    out.write(_body);
+                    out.close();
+                }
 
                 int code = _connection.getResponseCode();
                 Log.d(TAG, "response code: " + code);
