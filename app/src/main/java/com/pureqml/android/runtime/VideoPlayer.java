@@ -35,13 +35,8 @@ public final class VideoPlayer extends BaseObject {
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
         Context context = env.getContext();
-        player = ExoPlayerFactory.newInstance(
-                new Renderer[]{
-                        new MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT),
-                        new MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT)
-                },
-                new DefaultTrackSelector(),
-                new DefaultLoadControl()
+        player = ExoPlayerFactory.newSimpleInstance(context,
+                new DefaultTrackSelector()
         );
         view = new PlayerView(_env.getContext());
         view.setPlayer(player);
