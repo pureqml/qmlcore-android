@@ -11,7 +11,6 @@ public class MainView extends SurfaceView {
     private static final String TAG = "MainView";
 
     private IExecutionEnvironment _env;
-    public void setExecutionEnvironment(IExecutionEnvironment env) { _env = env; }
 
     public MainView(Context context) {
         super(context);
@@ -28,6 +27,10 @@ public class MainView extends SurfaceView {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public MainView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+    public void setExecutionEnvironment(IExecutionEnvironment env) {
+        _env = env;
     }
 
     @Override
