@@ -4,6 +4,9 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.os.Binder;
 import android.os.Build;
@@ -429,6 +432,11 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 try {
                     canvas = holder.lockCanvas(rect);
                     PaintState paint = new PaintState(canvas);
+
+                    Paint bgPaint = new Paint();
+                    bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                    canvas.drawRect(rect, bgPaint);
+
                     _rootElement.paint(paint);
                 } catch (Exception e) {
                     Log.e(TAG, "schedulePaint failed", e);
