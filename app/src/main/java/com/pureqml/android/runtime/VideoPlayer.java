@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
+import android.view.SurfaceView;
 
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
@@ -25,7 +26,6 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsExtractorFactory;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.MimeTypes;
@@ -40,8 +40,8 @@ import java.util.List;
 public final class VideoPlayer extends BaseObject {
     private static final String TAG = "VideoPlayer";
     private SimpleExoPlayer             player;
-    private PlayerView                  view;
-    private ViewHolder<PlayerView>      viewHolder;
+    private SurfaceView view;
+    private ViewHolder<SurfaceView>     viewHolder;
 
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
@@ -54,10 +54,11 @@ public final class VideoPlayer extends BaseObject {
                 .setAllowNonSeamlessAdaptiveness(true)
         );
         player = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
-        view = new PlayerView(_env.getContext());
-        view.setUseController(false);
-        view.setPlayer(player);
-        viewHolder = new ViewHolder<PlayerView>(context, view);
+        view = new SurfaceView(_env.getContext());
+        view.setZOrderOnTop(false);
+        view.setZOrderMediaOverlay(true);
+        viewHolder = new ViewHolder<SurfaceView>(context, view);
+        player.setVideoSurfaceView(view);
     }
 
     public void setupDrm(String type, V8Object options, V8Function callback, V8Function error) {
