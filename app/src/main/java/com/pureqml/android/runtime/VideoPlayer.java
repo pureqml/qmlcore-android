@@ -55,8 +55,6 @@ public final class VideoPlayer extends BaseObject {
         );
         player = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
         view = new SurfaceView(_env.getContext());
-        view.setZOrderOnTop(false);
-        view.setZOrderMediaOverlay(true);
         viewHolder = new ViewHolder<SurfaceView>(context, view);
         player.setVideoSurfaceView(view);
     }
