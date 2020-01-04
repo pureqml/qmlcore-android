@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
@@ -117,6 +118,7 @@ public final class VideoPlayer extends BaseObject {
 
     public void setRect(int l, int t, int r, int b) {
         Log.i(TAG, "Player.setRect " + l + ", " + t + ", " + r + ", " + b);
+        viewHolder.setRect(_env.getRootView(), new Rect(l, t, r, b));
     }
 
     public void setVisibility(boolean visible) {
