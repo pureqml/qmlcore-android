@@ -55,6 +55,7 @@ public final class VideoPlayer extends BaseObject {
         );
         player = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
         view = new PlayerView(_env.getContext());
+        view.setUseController(false);
         view.setPlayer(player);
         viewHolder = new ViewHolder<PlayerView>(context, view);
     }
