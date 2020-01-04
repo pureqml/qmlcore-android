@@ -1,6 +1,8 @@
 package com.pureqml.android.runtime;
 
+import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Array;
@@ -9,11 +11,13 @@ import com.eclipsesource.v8.V8Object;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
@@ -24,18 +28,24 @@ import com.pureqml.android.IExecutionEnvironment;
 
 public final class VideoPlayer extends BaseObject {
     private static final String TAG = "VideoPlayer";
-    private ExoPlayer player;
+    private ExoPlayer                   player;
+    private PlayerView                  view;
+    private ViewHolder<PlayerView>      viewHolder;
 
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
+        Context context = env.getContext();
         player = ExoPlayerFactory.newInstance(
                 new Renderer[]{
-                        new MediaCodecVideoRenderer(env.getContext(), MediaCodecSelector.DEFAULT),
-                        new MediaCodecAudioRenderer(env.getContext(), MediaCodecSelector.DEFAULT)
+                        new MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT),
+                        new MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT)
                 },
                 new DefaultTrackSelector(),
                 new DefaultLoadControl()
         );
+        view = new PlayerView(_env.getContext());
+        view.setPlayer(player);
+        viewHolder = new ViewHolder<PlayerView>(context, view);
     }
 
     public void setupDrm(String type, V8Object options, V8Function callback, V8Function error) {
@@ -54,6 +64,7 @@ public final class VideoPlayer extends BaseObject {
             player.prepare(new HlsMediaSource.Factory(factory).createMediaSource(Uri.parse(url)));
         else
             player.prepare(new ExtractorMediaSource.Factory(factory).createMediaSource(Uri.parse(url)));
+        Log.i(TAG, "Player.setSource exited");
     }
 
     public void setLoop(boolean loop) {
@@ -115,5 +126,6 @@ public final class VideoPlayer extends BaseObject {
 
     public void setVisibility(boolean visible) {
         Log.i(TAG, "Player.setVisibility " + visible);
+        viewHolder.update(_env.getRootView(), visible);
     }
 }

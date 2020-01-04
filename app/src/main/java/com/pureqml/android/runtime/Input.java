@@ -24,15 +24,14 @@ public final class Input extends Element {
     String                          autocomplete = new String();
     String                          type = new String("text");
     EditText                        view;
-    Handler                         handler;
-    RelativeLayout.LayoutParams     layoutParams;
+    ViewHolder<EditText>            viewHolder;
 
     public Input(IExecutionEnvironment env) {
         super(env);
 
         Context context = env.getContext();
         view = new EditText(context);
-        handler = new Handler(context.getMainLooper());
+        viewHolder = new ViewHolder<EditText>(context, view);
 
         view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -71,21 +70,11 @@ public final class Input extends Element {
 
     public void discard() {
         super.discard();
-        final ViewGroup rootView = _env.getRootView();
-        if (rootView != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    view.setVisibility(View.GONE);
-                    rootView.removeView(view);
-                }
-            });
-        } else
-            Log.w(TAG, "no root view...");
+        viewHolder.discard(_env.getRootView());
     }
 
     private void updateType() {
-        handler.post(new Runnable() {
+        viewHolder.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 if (Build.VERSION.SDK_INT >= 26) {
@@ -149,26 +138,10 @@ public final class Input extends Element {
     @Override
     void update() {
         super.update();
-        if (!_rect.isEmpty()) {
+        if (!_rect.isEmpty() && _globallyVisible) {
             final Rect rect = getScreenRect();
             Log.i(TAG, "input layout " + rect.toString());
-            final ViewGroup rootView = _env.getRootView();
-            if (rootView != null) {
-                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(_rect.width(), _rect.height());
-                lp.leftMargin = rect.left;
-                lp.topMargin = rect.top;
-                Log.d(TAG, "layout params = " + lp.debug("RelativeLayout.LayoutParams"));
-
-                synchronized (this) {
-                    if (!lp.equals(layoutParams)) {
-                        Log.i(TAG, "installing new layout params");
-                        layoutParams = lp;
-                    } else
-                        lp = null;
-                }
-                if (lp != null)
-                    updateViewState(lp);
-            }
+            viewHolder.setRect(_env.getRootView(), rect);
         }
     }
 
@@ -177,7 +150,7 @@ public final class Input extends Element {
         if (!_rect.contains(x, y))
             return false;
 
-        handler.post(new Runnable() {
+        viewHolder.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 view.onTouchEvent(event);
@@ -186,48 +159,8 @@ public final class Input extends Element {
         return true;
     }
 
-    private void updateViewState(final ViewGroup.LayoutParams lp) {
-        Log.d(TAG, "adding view to layout: " + lp.toString());
-        final ViewGroup rootView = _env.getRootView();
-        boolean visible;
-        synchronized (this) {
-            visible = _globallyVisible;
-        }
-        if (visible) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (view.getParent() == null) {
-                        view.setVisibility(View.VISIBLE);
-                        if (lp != null)
-                            rootView.addView(view, lp);
-                        else
-                            rootView.addView(view);
-                    } else {
-                        if (lp != null)
-                            rootView.updateViewLayout(view, lp);
-                    }
-                }});
-        } else {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (view.getParent() != null) {
-                        Log.d(TAG, "removing view from layout...");
-                        view.setVisibility(View.GONE);
-                        rootView.removeView(view);
-                    }
-                }
-            });
-        }
-    }
-
     private void updateVisibility(boolean value) {
-        final ViewGroup.LayoutParams lp;
-        synchronized (this) {
-            lp = layoutParams;
-        }
-        updateViewState(lp);
+        viewHolder.update(_env.getRootView(), value);
     }
 
     @Override
@@ -241,7 +174,7 @@ public final class Input extends Element {
     public void blur() {
         Log.i(TAG, "removing focus...");
         super.blur();
-        handler.post(new Runnable() {
+        viewHolder.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 view.clearFocus();
@@ -253,7 +186,7 @@ public final class Input extends Element {
     public void focus() {
         Log.i(TAG, "focusing input...");
         super.focus();
-        handler.post(new Runnable() {
+        viewHolder.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 if (!view.requestFocus())
