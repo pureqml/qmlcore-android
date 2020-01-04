@@ -156,8 +156,6 @@ public final class HttpRequest {
                 emitError(e);
             } finally {
                 request.close();
-                if (_connection != null)
-                    _connection.disconnect();
             }
         }
     }
