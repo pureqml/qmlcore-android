@@ -15,6 +15,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.pureqml.android.runtime.Element;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -152,6 +154,8 @@ public class MainActivity extends AppCompatActivity {
             result = _executionEnvironment.getExecutor().submit(new Callable<Boolean>() {
                 @Override
                 public Boolean call() throws Exception {
+                    Element context = _executionEnvironment.getRootElement();
+                    context.emit(null, "keydown", "Back");
                     Log.d(TAG, "back pressed");
                     return false;
                 }

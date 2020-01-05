@@ -109,6 +109,10 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         _rootView = rootView;
     }
 
+    public Element getRootElement() {
+        return _rootElement;
+    }
+
     @Override
     public Context getContext() {
         return super.getBaseContext();

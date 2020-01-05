@@ -6,37 +6,42 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.View;
 
-public class MainView extends SurfaceView {
+import java.util.concurrent.ExecutionException;
+
+public final class MainView extends SurfaceView {
     private static final String TAG = "MainView";
 
     private IExecutionEnvironment _env;
 
-    public MainView(Context context) {
-        super(context);
+    private void setup() {
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
         setZOrderMediaOverlay(true);
+    }
+
+    public MainView(Context context) {
+        super(context);
+        setup();
     }
 
     public MainView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        setZOrderMediaOverlay(true);
+        setup();
     }
 
     public MainView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        setZOrderMediaOverlay(true);
-
+        setup();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public MainView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        setZOrderMediaOverlay(true);
+        setup();
     }
 
     public void setExecutionEnvironment(IExecutionEnvironment env) {
