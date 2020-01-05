@@ -15,6 +15,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
@@ -142,6 +143,27 @@ public class MainActivity extends AppCompatActivity {
         bindService(new Intent(this,
                 ExecutionEnvironment.class), _executionEnvironmentConnection, Context.BIND_AUTO_CREATE | Context.BIND_ADJUST_WITH_ACTIVITY);
         _executionEnvironmentBound = true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        boolean result = false;
+        try {
+            result = _executionEnvironment.getExecutor().submit(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    Log.d(TAG, "back pressed");
+                    return false;
+                }
+            }).get();
+            Log.d(TAG, "key handler finishes with " + result);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (!result)
+            super.onBackPressed();
     }
 
     @Override
