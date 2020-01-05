@@ -28,7 +28,7 @@ public class Element extends BaseObject {
     protected Rect              _combinedRect       = new Rect();
     protected Rect              _lastRect           = new Rect();
 
-    protected float             _opacity            = 1;
+    private   float             _opacity            = 1;
     protected boolean           _visible            = true;
     protected boolean           _globallyVisible    = false;
     protected boolean           _updated            = true;
