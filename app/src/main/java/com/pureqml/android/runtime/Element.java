@@ -153,18 +153,20 @@ public class Element extends BaseObject {
         if (_children != null) {
             for (Element child : _children) {
                 PaintState state = new PaintState(parent, _rect.left, _rect.top, _opacity);
-                child.paint(state);
-                _combinedRect.union(child.getRect());
-                _combinedRect.union(child.getCombinedRect());
-                _lastRect.union(child.getLastRenderedRect());
+                if (state.visible()) {
+                    child.paint(state);
+
+                    _combinedRect.union(child.getRect());
+                    _combinedRect.union(child.getCombinedRect());
+                    _lastRect.union(child.getLastRenderedRect());
+                }
             }
         }
     }
 
     public void paint(PaintState state) {
         beginPaint();
-        if (_visible && state.visible())
-            paintChildren(state);
+        paintChildren(state);
         endPaint();
     }
 

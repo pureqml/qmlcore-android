@@ -42,26 +42,26 @@ public final class Rectangle extends Element {
     @Override
     public void paint(PaintState state) {
         beginPaint();
-        if (_visible && state.visible()) {
-            Canvas canvas = state.canvas;
-            float opacity = state.opacity;
-            Rect rect = translateRect(_rect, state.baseX, state.baseY);
-            if (_radius > 0) {
-                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, opacity));
-            } else {
-                canvas.drawRect(rect, patchAlpha(_background, opacity));
-            }
 
-            if (_border != null) {
-                if (_radius > 0) {
-                    canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_border, opacity));
-                } else {
-                    canvas.drawRect(rect, patchAlpha(_border, opacity));
-                }
-            }
-            _lastRect.union(rect);
-            paintChildren(state);
+        Canvas canvas = state.canvas;
+        float opacity = state.opacity;
+        Rect rect = translateRect(_rect, state.baseX, state.baseY);
+        if (_radius > 0) {
+            canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, state.opacity));
+        } else {
+            canvas.drawRect(rect, patchAlpha(_background, state.opacity));
         }
+
+        if (_border != null) {
+            if (_radius > 0) {
+                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_border, state.opacity));
+            } else {
+                canvas.drawRect(rect, patchAlpha(_border, state.opacity));
+            }
+        }
+        _lastRect.union(rect);
+        paintChildren(state);
+
         endPaint();
     }
 }
