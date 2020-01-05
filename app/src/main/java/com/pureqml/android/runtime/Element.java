@@ -163,7 +163,7 @@ public class Element extends BaseObject {
 
     public void paint(PaintState state) {
         beginPaint();
-        if (_visible)
+        if (_visible && state.visible())
             paintChildren(state);
         endPaint();
     }
