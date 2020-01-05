@@ -153,7 +153,7 @@ public class Element extends BaseObject {
         if (_children != null) {
             for (Element child : _children) {
                 PaintState state = new PaintState(parent, _rect.left, _rect.top, _opacity);
-                if (state.visible()) {
+                if (child._visible && state.visible()) {
                     child.paint(state);
 
                     _combinedRect.union(child.getRect());

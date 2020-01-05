@@ -37,7 +37,7 @@ public final class Text extends Element {
     @Override
     public void paint(PaintState state) {
         beginPaint();
-        if (_visible && _text != null) {
+        if (_text != null) {
             _lastRect.left = state.baseX + _rect.left;
             _lastRect.top = state.baseY + _rect.top; //fixme: get actual bounding box
 
