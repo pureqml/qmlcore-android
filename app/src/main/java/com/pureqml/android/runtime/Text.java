@@ -63,8 +63,8 @@ public final class Text extends Element {
                 }
             }
             _lastRect.bottom = (int) (y - lineHeight);
-            paintChildren(state);
         }
+        paintChildren(state);
         endPaint();
     }
 
