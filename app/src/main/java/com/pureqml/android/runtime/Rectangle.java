@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
@@ -15,7 +16,8 @@ public final class Rectangle extends Element {
     private final static String TAG = "rt.Rectangle";
     private Paint   _background;
     private Paint   _border;
-    int             _radius;
+    int             _radius = 0;
+    int             _color = 0;
 
     private void setupPaint(Paint paint) {
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
@@ -39,7 +41,7 @@ public final class Rectangle extends Element {
 
     protected void setStyle(String name, Object value) throws Exception {
         switch(name) {
-            case "background-color":    _background.setColor(toColor((String)value)); break;
+            case "background-color":    _color = toColor((String)value); _background.setAlpha(Color.alpha(_color)); _background.setColor(_color); break;
             case "border-color":        getBorder().setColor(toColor((String)value)); break;
             case "border-width":        getBorder().setStrokeWidth(toInteger(value)); break;
             case "border-radius":       _radius = toInteger(value); break;
@@ -56,17 +58,20 @@ public final class Rectangle extends Element {
         Canvas canvas = state.canvas;
         float opacity = state.opacity;
         Rect rect = translateRect(_rect, state.baseX, state.baseY);
-        if (_radius > 0) {
-            canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, state.opacity));
-        } else {
-            canvas.drawRect(rect, patchAlpha(_background, state.opacity));
+
+        if (_background.getColor() != 0) {
+            if (_radius > 0) {
+                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, Color.alpha(_color), state.opacity));
+            } else {
+                canvas.drawRect(rect, patchAlpha(_background, Color.alpha(_color), state.opacity));
+            }
         }
 
         if (_border != null) {
             if (_radius > 0) {
-                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_border, state.opacity));
+                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_border, Color.alpha(_color), state.opacity));
             } else {
-                canvas.drawRect(rect, patchAlpha(_border, state.opacity));
+                canvas.drawRect(rect, patchAlpha(_border, Color.alpha(_color), state.opacity));
             }
         }
         _lastRect.union(rect);

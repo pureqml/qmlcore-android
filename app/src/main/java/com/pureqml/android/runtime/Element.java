@@ -227,9 +227,9 @@ public class Element extends BaseObject {
         return r;
     }
 
-    static final Paint patchAlpha(Paint paint, float opacity) {
+    static final Paint patchAlpha(Paint paint, int alpha, float opacity) {
         Paint alphaPaint = new Paint(paint);
-        alphaPaint.setAlpha((int)(alphaPaint.getAlpha() * opacity));
+        alphaPaint.setAlpha((int)(alpha * opacity));
         return alphaPaint;
     }
 }
