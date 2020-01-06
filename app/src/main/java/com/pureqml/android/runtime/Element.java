@@ -95,7 +95,7 @@ public class Element extends BaseObject {
         update();
     }
 
-    protected void setStyle(String name, Object value) throws Exception {
+    protected void setStyle(String name, Object value) {
         switch(name) {
             case "left":    { int left = TypeConverter.toInteger(value);    _rect.right += left - _rect.left; _rect.left = left; } break;
             case "top":     { int top = TypeConverter.toInteger(value);     _rect.bottom += top - _rect.top; _rect.top = top; } break;

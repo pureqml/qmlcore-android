@@ -18,10 +18,17 @@ public final class Text extends Element {
         super(env);
     }
 
-    protected void setStyle(String name, Object value) throws Exception {
+    @Override
+    protected void setStyle(String name, Object value) {
         switch(name) {
             case "color":           _paint.setColor(TypeConverter.toColor((String)value)); break;
-            case "font-size":       _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getDisplayMetrics())); break;
+            case "font-size":
+                try {
+                    _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getDisplayMetrics()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
             case "font-weight":
                 if (value.equals("bold"))
                     _paint.setTypeface(Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD));

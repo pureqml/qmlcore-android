@@ -39,7 +39,8 @@ public final class Rectangle extends Element {
         return _border;
     }
 
-    protected void setStyle(String name, Object value) throws Exception {
+    @Override
+    protected void setStyle(String name, Object value) {
         switch(name) {
             case "background-color":    _color = toColor((String)value); _background.setAlpha(Color.alpha(_color)); _background.setColor(_color); break;
             case "border-color":        getBorder().setColor(toColor((String)value)); break;

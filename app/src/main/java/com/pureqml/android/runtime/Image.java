@@ -53,7 +53,8 @@ public final class Image extends Element implements ImageLoadedCallback {
         _callback = callback;
     }
 
-    protected void setStyle(String name, Object value) throws Exception {
+    @Override
+    protected void setStyle(String name, Object value) {
         super.setStyle(name, value);
     }
 
