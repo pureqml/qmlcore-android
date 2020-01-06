@@ -75,4 +75,34 @@ public class BaseObject {
         _env.schedulePaint();
         v8args.close();
     }
+
+    public boolean emitUntilTrue(V8Object target, String name, Object ... args) {
+        Log.i(TAG, "emitting " + name);
+        if (_callbacks == null)
+            return false;
+
+        List<V8Function> callbacks = _callbacks.get(name);
+        if (callbacks == null)
+            return false;
+
+        V8Array v8args = new V8Array(_env.getRuntime());
+        for (int i = 0; i < args.length; ++i) {
+            v8args.push(args[i]);
+        }
+        boolean result = false;
+        for(V8Function callback : callbacks) {
+            try {
+                Boolean r = (Boolean)callback.call(target, v8args);
+                if (r.booleanValue()) {
+                    result = true;
+                    break;
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "callback for " + name + " failed", e);
+            }
+        }
+        _env.schedulePaint();
+        v8args.close();
+        return result;
+    }
 }
