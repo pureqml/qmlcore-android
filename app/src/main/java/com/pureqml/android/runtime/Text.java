@@ -5,6 +5,7 @@ import android.graphics.Typeface;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Function;
+import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 
 public final class Text extends Element {
@@ -73,8 +74,9 @@ public final class Text extends Element {
         _text = text;
     }
 
-    public void layoutText(V8Function callback) {
-        _env.layoutText(_text, _rect, new TextLayoutCallback() {
+    public void layoutText(V8Object options, V8Function callback) {
+        boolean wrap = true;
+        _env.layoutText(_text, _rect, wrap, new TextLayoutCallback() {
             @Override
             public void onTextLayedOut(TextLayout layout) {
                 _layout = layout;

@@ -41,5 +41,5 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener);
 
     //text layout api
-    void layoutText(String text, Rect rect, TextLayoutCallback callback);
+    void layoutText(String text, Rect rect, boolean wrap, TextLayoutCallback callback);
 }

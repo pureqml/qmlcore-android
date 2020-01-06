@@ -399,8 +399,8 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     }
 
     @Override
-    public void layoutText(String text, Rect rect, final TextLayoutCallback callback) {
-        _textRenderer.layoutText(text, rect, new TextLayoutCallback() {
+    public void layoutText(String text, Rect rect, boolean wrap, final TextLayoutCallback callback) {
+        _textRenderer.layoutText(text, rect, wrap, new TextLayoutCallback() {
             @Override
             public void onTextLayedOut(final TextLayout layout) {
                 _executor.execute(new Runnable() {

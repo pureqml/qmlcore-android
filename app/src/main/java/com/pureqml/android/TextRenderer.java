@@ -13,9 +13,12 @@ public class TextRenderer {
     IExecutionEnvironment   _env;
     ExecutorService         _threadPool;
 
-    TextRenderer(IExecutionEnvironment env) { _env = env; _threadPool = env.getThreadPool(); }
+    TextRenderer(IExecutionEnvironment env) {
+        _env = env;
+        _threadPool = env.getThreadPool();
+    }
 
-    public void layoutText(String text, Rect rect, TextLayoutCallback callback) {
+    public void layoutText(String text, Rect rect, boolean wrap, TextLayoutCallback callback) {
         Log.i(TAG, "layout text " + text + " " + rect);
     }
 }
