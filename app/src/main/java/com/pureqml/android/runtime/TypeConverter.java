@@ -46,11 +46,11 @@ public class TypeConverter {
         if (value.startsWith("rgba(")) {
             String [] components = value.substring(5, value.length() - 1).split(",");
             short a = (short)(255 * Float.parseFloat(components[3]));
-            return (
-                (a << 24) |
-                (Short.parseShort(components[0]) << 16) |
-                (Short.parseShort(components[1]) << 8) |
-                (Short.parseShort(components[2]))
+            return Color.argb(
+                a,
+                Short.parseShort(components[0]),
+                Short.parseShort(components[1]),
+                Short.parseShort(components[2])
             );
         } else
             return 0xffff00ff; //invalid color
