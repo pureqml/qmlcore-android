@@ -94,7 +94,7 @@ public final class HttpRequest {
                     }
                 });
             } catch (final Exception e) {
-                e.printStackTrace();
+                Log.w(TAG, "http connection failed", e);
                 _env.getExecutor().execute(new Runnable() {
                     @Override
                     public void run() {

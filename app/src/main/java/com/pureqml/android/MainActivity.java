@@ -161,9 +161,9 @@ public class MainActivity extends AppCompatActivity {
             }).get();
             Log.d(TAG, "key handler finishes with " + result);
         } catch (ExecutionException e) {
-            e.printStackTrace();
+            Log.e(TAG, "onBackPressed", e);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(TAG, "onBackPressed", e);
         }
         if (!result)
             super.onBackPressed();
