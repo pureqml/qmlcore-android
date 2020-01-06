@@ -98,15 +98,7 @@ public final class Text extends Element {
         _text = text;
     }
 
-    public void layoutText(V8Object options, V8Function callback) {
-        boolean wrap = true;
-        _env.layoutText(_text, _rect, wrap, new TextLayoutCallback() {
-            @Override
-            public void onTextLayedOut(TextLayout layout) {
-                _layout = layout;
-
-                update();
-            }
-        });
+    public void layoutText(V8Function callback) {
+        Log.v(TAG, "layout text: " + _text);
     }
 }

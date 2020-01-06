@@ -38,8 +38,6 @@ import com.pureqml.android.runtime.LocalStorage;
 import com.pureqml.android.runtime.PaintState;
 import com.pureqml.android.runtime.Rectangle;
 import com.pureqml.android.runtime.Text;
-import com.pureqml.android.runtime.TextLayout;
-import com.pureqml.android.runtime.TextLayoutCallback;
 import com.pureqml.android.runtime.Timers;
 import com.pureqml.android.runtime.VideoPlayer;
 import com.pureqml.android.runtime.Wrapper;
@@ -82,7 +80,6 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private Timers                      _timers;
     private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
-    private TextRenderer                _textRenderer;
     private IRenderer                   _renderer;
     private DisplayMetrics              _metrics;
     private ViewGroup                   _rootView;
@@ -205,7 +202,6 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         _threadPool = Executors.newCachedThreadPool();
 
         _imageLoader = new ImageLoader(this);
-        _textRenderer = new TextRenderer(this);
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
@@ -394,21 +390,6 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
                 }
                 _imageWaiters.remove(url);
                 schedulePaint();
-            }
-        });
-    }
-
-    @Override
-    public void layoutText(String text, Rect rect, boolean wrap, final TextLayoutCallback callback) {
-        _textRenderer.layoutText(text, rect, wrap, new TextLayoutCallback() {
-            @Override
-            public void onTextLayedOut(final TextLayout layout) {
-                _executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onTextLayedOut(layout);
-                    }
-                });
             }
         });
     }
