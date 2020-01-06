@@ -9,10 +9,17 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 
 public final class Text extends Element {
+
+    enum Wrap {
+        NoWrap,
+        Wrap
+    };
+
     private final static String TAG = "rt.Text";
     Paint       _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     String      _text;
     TextLayout  _layout;
+    Wrap        _wrap = Wrap.NoWrap;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -35,6 +42,16 @@ public final class Text extends Element {
                 else
                     Log.v(TAG, "ignoring font-weight " + value);
                 break;
+
+            case "white-space":
+                if (value.equals("pre") || value.equals("nowrap"))
+                    _wrap = Wrap.NoWrap;
+                else if (value.equals("pre-wrap") || value.equals("normal"))
+                    _wrap = Wrap.Wrap;
+                else
+                    Log.w(TAG, "unsupported white-space rule");
+                break;
+
             default:
                 super.setStyle(name, value);
                 return;
