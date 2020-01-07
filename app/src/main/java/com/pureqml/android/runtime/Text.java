@@ -4,6 +4,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.Log;
 
+import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
@@ -100,5 +101,35 @@ public final class Text extends Element {
 
     public void layoutText(V8Function callback) {
         Log.v(TAG, "layout text: " + _text);
+        int offset = 0, length = _text.length();
+        int lines = 0;
+        _layout = new TextLayout(_text);
+
+        if (_wrap == Wrap.Wrap) {
+            while(offset < length) {
+                float measuredWidth[] = new float[1];
+                int n = _paint.breakText(_text, offset, length, true, _rect.width(), measuredWidth);
+                _layout.add(offset, offset + n, (int)measuredWidth[0]);
+                offset += n;
+                ++lines;
+            }
+        } else {
+            int width = (int)_paint.measureText(_text);
+            _layout.add(0, _text.length(), width);
+            lines = 1;
+        }
+        _layout.height = (int) (lines * _paint.getTextSize());
+
+        V8Object metrics = new V8Object(_env.getRuntime());
+        metrics.add("width", _layout.width);
+        metrics.add("height", _layout.height);
+
+        V8Array args = new V8Array(_env.getRuntime());
+        args.push(metrics);
+        callback.call(null, args);
+        args.close();
+
+        metrics.close();
+        callback.close();
     }
 }
