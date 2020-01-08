@@ -59,22 +59,32 @@ public final class Rectangle extends Element {
         Canvas canvas = state.canvas;
         float opacity = state.opacity;
         Rect rect = translateRect(_rect, state.baseX, state.baseY);
+        boolean rendered = false;
 
         if (_background.getColor() != 0) {
-            if (_radius > 0) {
-                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_background, Color.alpha(_color), state.opacity));
-            } else {
-                canvas.drawRect(rect, patchAlpha(_background, Color.alpha(_color), state.opacity));
+            Paint paint = patchAlpha(_background, Color.alpha(_color), state.opacity);
+            if (paint != null) {
+                rendered = true;
+                if (_radius > 0) {
+                    canvas.drawRoundRect(new RectF(rect), _radius, _radius, paint);
+                } else {
+                    canvas.drawRect(rect, paint);
+                }
             }
         }
 
         if (_border != null) {
-            if (_radius > 0) {
-                canvas.drawRoundRect(new RectF(rect), _radius, _radius, patchAlpha(_border, Color.alpha(_color), state.opacity));
-            } else {
-                canvas.drawRect(rect, patchAlpha(_border, Color.alpha(_color), state.opacity));
+            Paint paint = patchAlpha(_border, Color.alpha(_color), state.opacity);
+            if (paint != null) {
+                rendered = true;
+                if (_radius > 0) {
+                    canvas.drawRoundRect(new RectF(rect), _radius, _radius, paint);
+                } else {
+                    canvas.drawRect(rect, paint);
+                }
             }
         }
+
         _lastRect.union(rect);
         paintChildren(state);
 

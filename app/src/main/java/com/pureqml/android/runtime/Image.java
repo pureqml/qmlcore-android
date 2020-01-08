@@ -91,9 +91,12 @@ public final class Image extends Element implements ImageLoadedCallback {
             if (bitmap != null) {
                 Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
                 Rect dst = translateRect(_rect, state.baseX, state.baseY);
+                Paint paint = patchAlpha(_paint, 255, state.opacity);
                 //Log.i(TAG, "drawing image "  + src + " " + dst + " " + dst.width() + "x" + dst.height());
-                state.canvas.drawBitmap(bitmap, src, dst, patchAlpha(_paint, 255, state.opacity));
-                _lastRect.set(dst);
+                if (paint != null) {
+                    state.canvas.drawBitmap(bitmap, src, dst, paint);
+                    _lastRect.set(dst);
+                }
             }
         }
         paintChildren(state);

@@ -223,8 +223,12 @@ public class Element extends BaseObject {
     }
 
     static final Paint patchAlpha(Paint paint, int alpha, float opacity) {
+        alpha = (int)(alpha * opacity);
+        if (alpha <= 0)
+            return null;
+
         Paint alphaPaint = new Paint(paint);
-        alphaPaint.setAlpha((int)(alpha * opacity));
+        alphaPaint.setAlpha(alpha);
         return alphaPaint;
     }
 }
