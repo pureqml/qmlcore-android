@@ -3,6 +3,8 @@ package com.pureqml.android.runtime;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.util.Log;
 
@@ -23,10 +25,12 @@ public final class Image extends Element implements ImageLoadedCallback {
     URL                         _url;
     ImageLoader.ImageResource   _image;
     V8Function                  _callback;
-    Paint                       _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    Paint                       _paint;
 
     public Image(IExecutionEnvironment env) {
         super(env);
+        _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        _paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
     }
 
     public void load(String name, V8Function callback) {

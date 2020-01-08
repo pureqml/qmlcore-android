@@ -20,7 +20,7 @@ public final class Rectangle extends Element {
     int             _color = 0;
 
     private void setupPaint(Paint paint) {
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
     }
 
     public Rectangle(IExecutionEnvironment env) {
