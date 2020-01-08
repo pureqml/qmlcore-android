@@ -131,5 +131,6 @@ public final class Text extends Element {
 
         metrics.close();
         callback.close();
+        update();
     }
 }
