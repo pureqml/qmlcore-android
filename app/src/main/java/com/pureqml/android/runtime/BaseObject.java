@@ -72,7 +72,6 @@ public class BaseObject {
                 Log.e(TAG, "callback for " + name + " failed", e);
             }
         }
-        _env.schedulePaint();
         v8args.close();
     }
 
@@ -101,7 +100,6 @@ public class BaseObject {
                 Log.e(TAG, "callback for " + name + " failed", e);
             }
         }
-        _env.schedulePaint();
         v8args.close();
         return result;
     }

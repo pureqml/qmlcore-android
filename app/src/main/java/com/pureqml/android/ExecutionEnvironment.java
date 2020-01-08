@@ -47,10 +47,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -72,6 +74,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private Map<Long, BaseObject>       _objects = new HashMap<Long, BaseObject>(10000);
     private HashMap<URL, List<ImageLoadedCallback>>
                                         _imageWaiters = new HashMap<>();
+    private Set<Element>                _updatedElements = new HashSet<Element>();
     private Rect                        _surfaceGeometry;
     private V8Object                    _rootObject;
     private Element                     _rootElement;
@@ -408,6 +411,12 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         });
     }
 
+    @Override
+    public void update(Element el) {
+        _updatedElements.add(el);
+    }
+
+    @Override
     public void repaint(final SurfaceHolder holder) {
         final Future<Void> f = _executor.submit(new Callable<Void>() {
             @Override
@@ -441,16 +450,34 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         }
     }
 
+    @Override
     public void schedulePaint() {
-        //Log.i(TAG, "schedulePaint");
         Element root = _rootElement;
-        if (root == null)
+        if (root == null || _updatedElements.isEmpty())
             return;
 
-        Rect rect = root.getCombinedRect();
-        if (_renderer != null) {
-            //Log.d(TAG,"schedulePaint rect " + rect);
-            _renderer.invalidateRect(rect);
+        //Log.v(TAG, "schedulePaint: " + _updatedElements.size() + " elements");
+        final Rect clipRect = _surfaceGeometry;
+        Rect combinedRect = new Rect();
+        for(Element el : _updatedElements) {
+            if (el.visible()) {
+                Rect rect = new Rect(el.getScreenRect());
+                if (rect.intersect(clipRect))
+                    combinedRect.union(rect);
+
+                rect = new Rect(el.getCombinedRect());
+                if (rect.intersect(clipRect))
+                    combinedRect.union(rect);
+
+            }
+            Rect last = new Rect(el.getLastRenderedRect());
+            if (last.intersect(clipRect))
+                combinedRect.union(last);
+        }
+        _updatedElements.clear();
+        if (!combinedRect.isEmpty()) {
+            Log.v(TAG, "schedulePaint: combined rect: " + combinedRect.toString());
+            _renderer.invalidateRect(combinedRect);
         }
     }
 

@@ -11,6 +11,7 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.BaseObject;
+import com.pureqml.android.runtime.Element;
 
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +33,7 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments);
     void invokeVoidCallback(V8Function callback, V8Object receiver, V8Array arguments);
     void schedulePaint();
+    void update(Element el);
     void repaint(SurfaceHolder holder);
 
     //image loader api

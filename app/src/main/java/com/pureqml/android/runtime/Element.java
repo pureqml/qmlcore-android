@@ -31,8 +31,6 @@ public class Element extends BaseObject {
     private   float             _opacity            = 1;
     protected boolean           _visible            = true;
     protected boolean           _globallyVisible    = false;
-    protected boolean           _updated            = true;
-    protected boolean           _updatedChild       = true;
     protected Element           _parent;
     protected int               _z;
     protected List<Element>     _children;
@@ -41,12 +39,15 @@ public class Element extends BaseObject {
         super(env);
     }
 
-    public Rect getRect()
+    public final Rect getRect()
     { return _rect; }
-    public Rect getCombinedRect()
+    public final Rect getCombinedRect()
     { return _combinedRect; }
-    public Rect getLastRenderedRect()
+    public final Rect getLastRenderedRect()
     { return _lastRect; }
+    public final boolean visible() {
+        return _visible && _opacity >= PaintState.opacityThreshold;
+    }
 
     public void append(BaseObject child) throws AlreadyHasAParentException {
         if (child == null)
@@ -79,13 +80,7 @@ public class Element extends BaseObject {
     }
 
     void update() {
-        _updated = true;
-        Element current = this._parent;
-        while(current != null && !current._updatedChild) {
-            current._updatedChild = true;
-            current = current._parent;
-        }
-        _env.schedulePaint();
+        _env.update(this);
     }
 
     protected void removeChild(Element child) {
