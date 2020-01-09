@@ -8,12 +8,18 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.SurfaceView;
 
+import androidx.annotation.Nullable;
+
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.drm.DrmInitData;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.mp3.Mp3Extractor;
@@ -23,9 +29,11 @@ import com.google.android.exoplayer2.extractor.ts.AdtsExtractor;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
 import com.google.android.exoplayer2.extractor.ts.TsExtractor;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.hls.HlsExtractorFactory;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.MimeTypes;
@@ -35,6 +43,7 @@ import com.pureqml.android.IExecutionEnvironment;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 
 public final class VideoPlayer extends BaseObject {
@@ -57,6 +66,79 @@ public final class VideoPlayer extends BaseObject {
         view = new SurfaceView(_env.getContext());
         viewHolder = new ViewHolder<SurfaceView>(context, view);
         player.setVideoSurfaceView(view);
+
+        final ExecutorService executor = _env.getExecutor();
+        player.addListener(new Player.EventListener() {
+            @Override
+            public void onTimelineChanged(final Timeline timeline, @Nullable Object manifest, int reason) {
+                Log.d(TAG, "onTimelineChanged" + timeline + ", reason: " + reason);
+            }
+
+            @Override
+            public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+                Log.d(TAG, "onTracksChanged" + trackGroups + " " + trackSelections);
+            }
+
+            @Override
+            public void onLoadingChanged(boolean isLoading) {
+                Log.d(TAG, "onLoadingChanged " + isLoading);
+            }
+
+            @Override
+            public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+                Log.d(TAG, "onPlayerStateChanged " + playbackState);
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        VideoPlayer.this.emit(null, "stateChanged", playbackState);
+                        if (playWhenReady && playbackState == Player.STATE_BUFFERING)
+                            VideoPlayer.this.emit(null, "stateChanged", Player.STATE_READY);
+                    }
+                });
+            }
+
+            @Override
+            public void onRepeatModeChanged(int repeatMode) {
+                Log.d(TAG, "onRepeatModeChanged " + repeatMode);
+            }
+
+            @Override
+            public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+                Log.d(TAG, "onShuffleModeEnabledChanged " + shuffleModeEnabled);
+            }
+
+            @Override
+            public void onPlayerError(final ExoPlaybackException error) {
+                Log.d(TAG, "onPlayerError " + error);
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        VideoPlayer.this.emit(null, "error", error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onPositionDiscontinuity(int reason) {
+                Log.d(TAG, "onPositionDiscontinuity " + reason);
+            }
+
+            @Override
+            public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+                Log.d(TAG, "onPlaybackParametersChanged " + playbackParameters);
+            }
+
+            @Override
+            public void onSeekProcessed() {
+                Log.d(TAG, "onSeekProcessed");
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        VideoPlayer.this.emit(null, "seeked");
+                    }
+                });
+            }
+        });
     }
 
     public void setupDrm(String type, V8Object options, V8Function callback, V8Function error) {
