@@ -1,8 +1,10 @@
 package com.pureqml.android;
 
 import android.app.Service;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
@@ -144,11 +146,30 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         v8FD.registerJavaMethod(new JavaCallback() {
             @Override
             public Object invoke(V8Object v8Object, V8Array v8Array) {
+                final int DeviceDesktop  = 0;
+                final int DeviceTV       = 1;
+                final int DeviceMobile   = 2;
+
                 V8Object info = new V8Object(_v8);
                 info.add("deviceId", Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID));
                 info.add("language", Locale.getDefault().toString());
                 info.add("modelName", Build.MODEL);
                 info.add("firmware", Build.VERSION.RELEASE);
+                try {
+                    UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+                    switch (uiModeManager.getCurrentModeType()) {
+                        case Configuration.UI_MODE_TYPE_TELEVISION:
+                            Log.i(TAG, "Running on TV device");
+                            info.add("device", DeviceTV);
+                            break;
+                        default:
+                            Log.i(TAG, "Running on mobile device");
+                            info.add("device", DeviceMobile);
+                            break;
+                    }
+                } catch(Exception ex) {
+                    Log.e(TAG, "getCurrentModeType", ex);
+                }
                 return info;
             }
         }, "getDeviceInfo");
