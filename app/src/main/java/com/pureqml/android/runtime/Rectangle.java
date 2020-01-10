@@ -59,12 +59,10 @@ public final class Rectangle extends Element {
         Canvas canvas = state.canvas;
         float opacity = state.opacity;
         Rect rect = translateRect(_rect, state.baseX, state.baseY);
-        boolean rendered = false;
 
         if (_background.getColor() != 0) {
-            Paint paint = patchAlpha(_background, Color.alpha(_color), state.opacity);
+            Paint paint = patchAlpha(_background, Color.alpha(_color), opacity);
             if (paint != null) {
-                rendered = true;
                 if (_radius > 0) {
                     canvas.drawRoundRect(new RectF(rect), _radius, _radius, paint);
                 } else {
@@ -74,9 +72,8 @@ public final class Rectangle extends Element {
         }
 
         if (_border != null) {
-            Paint paint = patchAlpha(_border, Color.alpha(_color), state.opacity);
+            Paint paint = patchAlpha(_border, Color.alpha(_color), opacity);
             if (paint != null) {
-                rendered = true;
                 if (_radius > 0) {
                     canvas.drawRoundRect(new RectF(rect), _radius, _radius, paint);
                 } else {
