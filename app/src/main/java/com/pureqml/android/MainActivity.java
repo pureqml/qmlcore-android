@@ -128,14 +128,15 @@ public class MainActivity extends AppCompatActivity {
         _mainView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                Log.i(TAG, "motion " + event.toString());
+                if (event.getAction() != MotionEvent.ACTION_UP)
+                    return true;
+
                 if (_executionEnvironment != null) {
                     try {
                         return _executionEnvironment.sendEvent(event).get();
-                    } catch (ExecutionException e) {
+                    } catch (Exception e) {
                         Log.e(TAG, "execution exception", e);
-                        return false;
-                    } catch (InterruptedException e) {
-                        Log.e(TAG, "interrupted exception", e);
                         return false;
                     }
                 }
