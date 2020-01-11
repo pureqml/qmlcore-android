@@ -497,7 +497,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         }
         _updatedElements.clear();
         if (!combinedRect.isEmpty()) {
-            Log.v(TAG, "schedulePaint: combined rect: " + combinedRect.toString());
+            //Log.v(TAG, "schedulePaint: combined rect: " + combinedRect.toString());
             _renderer.invalidateRect(combinedRect);
         }
     }
