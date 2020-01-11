@@ -170,6 +170,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        Log.i(TAG, "stopping main activity...");
+        super.onStop();
+    }
+
+    @Override
+    protected void onStart() {
+        Log.i(TAG, "starting main activity...");
+        super.onStart();
+    }
+
+    @Override
     protected void onDestroy() {
         if (_executionEnvironmentBound)
             unbindService(_executionEnvironmentConnection);
