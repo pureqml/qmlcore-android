@@ -474,7 +474,7 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     @Override
     public void schedulePaint() {
         Element root = _rootElement;
-        if (root == null || _updatedElements.isEmpty())
+        if (root == null || _updatedElements.isEmpty() || _renderer == null)
             return;
 
         //Log.v(TAG, "schedulePaint: " + _updatedElements.size() + " elements");
