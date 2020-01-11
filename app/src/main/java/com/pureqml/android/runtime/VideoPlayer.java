@@ -40,13 +40,14 @@ import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
 import com.google.android.exoplayer2.util.Util;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.IResource;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 
-public final class VideoPlayer extends BaseObject {
+public final class VideoPlayer extends BaseObject implements IResource {
     private static final String TAG = "VideoPlayer";
     private SimpleExoPlayer             player;
     private SurfaceView view;
@@ -57,10 +58,14 @@ public final class VideoPlayer extends BaseObject {
         Context context = env.getContext();
         view = new SurfaceView(context);
         viewHolder = new ViewHolder<SurfaceView>(context, view);
-        this.createImpl();
+        this.acquireResource();
     }
 
-    void createImpl() {
+    @Override
+    public void acquireResource() {
+        if (player != null)
+            return;
+
         Context context = _env.getContext();
         DefaultTrackSelector trackSelector = new DefaultTrackSelector();
         trackSelector.setParameters(
@@ -146,7 +151,8 @@ public final class VideoPlayer extends BaseObject {
         });
     }
 
-    void releaseImpl() {
+    @Override
+    public void releaseResource() {
         if (this.player != null) {
             player.setVideoSurfaceView(null);
             this.player.release();
