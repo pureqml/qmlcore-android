@@ -49,9 +49,16 @@ import java.util.concurrent.ExecutorService;
 
 public final class VideoPlayer extends BaseObject implements IResource {
     private static final String TAG = "VideoPlayer";
+
     private SimpleExoPlayer             player;
-    private SurfaceView view;
+    private SurfaceView                 view;
     private ViewHolder<SurfaceView>     viewHolder;
+
+    //this is persistent state
+    private Rect                        rect;
+    private String                      source;
+    private boolean                     playerVisible = true;
+    private boolean                     autoplay = false;
 
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
@@ -59,6 +66,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         view = new SurfaceView(context);
         viewHolder = new ViewHolder<SurfaceView>(context, view);
         this.acquireResource();
+        _env.register(this);
     }
 
     @Override
@@ -149,6 +157,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 });
             }
         });
+
+        if (rect != null)
+            setRect(rect);
+        setVisibility(playerVisible);
+        player.setPlayWhenReady(autoplay);
+        if (source != null)
+            setSource(source);
     }
 
     @Override
@@ -166,11 +181,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void stop() {
         Log.i(TAG, "Player.stop");
+        source = null;
         player.stop();
     }
 
     public void setSource(String url) {
         Log.i(TAG, "Player.setSource " + url);
+        source = url;
 
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
 
@@ -208,9 +225,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
-        if (name.equals("autoplay"))
-            player.setPlayWhenReady(TypeConverter.toBoolean(value));
-        else
+        if (name.equals("autoplay")) {
+            autoplay = TypeConverter.toBoolean(value);
+            player.setPlayWhenReady(autoplay);
+        } else
             Log.w(TAG, "ignoring option " + name);
     }
 
@@ -239,11 +257,17 @@ public final class VideoPlayer extends BaseObject implements IResource {
     }
 
     public void setRect(int l, int t, int r, int b) {
-        Log.i(TAG, "Player.setRect " + l + ", " + t + ", " + r + ", " + b);
-        viewHolder.setRect(_env.getRootView(), new Rect(l, t, r, b));
+        setRect(new Rect(l, t, r, b));
+    }
+
+    private void setRect(Rect rect) {
+        Log.i(TAG, "Player.setRect " + rect);
+        viewHolder.setRect(_env.getRootView(), rect);
+        this.rect = rect;
     }
 
     public void setVisibility(boolean visible) {
+        playerVisible = visible;
         Log.i(TAG, "Player.setVisibility " + visible);
         viewHolder.update(_env.getRootView(), visible);
     }
