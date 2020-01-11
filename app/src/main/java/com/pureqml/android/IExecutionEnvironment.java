@@ -39,4 +39,6 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     //image loader api
     AssetManager getAssets();
     ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener);
+
+    void register(IResource res);
 }

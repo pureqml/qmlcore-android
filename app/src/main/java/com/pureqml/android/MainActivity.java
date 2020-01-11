@@ -31,8 +31,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-            _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
             Log.i(TAG, "connected to execution service...");
+            _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
+            _executionEnvironment.acquireResource();
             synchronized (MainActivity.this) {
                 _mainView.setExecutionEnvironment(_executionEnvironment);
                 ViewGroup rootView = (ViewGroup)findViewById(android.R.id.content);
@@ -171,14 +172,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        Log.i(TAG, "stopping main activity...");
         super.onStop();
+        Log.i(TAG, "stopping main activity...");
+        if (_executionEnvironment != null)
+            _executionEnvironment.releaseResource();
     }
 
     @Override
     protected void onStart() {
-        Log.i(TAG, "starting main activity...");
         super.onStart();
+        Log.i(TAG, "starting main activity...");
+        if (_executionEnvironment != null)
+            _executionEnvironment.acquireResource();
     }
 
     @Override

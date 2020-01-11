@@ -47,7 +47,9 @@ import com.pureqml.android.runtime.Wrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -61,7 +63,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class ExecutionEnvironment extends Service implements IExecutionEnvironment {
+public class ExecutionEnvironment extends Service
+        implements IExecutionEnvironment, IResource {
     public static final String TAG = "ExecutionEnvironment";
 
     public class LocalBinder extends Binder {
@@ -72,10 +75,12 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
     private final IBinder _binder = new LocalBinder();
     private V8 _v8;
 
+    class WeakRefList<E> extends ArrayList<WeakReference<E>> {};
     //Element collection
     private Map<Long, BaseObject>       _objects = new HashMap<Long, BaseObject>(10000);
     private HashMap<URL, List<ImageLoadedCallback>>
                                         _imageWaiters = new HashMap<>();
+    private WeakRefList<IResource>      _resources = new WeakRefList<IResource>();
     private Set<Element>                _updatedElements = new HashSet<Element>();
     private Rect                        _surfaceGeometry;
     private V8Object                    _rootObject;
@@ -521,4 +526,58 @@ public class ExecutionEnvironment extends Service implements IExecutionEnvironme
         });
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public void acquireResource() {
+        Log.i(TAG, "acquireResources");
+        WeakRefList<IResource> resources;
+        synchronized (this) { resources = (WeakRefList<IResource>)_resources.clone(); }
+
+        int i = 0, n = resources.size();
+        while(i < n) {
+            IResource res = resources.get(i).get();
+            if (res != null) {
+                try {
+                    res.acquireResource();
+                } catch (Exception e) {
+                    Log.e(TAG, "acquireResource", e);
+                } finally {
+                    ++i;
+                }
+            } else {
+                resources.remove(i);
+                n = resources.size();
+            }
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void releaseResource() {
+        Log.i(TAG, "releaseResources");
+        WeakRefList<IResource> resources;
+        synchronized (this) { resources = (WeakRefList<IResource>)_resources.clone(); }
+
+        int i = 0, n = _resources.size();
+        while(i < n) {
+            IResource res = _resources.get(i).get();
+            if (res != null) {
+                try {
+                    res.releaseResource();
+                } catch (Exception e) {
+                    Log.e(TAG, "releaseResource", e);
+                } finally {
+                    ++i;
+                }
+            } else {
+                _resources.remove(i);
+                n = _resources.size();
+            }
+        }
+    }
+
+    @Override
+    public void register(IResource res) {
+        synchronized (this) { _resources.add(new WeakReference<IResource>(res)); }
+    }
 }
