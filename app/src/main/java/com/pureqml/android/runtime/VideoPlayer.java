@@ -55,16 +55,21 @@ public final class VideoPlayer extends BaseObject {
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
         Context context = env.getContext();
+        view = new SurfaceView(context);
+        viewHolder = new ViewHolder<SurfaceView>(context, view);
+        this.createImpl();
+    }
+
+    void createImpl() {
+        Context context = _env.getContext();
         DefaultTrackSelector trackSelector = new DefaultTrackSelector();
         trackSelector.setParameters(
                 trackSelector.buildUponParameters()
-                .setExceedRendererCapabilitiesIfNecessary(true)
-                .setAllowMixedMimeAdaptiveness(true)
-                .setAllowNonSeamlessAdaptiveness(true)
+                        .setExceedRendererCapabilitiesIfNecessary(true)
+                        .setAllowMixedMimeAdaptiveness(true)
+                        .setAllowNonSeamlessAdaptiveness(true)
         );
         player = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
-        view = new SurfaceView(_env.getContext());
-        viewHolder = new ViewHolder<SurfaceView>(context, view);
         player.setVideoSurfaceView(view);
 
         final ExecutorService executor = _env.getExecutor();
@@ -139,6 +144,14 @@ public final class VideoPlayer extends BaseObject {
                 });
             }
         });
+    }
+
+    void releaseImpl() {
+        if (this.player != null) {
+            player.setVideoSurfaceView(null);
+            this.player.release();
+            this.player = null;
+        }
     }
 
     public void setupDrm(String type, V8Object options, V8Function callback, V8Function error) {
