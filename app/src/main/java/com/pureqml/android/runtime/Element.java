@@ -147,7 +147,7 @@ public class Element extends BaseObject {
     public final void paintChildren(PaintState parent) {
         if (_children != null) {
             for (Element child : _children) {
-                PaintState state = new PaintState(parent, _rect.left, _rect.top, _opacity);
+                PaintState state = new PaintState(parent, _rect.left, _rect.top, child._opacity);
                 if (child._visible && state.visible()) {
                     child.paint(state);
 
