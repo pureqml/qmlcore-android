@@ -42,7 +42,6 @@ import com.pureqml.android.runtime.Rectangle;
 import com.pureqml.android.runtime.Text;
 import com.pureqml.android.runtime.Timers;
 import com.pureqml.android.runtime.VideoPlayer;
-import com.pureqml.android.runtime.Wrapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

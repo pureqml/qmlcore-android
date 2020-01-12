@@ -10,7 +10,7 @@ import android.graphics.RectF;
 
 import com.pureqml.android.IExecutionEnvironment;
 
-import static com.pureqml.android.runtime.TypeConverter.*;
+import static com.pureqml.android.TypeConverter.*;
 
 public final class Rectangle extends Element {
     private final static String TAG = "rt.Rectangle";

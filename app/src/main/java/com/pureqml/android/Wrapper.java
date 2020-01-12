@@ -1,4 +1,4 @@
-package com.pureqml.android.runtime;
+package com.pureqml.android;
 
 import android.util.Log;
 
@@ -10,41 +10,15 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.runtime.BaseObject;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-public final class Wrapper {
+final class Wrapper {
     public final static String TAG = "ClassWrapper";
-
-    public static final Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
-        if (type != null && object.getClass() == type) {
-            return object;
-        } else if (object instanceof V8Value) {
-            V8Value value = (V8Value)object;
-            switch(value.getV8Type()) {
-                case V8Value.UNDEFINED:
-                case V8Value.NULL:
-                    value.close();
-                    return null;
-                case V8Value.V8_OBJECT:
-                    if (type != V8Object.class && type != V8Function.class) {
-                        Object element = env.getObjectById(value.hashCode());
-                        value.close();
-                        return element;
-                    } else {
-                        value.close();
-                        return object;
-                    }
-                default:
-                    value.close();
-                    throw new Error("can't convert value of type " + value.getClass());
-            }
-        } else
-            return object;
-    }
 
     public static final class MethodWrapper implements JavaCallback {
         IExecutionEnvironment _env;
@@ -58,7 +32,7 @@ public final class Wrapper {
             Class<?> argsType [] = _method.getParameterTypes();
             Object [] targetArguments = new Object[n];
             for(int i = 0; i < n; ++i) {
-                targetArguments[i] = getValue(_env, argsType[i], arguments.get(i));
+                targetArguments[i] = TypeConverter.getValue(_env, argsType[i], arguments.get(i));
             }
             try {
                 return _method.invoke(element, targetArguments);
@@ -127,9 +101,10 @@ public final class Wrapper {
             int n = ctorArgs.length;
             Object args[] = new Object[n];
             args[0] = _env;
-            for(int i = 1; i < n; ++i) {
-                args[i] = getValue(_env, ctorArgs[i], arguments.get(i - 1));
-            }
+
+            for(int i = 1; i < n; ++i)
+                args[i] = TypeConverter.getValue(_env, ctorArgs[i], arguments.get(i - 1));
+
             try {
                 Object obj = _ctor.newInstance(args);
                 _env.putObject(self.hashCode(), (BaseObject) obj);

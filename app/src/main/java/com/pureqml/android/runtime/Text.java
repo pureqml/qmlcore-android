@@ -8,6 +8,7 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.TypeConverter;
 
 public final class Text extends Element {
 

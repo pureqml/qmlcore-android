@@ -1,10 +1,15 @@
-package com.pureqml.android.runtime;
+package com.pureqml.android;
 
 
 import android.graphics.Color;
 import android.util.DisplayMetrics;
 
-final class TypeConverter {
+import com.eclipsesource.v8.V8Function;
+import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8Value;
+import com.pureqml.android.IExecutionEnvironment;
+
+public final class TypeConverter {
     public static final boolean toBoolean(Object value) {
         if (value instanceof Boolean)
             return (boolean)value;
@@ -65,4 +70,32 @@ final class TypeConverter {
         } else
             throw new Exception("invalid font size");
     }
+
+    public static final Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
+        if (type != null && object.getClass() == type) {
+            return object;
+        } else if (object instanceof V8Value) {
+            V8Value value = (V8Value)object;
+            switch(value.getV8Type()) {
+                case V8Value.UNDEFINED:
+                case V8Value.NULL:
+                    value.close();
+                    return null;
+                case V8Value.V8_OBJECT:
+                    if (type != V8Object.class && type != V8Function.class) {
+                        Object element = env.getObjectById(value.hashCode());
+                        value.close();
+                        return element;
+                    } else {
+                        value.close();
+                        return object;
+                    }
+                default:
+                    value.close();
+                    throw new Error("can't convert value of type " + value.getClass());
+            }
+        } else
+            return object;
+    }
+
 }

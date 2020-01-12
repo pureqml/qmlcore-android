@@ -41,6 +41,7 @@ import com.google.android.exoplayer2.util.TimestampAdjuster;
 import com.google.android.exoplayer2.util.Util;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
+import com.pureqml.android.TypeConverter;
 
 import java.util.Collections;
 import java.util.List;

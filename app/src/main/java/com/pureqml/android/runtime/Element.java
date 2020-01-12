@@ -1,6 +1,5 @@
 package com.pureqml.android.runtime;
 
-import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
@@ -8,14 +7,12 @@ import android.view.MotionEvent;
 
 import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
-import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.TypeConverter;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class Element extends BaseObject {
     public static final String TAG = "rt.Element";
@@ -126,7 +123,7 @@ public class Element extends BaseObject {
                 setStyle(key, styles.get(key));
         } else if (arguments.length() == 2) {
             Object value = arguments.get(1);
-            setStyle(arguments.getString(0), Wrapper.getValue(_env, null, value));
+            setStyle(arguments.getString(0), TypeConverter.getValue(_env, null, value));
             if (value instanceof Releasable)
                 ((Releasable)value).release();
         }
