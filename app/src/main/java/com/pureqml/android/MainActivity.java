@@ -1,5 +1,6 @@
 package com.pureqml.android;
 
+import android.content.ComponentCallbacks2;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -20,8 +21,10 @@ import com.pureqml.android.runtime.Element;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-public final class MainActivity extends AppCompatActivity {
-
+public final class MainActivity
+        extends AppCompatActivity
+        implements ComponentCallbacks2
+{
     private static final String TAG = "main";
     private boolean                 _executionEnvironmentBound = false;
     private ExecutionEnvironment    _executionEnvironment;
@@ -193,5 +196,11 @@ public final class MainActivity extends AppCompatActivity {
             unbindService(_executionEnvironmentConnection);
         _mainView = null;
         super.onDestroy();
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        Log.i(TAG, "trim memory, level: " + level);
+        super.onTrimMemory(level);
     }
 }
