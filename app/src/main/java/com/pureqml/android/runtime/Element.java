@@ -185,7 +185,8 @@ public class Element extends BaseObject {
         Log.v(TAG, this + ": " + name + ", position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y) + " " + hasCallbackFor(name));
 
         if (_children != null) {
-            for (Element child : _children) {
+            for(int i = _children.size() - 1; i >= 0; --i) {
+                Element child = _children.get(i);
                 if (child.sendEvent(name, offsetX, offsetY, event))
                     return true;
             }
@@ -199,7 +200,8 @@ public class Element extends BaseObject {
             mouseEvent.close();
             return true;
         }
-        return false;
+        else
+            return false;
     }
 
     public void setAttribute(String name, String value) {
