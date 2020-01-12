@@ -2,7 +2,6 @@ package com.pureqml.android.runtime;
 
 import android.util.Log;
 
-import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
@@ -15,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public final class HttpRequest {
@@ -150,7 +148,7 @@ public final class HttpRequest {
                     out.close();
                 }
                 Log.v(TAG, "starting request thread...");
-                new Thread(this).start();
+                _env.getThreadPool().submit(this);
             } catch (Exception e) {
                 Log.w(TAG, "connection failed", e);
                 emitError(e);
