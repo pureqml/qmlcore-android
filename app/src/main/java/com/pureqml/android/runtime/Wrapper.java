@@ -16,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-public class Wrapper {
+public final class Wrapper {
     public final static String TAG = "ClassWrapper";
 
     public static final Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {

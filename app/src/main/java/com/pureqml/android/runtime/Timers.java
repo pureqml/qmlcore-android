@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Timers {
+public final class Timers {
     public static final String TAG = "Timers";
 
     ExecutionEnvironment    _env;

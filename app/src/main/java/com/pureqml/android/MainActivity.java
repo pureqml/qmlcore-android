@@ -20,7 +20,7 @@ import com.pureqml.android.runtime.Element;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-public class MainActivity extends AppCompatActivity {
+public final class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "main";
     private boolean                 _executionEnvironmentBound = false;

@@ -4,7 +4,7 @@ package com.pureqml.android.runtime;
 import android.graphics.Color;
 import android.util.DisplayMetrics;
 
-public class TypeConverter {
+final class TypeConverter {
     public static final boolean toBoolean(Object value) {
         if (value instanceof Boolean)
             return (boolean)value;

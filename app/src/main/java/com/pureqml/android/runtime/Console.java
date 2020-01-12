@@ -7,7 +7,7 @@ import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 
-public class Console {
+public final class Console {
     public static final String TAG = "js";
 
     public static class LogMethod implements JavaVoidCallback {

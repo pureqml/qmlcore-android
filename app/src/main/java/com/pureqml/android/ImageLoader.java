@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 
-public class ImageLoader {
+public final class ImageLoader {
     public static final String TAG = "ImageLoader";
     public static final int CacheSize = 64 * 1024 * 1024;
 
