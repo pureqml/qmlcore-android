@@ -177,6 +177,9 @@ public class Element extends BaseObject {
 
     public boolean sendEvent(String name, int x, int y, MotionEvent event) {
         //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
+        if (!_globallyVisible)
+            return false;
+
         int baseX = _rect.left;
         int baseY = _rect.top;
         int offsetX = x - baseX;
