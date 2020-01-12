@@ -185,7 +185,7 @@ public class Element extends BaseObject {
         int offsetX = x - baseX;
         int offsetY = y - baseY;
 
-        Log.v(TAG, this + ": " + name + ", position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y) + " " + hasCallbackFor(name));
+        //Log.v(TAG, this + ": " + name + ", position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y) + " " + hasCallbackFor(name));
 
         if (_children != null) {
             for(int i = _children.size() - 1; i >= 0; --i) {
