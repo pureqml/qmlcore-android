@@ -213,6 +213,14 @@ public class Element extends BaseObject {
         return "";
     }
 
+    public void setProperty(String name, String value) {
+        setAttribute(name, value);
+    }
+
+    public String getProperty(String name) {
+        return getAttribute(name);
+    }
+
     public void focus() {}
     public void blur() {}
 
