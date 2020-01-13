@@ -31,6 +31,8 @@ public class Element extends BaseObject {
     protected Element           _parent;
     protected int               _z;
     protected List<Element>     _children;
+    private boolean             _scrollX = false;
+    private boolean             _scrollY = false;
 
     public Element(IExecutionEnvironment env) {
         super(env);
@@ -87,6 +89,23 @@ public class Element extends BaseObject {
         update();
     }
 
+    private boolean getOverflowValue(Object objValue) {
+        if (!(objValue instanceof String)) {
+            Log.v(TAG, "ignoring overflow: " + objValue);
+            return false;
+        }
+        String value = (String)objValue;
+        switch(value) {
+            case "auto":
+                return true;
+            case "hidden":
+                return false;
+            default:
+                Log.v(TAG, "ignoring overflow: " + value);
+                return false;
+        }
+    }
+
     protected void setStyle(String name, Object value) {
         switch(name) {
             case "left":    { int left = TypeConverter.toInteger(value);    _rect.right += left - _rect.left; _rect.left = left; } break;
@@ -106,6 +125,11 @@ public class Element extends BaseObject {
                 break;
             }
             case "cursor": break; //ignoring
+
+            case "overflow": _scrollX = _scrollY = getOverflowValue(value); break;
+            case "overflow-x": _scrollX = getOverflowValue(value);  break;
+            case "overflow-y": _scrollY = getOverflowValue(value);  break;
+
             default:
                 Log.v(TAG, "ignoring setStyle " + name + ": " + value);
                 return;
