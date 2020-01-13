@@ -192,7 +192,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
 
-        if (url.endsWith("m3u8")) {
+        if (url.indexOf(".m3u8") >= 0) { //FIXME: add proper content type here
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
             factory.setExtractorFactory(new CustomHlsExtractorFactory());
             player.prepare(factory.createMediaSource(Uri.parse(url)));
