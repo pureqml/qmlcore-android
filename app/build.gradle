@@ -22,7 +22,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'com.eclipsesource.j2v8:j2v8:6.0.0@aar'
+    implementation 'com.eclipsesource.j2v8:j2v8:5.0.103@aar'
     implementation 'com.google.android.exoplayer:exoplayer:2.8.4'
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
