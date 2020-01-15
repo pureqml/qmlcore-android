@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -33,8 +34,8 @@ public class Element extends BaseObject {
     protected List<Element>     _children;
     private boolean             _scrollX = false;
     private boolean             _scrollY = false;
-    private int                 _scrollOffsetX = 0;
-    private int                 _scrollOffsetY = 0;
+    private Point               _scrollOffset;
+    private Point               _scrollBase;
 
     public Element(IExecutionEnvironment env) {
         super(env);
@@ -167,10 +168,18 @@ public class Element extends BaseObject {
     protected final void endPaint() {
     }
 
+    protected final int getBaseX() {
+        return _rect.left + (_scrollOffset != null? _scrollOffset.x: 0);
+    }
+
+    protected final int getBaseY() {
+        return _rect.top + (_scrollOffset != null? _scrollOffset.y: 0);
+    }
+
     public final void paintChildren(PaintState parent) {
         if (_children != null) {
             for (Element child : _children) {
-                PaintState state = new PaintState(parent, _rect.left + _scrollOffsetX, _rect.top + _scrollOffsetY, child._opacity);
+                PaintState state = new PaintState(parent, getBaseX(), getBaseY(), child._opacity);
                 if (child._visible && state.visible()) {
                     child.paint(state);
 
@@ -207,13 +216,17 @@ public class Element extends BaseObject {
         int baseY = _rect.top;
         int offsetX = x - baseX;
         int offsetY = y - baseY;
-        //  Log.v(TAG, this + ": position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y));
+        boolean handled = false;
+
+        //Log.v(TAG, this + ": position " + x + ", " + y + " " + _rect + ", in " + _rect.contains(x, y) + ", scrollable: " + (_scrollX || _scrollY));
 
         if (_children != null) {
             for(int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
-                if (child.sendEvent(offsetX, offsetY, event))
-                    return true;
+                if (child.sendEvent(offsetX, offsetY, event)) {
+                    handled = true;
+                    break;
+                }
             }
         }
 
@@ -221,32 +234,45 @@ public class Element extends BaseObject {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                if (hasCallbackFor(click))
+                if (_scrollX || _scrollY || hasCallbackFor(click)) {
+                    if (_scrollBase == null)
+                        _scrollBase = new Point(); //FIXME: optimise me
+                    _scrollBase.x = (int)event.getX();
+                    _scrollBase.y = (int)event.getY();
                     return true;
-                else
-                    return false;
+                } else
+                    return handled;
             }
 
             case MotionEvent.ACTION_MOVE: {
                 if (_scrollX || _scrollY) {
-                    Log.i(TAG, "SCROLLABLE: " + event);
+                    if (_scrollBase != null) {
+                        int dx = (int) (event.getX() - _scrollBase.x);
+                        int dy = (int) (event.getY() - _scrollBase.y);
+                        Log.i(TAG, "SCROLLABLE: " + dx + ", " + dy);
+                    }
                     return true;
                 } else
+                    return handled;
+            }
+            case MotionEvent.ACTION_UP: {
+                if (handled)
+                    return true;
+
+                if (_rect.contains(x, y) && hasCallbackFor(click)) {
+                    V8Object mouseEvent = new V8Object(_env.getRuntime());
+                    mouseEvent.add("offsetX", offsetX);
+                    mouseEvent.add("offsetY", offsetY);
+                    emit(null, click, mouseEvent);
+                    mouseEvent.close();
+                    return true;
+                }
+                else
                     return false;
             }
+            default:
+                return false;
         }
-
-        String name = click;
-        if (_rect.contains(x, y) && hasCallbackFor(name)) {
-            V8Object mouseEvent = new V8Object(_env.getRuntime());
-            mouseEvent.add("offsetX", offsetX);
-            mouseEvent.add("offsetY", offsetY);
-            emit(null, "click", mouseEvent);
-            mouseEvent.close();
-            return true;
-        }
-        else
-            return false;
     }
 
     public void setAttribute(String name, String value) {
