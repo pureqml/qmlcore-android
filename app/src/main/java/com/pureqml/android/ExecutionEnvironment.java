@@ -512,7 +512,7 @@ public final class ExecutionEnvironment extends Service
             public Boolean call() throws Exception {
                 try {
                     Log.v(TAG,"click coordinates " + event.getX() + ", " + event.getY());
-                    boolean r = _rootElement != null ? _rootElement.sendEvent("click", (int) event.getX(), (int) event.getY(), event) : false;
+                    boolean r = _rootElement != null ? _rootElement.sendEvent((int) event.getX(), (int) event.getY(), event) : false;
                     //Log.v(TAG, "click processed = " + r);
                     return r;
                 } catch(Exception e) {

@@ -146,7 +146,7 @@ public final class Input extends Element {
     }
 
     @Override
-    public boolean sendEvent(String name, int x, int y, final MotionEvent event) {
+    public boolean sendEvent(int x, int y, final MotionEvent event) {
         if (!_rect.contains(x, y))
             return false;
 

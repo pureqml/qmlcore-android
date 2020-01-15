@@ -33,6 +33,8 @@ public class Element extends BaseObject {
     protected List<Element>     _children;
     private boolean             _scrollX = false;
     private boolean             _scrollY = false;
+    private int                 _scrollOffsetX = 0;
+    private int                 _scrollOffsetY = 0;
 
     public Element(IExecutionEnvironment env) {
         super(env);
@@ -126,12 +128,12 @@ public class Element extends BaseObject {
             }
             case "cursor": break; //ignoring
 
-            case "overflow": _scrollX = _scrollY = getOverflowValue(value); break;
-            case "overflow-x": _scrollX = getOverflowValue(value);  break;
-            case "overflow-y": _scrollY = getOverflowValue(value);  break;
+            case "overflow":    _scrollX = _scrollY = getOverflowValue(value); break;
+            case "overflow-x":  _scrollX = getOverflowValue(value);  break;
+            case "overflow-y":  _scrollY = getOverflowValue(value);  break;
 
             default:
-                Log.v(TAG, "ignoring setStyle " + name + ": " + value);
+                Log.w(TAG, "ignoring setStyle " + name + ": " + value);
                 return;
         }
         update();
@@ -168,7 +170,7 @@ public class Element extends BaseObject {
     public final void paintChildren(PaintState parent) {
         if (_children != null) {
             for (Element child : _children) {
-                PaintState state = new PaintState(parent, _rect.left, _rect.top, child._opacity);
+                PaintState state = new PaintState(parent, _rect.left + _scrollOffsetX, _rect.top + _scrollOffsetY, child._opacity);
                 if (child._visible && state.visible()) {
                     child.paint(state);
 
@@ -196,7 +198,7 @@ public class Element extends BaseObject {
         return rect;
     }
 
-    public boolean sendEvent(String name, int x, int y, MotionEvent event) {
+    public boolean sendEvent(int x, int y, MotionEvent event) {
         //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
         if (!_globallyVisible)
             return false;
@@ -205,17 +207,36 @@ public class Element extends BaseObject {
         int baseY = _rect.top;
         int offsetX = x - baseX;
         int offsetY = y - baseY;
-
-        //Log.v(TAG, this + ": " + name + ", position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y) + " " + hasCallbackFor(name));
+        //  Log.v(TAG, this + ": position " + x + ", " + y + " " + _rect + " " + _rect.contains(x, y));
 
         if (_children != null) {
             for(int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
-                if (child.sendEvent(name, offsetX, offsetY, event))
+                if (child.sendEvent(offsetX, offsetY, event))
                     return true;
             }
         }
 
+        final String click = "click";
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                if (hasCallbackFor(click))
+                    return true;
+                else
+                    return false;
+            }
+
+            case MotionEvent.ACTION_MOVE: {
+                if (_scrollX || _scrollY) {
+                    Log.i(TAG, "SCROLLABLE: " + event);
+                    return true;
+                } else
+                    return false;
+            }
+        }
+
+        String name = click;
         if (_rect.contains(x, y) && hasCallbackFor(name)) {
             V8Object mouseEvent = new V8Object(_env.getRuntime());
             mouseEvent.add("offsetX", offsetX);

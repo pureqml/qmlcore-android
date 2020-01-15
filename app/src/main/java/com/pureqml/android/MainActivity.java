@@ -132,9 +132,6 @@ public final class MainActivity
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 Log.i(TAG, "motion " + event.toString());
-                if (event.getAction() != MotionEvent.ACTION_UP)
-                    return true;
-
                 if (_executionEnvironment != null) {
                     try {
                         return _executionEnvironment.sendEvent(event).get();
