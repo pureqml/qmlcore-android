@@ -234,7 +234,7 @@ public class Element extends BaseObject {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                if (_scrollX || _scrollY || hasCallbackFor(click)) {
+                if (_rect.contains(x, y) && (_scrollX || _scrollY || hasCallbackFor(click))) {
                     if (_scrollBase == null)
                         _scrollBase = new Point(); //FIXME: optimise me
                     _scrollBase.x = (int)event.getX();
