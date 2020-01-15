@@ -511,7 +511,7 @@ public final class ExecutionEnvironment extends Service
             @Override
             public Boolean call() throws Exception {
                 try {
-                    Log.v(TAG,"click coordinates " + event.getX() + ", " + event.getY());
+                    Log.v(TAG,"touch coordinates " + event.getX() + ", " + event.getY());
                     boolean r = _rootElement != null ? _rootElement.sendEvent((int) event.getX(), (int) event.getY(), event) : false;
                     //Log.v(TAG, "click processed = " + r);
                     return r;
