@@ -92,6 +92,7 @@ public final class ExecutionEnvironment extends Service
     private IRenderer                   _renderer;
     private DisplayMetrics              _metrics;
     private ViewGroup                   _rootView;
+    private int                         _eventId;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -507,12 +508,22 @@ public final class ExecutionEnvironment extends Service
     }
 
     public Future<Boolean> sendEvent(final MotionEvent event) {
+        final int eventId;
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            synchronized (this) {
+                eventId = ++_eventId;
+            }
+        } else {
+            synchronized (this) {
+                eventId = _eventId;
+            }
+        }
         return _executor.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 try {
-                    Log.v(TAG,"touch coordinates " + event.getX() + ", " + event.getY());
-                    boolean r = _rootElement != null ? _rootElement.sendEvent((int) event.getX(), (int) event.getY(), event) : false;
+                    Log.v(TAG,"touch coordinates " + event.getX() + ", " + event.getY() + ", id: " + eventId);
+                    boolean r = _rootElement != null ? _rootElement.sendEvent(eventId, (int) event.getX(), (int) event.getY(), event) : false;
                     //Log.v(TAG, "click processed = " + r);
                     return r;
                 } catch(Exception e) {

@@ -207,7 +207,7 @@ public class Element extends BaseObject {
         return rect;
     }
 
-    public boolean sendEvent(int x, int y, MotionEvent event) {
+    public boolean sendEvent(int id, int x, int y, MotionEvent event) {
         //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
         if (!_globallyVisible)
             return false;
@@ -223,7 +223,7 @@ public class Element extends BaseObject {
         if (_children != null) {
             for(int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
-                if (child.sendEvent(offsetX, offsetY, event)) {
+                if (child.sendEvent(id, offsetX, offsetY, event)) {
                     handled = true;
                     break;
                 }
