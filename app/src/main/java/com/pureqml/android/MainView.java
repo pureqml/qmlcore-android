@@ -6,12 +6,7 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.SurfaceView;
-import android.view.View;
-
-import java.util.concurrent.ExecutionException;
 
 public final class MainView extends SurfaceView {
     private static final String TAG = "MainView";
