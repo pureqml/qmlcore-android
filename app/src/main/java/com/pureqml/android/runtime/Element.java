@@ -52,6 +52,9 @@ public class Element extends BaseObject {
         return _visible && _opacity >= PaintState.opacityThreshold;
     }
 
+    public final int getScrollX() { return _scrollOffset != null? -_scrollOffset.x: 0; }
+    public final int getScrollY() { return _scrollOffset != null? -_scrollOffset.y: 0; }
+
     public void append(BaseObject child) throws AlreadyHasAParentException {
         if (child == null)
             throw new NullPointerException("appending null element");
@@ -251,7 +254,32 @@ public class Element extends BaseObject {
                     if (_scrollBase != null) {
                         int dx = (int) (event.getX() - _scrollBase.x);
                         int dy = (int) (event.getY() - _scrollBase.y);
-                        Log.i(TAG, "SCROLLABLE: " + dx + ", " + dy);
+                        if (_scrollOffset == null)
+                            _scrollOffset = new Point();
+
+                        if (_scrollX) {
+                            int clientWidth = _combinedRect.width();
+                            if (_scrollX && _rect.width() < clientWidth) {
+                                if (_rect.width() - dx > clientWidth)
+                                    dx = clientWidth + dx;
+                                if (dx > 0)
+                                    dx = 0;
+                                Log.i(TAG, "adjusting scrollX to " + dx);
+                                _scrollOffset.x = dx;
+                            }
+                        }
+
+                        if (_scrollY) {
+                            int clientHeight = _combinedRect.height();
+                            if (_scrollY && _rect.height() < clientHeight) {
+                                if (_rect.width() - dy > clientHeight)
+                                    dy = clientHeight + dy;
+                                if (dy > 0)
+                                    dy = 0;
+                                Log.i(TAG, "adjusting scrollY to " + dy);
+                                _scrollOffset.y = dy;
+                            }
+                        }
                     }
                     return true;
                 } else
@@ -261,16 +289,17 @@ public class Element extends BaseObject {
                 if (handled)
                     return true;
 
-                if (_eventId == eventId && _rect.contains(x, y) && hasCallbackFor(click)) {
-                    V8Object mouseEvent = new V8Object(_env.getRuntime());
-                    mouseEvent.add("offsetX", offsetX);
-                    mouseEvent.add("offsetY", offsetY);
-                    emit(null, click, mouseEvent);
-                    mouseEvent.close();
-                    return true;
+                if (_eventId == eventId) {
+                    if (_rect.contains(x, y) && hasCallbackFor(click)) {
+                        V8Object mouseEvent = new V8Object(_env.getRuntime());
+                        mouseEvent.add("offsetX", offsetX);
+                        mouseEvent.add("offsetY", offsetY);
+                        emit(null, click, mouseEvent);
+                        mouseEvent.close();
+                        return true;
+                    }
                 }
-                else
-                    return false;
+                return false;
             }
             default:
                 return false;
