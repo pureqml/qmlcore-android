@@ -36,6 +36,7 @@ public class Element extends BaseObject {
     private boolean             _scrollY = false;
     private Point               _scrollOffset;
     private Point               _scrollBase;
+    private int                 _eventId;
 
     public Element(IExecutionEnvironment env) {
         super(env);
@@ -207,7 +208,7 @@ public class Element extends BaseObject {
         return rect;
     }
 
-    public boolean sendEvent(int id, int x, int y, MotionEvent event) {
+    public boolean sendEvent(int eventId, int x, int y, MotionEvent event) {
         //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
         if (!_globallyVisible)
             return false;
@@ -223,7 +224,7 @@ public class Element extends BaseObject {
         if (_children != null) {
             for(int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
-                if (child.sendEvent(id, offsetX, offsetY, event)) {
+                if (child.sendEvent(eventId, offsetX, offsetY, event)) {
                     handled = true;
                     break;
                 }
@@ -237,6 +238,7 @@ public class Element extends BaseObject {
                 if (_rect.contains(x, y) && (_scrollX || _scrollY || hasCallbackFor(click))) {
                     if (_scrollBase == null)
                         _scrollBase = new Point(); //FIXME: optimise me
+                    _eventId = eventId;
                     _scrollBase.x = (int)event.getX();
                     _scrollBase.y = (int)event.getY();
                     return true;
@@ -245,7 +247,7 @@ public class Element extends BaseObject {
             }
 
             case MotionEvent.ACTION_MOVE: {
-                if (_scrollX || _scrollY) {
+                if (_eventId == eventId && (_scrollX || _scrollY)) {
                     if (_scrollBase != null) {
                         int dx = (int) (event.getX() - _scrollBase.x);
                         int dy = (int) (event.getY() - _scrollBase.y);
@@ -259,7 +261,7 @@ public class Element extends BaseObject {
                 if (handled)
                     return true;
 
-                if (_rect.contains(x, y) && hasCallbackFor(click)) {
+                if (_eventId == eventId && _rect.contains(x, y) && hasCallbackFor(click)) {
                     V8Object mouseEvent = new V8Object(_env.getRuntime());
                     mouseEvent.add("offsetX", offsetX);
                     mouseEvent.add("offsetY", offsetY);
