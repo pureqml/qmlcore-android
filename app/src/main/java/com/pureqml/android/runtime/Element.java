@@ -34,6 +34,8 @@ public class Element extends BaseObject {
     protected List<Element>     _children;
     private boolean             _scrollX = false;
     private boolean             _scrollY = false;
+    private boolean             _useScrollX = false;
+    private boolean             _useScrollY = false;
     private Point               _scrollOffset;
     private Point               _scrollBase;
     private int                 _eventId;
@@ -211,7 +213,7 @@ public class Element extends BaseObject {
         return rect;
     }
 
-    public boolean sendEvent(int eventId, int x, int y, MotionEvent event) {
+    public boolean sendEvent(int eventId, int x, int y, MotionEvent event) throws Exception {
         //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
         if (!_globallyVisible)
             return false;
@@ -244,6 +246,7 @@ public class Element extends BaseObject {
                     _eventId = eventId;
                     _scrollBase.x = (int)event.getX();
                     _scrollBase.y = (int)event.getY();
+                    _useScrollX = _useScrollY = false;
                     return true;
                 } else
                     return handled;
@@ -257,7 +260,22 @@ public class Element extends BaseObject {
                         if (_scrollOffset == null)
                             _scrollOffset = new Point();
 
-                        if (_scrollX) {
+                        if (!_useScrollX && !_useScrollY) {
+                            if (_scrollX && _scrollY) {
+                                if (Math.abs(dx) > Math.abs(dy))
+                                    _useScrollX = true;
+                                else
+                                    _useScrollY = true;
+                            } else if (_scrollX) {
+                                _useScrollX = true;
+                            } else if (_scrollY) {
+                                _useScrollY = true;
+                            }
+                            else
+                                throw new Exception("invalid scrollX/scrollY combination");
+                        }
+
+                        if (_useScrollX) {
                             int clientWidth = _combinedRect.width();
                             if (_scrollX && _rect.width() < clientWidth) {
                                 if (_rect.width() - dx > clientWidth)
@@ -269,7 +287,7 @@ public class Element extends BaseObject {
                             }
                         }
 
-                        if (_scrollY) {
+                        if (_useScrollY) {
                             int clientHeight = _combinedRect.height();
                             if (_scrollY && _rect.height() < clientHeight) {
                                 if (_rect.width() - dy > clientHeight)
