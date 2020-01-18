@@ -174,22 +174,23 @@ public class Element extends BaseObject {
     protected final void endPaint() {
     }
 
-    protected final int getBaseX() {
-        return _rect.left + (_scrollOffset != null? _scrollOffset.x: 0);
+    protected final int getBaseX(int w) {
+        return _rect.left + (_scrollOffset != null && w > _rect.width()? _scrollOffset.x: 0);
     }
 
-    protected final int getBaseY() {
-        return _rect.top + (_scrollOffset != null? _scrollOffset.y: 0);
+    protected final int getBaseY(int h) {
+        return _rect.top + (_scrollOffset != null && h > _rect.height()? _scrollOffset.y: 0);
     }
 
     public final void paintChildren(PaintState parent) {
         if (_children != null) {
             for (Element child : _children) {
-                PaintState state = new PaintState(parent, getBaseX(), getBaseY(), child._opacity);
+                Rect childRect = child.getRect();
+                PaintState state = new PaintState(parent, getBaseX(childRect.width()), getBaseY(childRect.height()), child._opacity);
                 if (child._visible && state.visible()) {
                     child.paint(state);
 
-                    _combinedRect.union(child.getRect());
+                    _combinedRect.union(childRect);
                     _combinedRect.union(child.getCombinedRect());
                     _lastRect.union(child.getLastRenderedRect());
                 }
