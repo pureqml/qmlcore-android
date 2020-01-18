@@ -298,6 +298,7 @@ public class Element extends BaseObject {
                         mouseEvent.close();
                         return true;
                     }
+                    emit(null, "scroll");
                 }
                 return false;
             }
