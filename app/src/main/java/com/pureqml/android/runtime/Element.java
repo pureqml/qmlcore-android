@@ -214,7 +214,6 @@ public class Element extends BaseObject {
     }
 
     public boolean sendEvent(int eventId, int x, int y, MotionEvent event) throws Exception {
-        //fixme: optimize me, calculate combined rect for all children and remove out of bound elements
         if (!_globallyVisible)
             return false;
 
