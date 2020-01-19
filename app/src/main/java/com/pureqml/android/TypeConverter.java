@@ -7,7 +7,6 @@ import android.util.DisplayMetrics;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
-import com.pureqml.android.IExecutionEnvironment;
 
 public final class TypeConverter {
     public static final boolean toBoolean(Object value) {

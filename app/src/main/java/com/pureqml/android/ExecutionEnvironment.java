@@ -13,10 +13,9 @@ import android.graphics.Rect;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import androidx.annotation.Nullable;
-
 import android.os.Looper;
 import android.provider.Settings;
+import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;

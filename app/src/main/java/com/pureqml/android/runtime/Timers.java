@@ -1,7 +1,5 @@
 package com.pureqml.android.runtime;
 
-import android.util.Log;
-
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
