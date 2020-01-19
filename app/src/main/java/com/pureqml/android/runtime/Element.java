@@ -4,6 +4,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import com.eclipsesource.v8.Releasable;
@@ -212,6 +213,10 @@ public class Element extends BaseObject {
             el = el._parent;
         }
         return rect;
+    }
+
+    public boolean sendEvent(String keyName, KeyEvent event) {
+        return emitUntilTrue(null, "keydown", keyName);
     }
 
     public boolean sendEvent(int eventId, int x, int y, MotionEvent event) throws Exception {

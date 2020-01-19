@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -132,15 +133,31 @@ public final class MainActivity
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 Log.i(TAG, "motion " + event.toString());
-                if (_executionEnvironment != null) {
-                    try {
-                        return _executionEnvironment.sendEvent(event).get();
-                    } catch (Exception e) {
-                        Log.e(TAG, "execution exception", e);
-                        return false;
-                    }
+                if (_executionEnvironment == null)
+                    return false;
+                try {
+                    return _executionEnvironment.sendEvent(event).get();
+                } catch (Exception e) {
+                    Log.e(TAG, "execution exception", e);
+                    return false;
                 }
-                return false;
+            }
+        });
+
+        _mainView.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                final String keyName = GetKeyName(keyCode);
+                Log.i(TAG, "key " + keyCode + ", event: " + event.toString() + ", key name: " + keyName);
+                if (_executionEnvironment == null || keyName == null)
+                    return false;
+
+                try {
+                    return _executionEnvironment.sendEvent(keyName, event).get();
+                } catch (Exception e) {
+                    Log.e(TAG, "execution exception", e);
+                    return false;
+                }
             }
         });
 
@@ -224,5 +241,12 @@ public final class MainActivity
                 Log.i(TAG, "trim memory, level: " + level);
         }
         super.onTrimMemory(level);
+    }
+
+    static final String GetKeyName(int keyCode) {
+        switch(keyCode) {
+            default:
+                return null;
+        }
     }
 }

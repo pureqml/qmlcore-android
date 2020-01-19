@@ -18,6 +18,7 @@ import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.ViewGroup;
@@ -504,6 +505,24 @@ public final class ExecutionEnvironment extends Service
             //Log.v(TAG, "schedulePaint: combined rect: " + combinedRect.toString());
             _renderer.invalidateRect(combinedRect);
         }
+    }
+
+    public Future<Boolean> sendEvent(final String keyName, final KeyEvent event) {
+        return _executor.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    boolean r = _rootElement != null ? _rootElement.sendEvent(keyName, event) : false;
+                    Log.v(TAG, "key processed = " + r);
+                    return r;
+                } catch(Exception e) {
+                    Log.e(TAG, "key handler failed", e);
+                    return false;
+                } finally {
+                    schedulePaint();
+                }
+            }
+        });
     }
 
     public Future<Boolean> sendEvent(final MotionEvent event) {
