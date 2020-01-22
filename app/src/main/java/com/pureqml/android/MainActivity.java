@@ -32,6 +32,7 @@ public final class MainActivity
     private MainView                _mainView;
     private Rect                    _surfaceFrame;
     private IRenderer               _uiRenderer;
+    boolean                         _keyDownHandled;
 
     private ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -144,26 +145,41 @@ public final class MainActivity
             }
         });
 
-        _mainView.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                final String keyName = GetKeyName(keyCode);
-                Log.i(TAG, "key " + keyCode + ", event: " + event.toString() + ", key name: " + keyName);
-                if (_executionEnvironment == null || keyName == null)
-                    return false;
-
-                try {
-                    return _executionEnvironment.sendEvent(keyName, event).get();
-                } catch (Exception e) {
-                    Log.e(TAG, "execution exception", e);
-                    return false;
-                }
-            }
-        });
-
         bindService(new Intent(this,
                 ExecutionEnvironment.class), _executionEnvironmentConnection, Context.BIND_AUTO_CREATE | Context.BIND_ADJUST_WITH_ACTIVITY);
         _executionEnvironmentBound = true;
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        Log.i(TAG, "key up " + event.toString());
+
+        if (_keyDownHandled) {
+            Log.i(TAG, "key up skipped, key down processed");
+            return true;
+        }
+
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, final KeyEvent event) {
+        Log.i(TAG, "key down " + event.toString());
+
+        String keyName = GetKeyName(keyCode);
+        _keyDownHandled = false;
+        if (_executionEnvironment != null && keyName != null) {
+            try {
+                _keyDownHandled = _executionEnvironment.sendEvent(keyName, event).get();
+            } catch (Exception e) {
+                Log.e(TAG, "execution exception", e);
+            }
+        }
+
+        if (_keyDownHandled)
+            return true;
+
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -244,6 +260,25 @@ public final class MainActivity
     }
 
     static final String GetKeyName(int keyCode) {
+        String keyName = GetKeyNameImpl(keyCode);
+        if (keyName == null)
+            return null;
+
+        switch(keyName)
+        {
+            case "DpadUp":
+            case "DpadDown":
+            case "DpadLeft":
+            case "DpadRight":
+                return keyName.substring(4);
+            case "DpadCenter":
+                return "Select";
+            default:
+                return keyName;
+        }
+    }
+
+    static final String GetKeyNameImpl(int keyCode) {
         switch(keyCode) {
            case KeyEvent.KEYCODE_UNKNOWN: return "Unknown";
             case KeyEvent.KEYCODE_SOFT_LEFT: return "SoftLeft";
