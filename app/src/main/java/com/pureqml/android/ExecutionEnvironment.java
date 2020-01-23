@@ -93,6 +93,7 @@ public final class ExecutionEnvironment extends Service
     private DisplayMetrics              _metrics;
     private ViewGroup                   _rootView;
     private int                         _eventId;
+    private boolean                     _dpadMode;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -165,6 +166,7 @@ public final class ExecutionEnvironment extends Service
                     switch (uiModeManager.getCurrentModeType()) {
                         case Configuration.UI_MODE_TYPE_TELEVISION:
                             Log.i(TAG, "Running on TV device");
+                            _dpadMode = true;
                             info.add("device", DeviceTV);
                             break;
                         default:
@@ -607,5 +609,10 @@ public final class ExecutionEnvironment extends Service
     @Override
     public void register(IResource res) {
         synchronized (this) { _resources.add(new WeakReference<IResource>(res)); }
+    }
+
+    @Override
+    public boolean getDPadMode() {
+        return _dpadMode;
     }
 }

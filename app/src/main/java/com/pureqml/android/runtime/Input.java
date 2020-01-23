@@ -30,17 +30,20 @@ public final class Input extends Element {
         view = new EditText(context);
         viewHolder = new ViewHolder<EditText>(context, view);
 
-        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, final boolean hasFocus) {
-                _env.getExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        Input.this.emitFocusEvent(hasFocus);
-                    }
-                });
-            }
-        });
+        if (!_env.getDPadMode()) {
+            view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, final boolean hasFocus) {
+                    _env.getExecutor().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i(TAG, "on focus changed: " + hasFocus);
+                            Input.this.emitFocusEvent(hasFocus);
+                        }
+                    });
+                }
+            });
+        }
         view.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }

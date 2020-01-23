@@ -41,4 +41,5 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener);
 
     void register(IResource res);
+    boolean getDPadMode();
 }
