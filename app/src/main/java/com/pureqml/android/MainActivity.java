@@ -272,6 +272,7 @@ public final class MainActivity
             case "DpadRight":
                 return keyName.substring(4);
             case "DpadCenter":
+            case "Enter":
                 return "Select";
             default:
                 return keyName;
