@@ -138,7 +138,7 @@ public final class Input extends Element {
     @Override
     void update() {
         super.update();
-        if (!_rect.isEmpty() && _globallyVisible) {
+        if (!getRect().isEmpty() && _globallyVisible) {
             final Rect rect = getScreenRect();
             Log.i(TAG, "input layout " + rect.toString());
             viewHolder.setRect(_env.getRootView(), rect);
@@ -147,7 +147,7 @@ public final class Input extends Element {
 
     @Override
     public boolean sendEvent(int id, int x, int y, final MotionEvent event) {
-        if (!_rect.contains(x, y))
+        if (!getRect().contains(x, y))
             return false;
 
         viewHolder.getHandler().post(new Runnable() {

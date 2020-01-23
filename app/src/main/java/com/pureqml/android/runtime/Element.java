@@ -15,6 +15,8 @@ import com.pureqml.android.TypeConverter;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Element extends BaseObject {
     public static final String TAG = "rt.Element";
@@ -23,9 +25,10 @@ public class Element extends BaseObject {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     };
 
-    protected Rect              _rect               = new Rect();
+    private Rect                _rect               = new Rect();
     protected Rect              _combinedRect       = new Rect();
     protected Rect              _lastRect           = new Rect();
+    private Point               _translate;
 
     private   float             _opacity            = 1;
     protected boolean           _visible            = true;
@@ -46,7 +49,13 @@ public class Element extends BaseObject {
     }
 
     public final Rect getRect()
-    { return _rect; }
+    {
+        Rect rect = new Rect(_rect);
+        if (_translate != null)
+            rect.offset(_translate.x, _translate.y);
+        return rect;
+    }
+
     public final Rect getCombinedRect()
     { return _combinedRect; }
     public final Rect getLastRenderedRect()
@@ -116,6 +125,42 @@ public class Element extends BaseObject {
         }
     }
 
+    static private Pattern _transformPattern = Pattern.compile("(\\w+)\\s*\\(([-+\\d]+)\\s*(.*)\\s*\\)\\s*");
+
+    private void setTransform(String value) {
+        Matcher matcher = _transformPattern.matcher(value);
+        while(matcher.find()) {
+            Log.v(TAG, "MATCH");
+            try {
+                String unit = matcher.group(3);
+                String transform = matcher.group(1);
+                if (!unit.equals("px")) {
+                    Log.w(TAG, "unknown unit " + unit + " used for " + transform + ", skipping");
+                    continue;
+                }
+
+                int n = Integer.parseInt(matcher.group(2));
+
+                switch (transform) {
+                    case "translateX":
+                        if (_translate == null)
+                            _translate = new Point();
+                        _translate.x = n;
+                        break;
+                    case "translateY":
+                        if (_translate == null)
+                            _translate = new Point();
+                        _translate.y = n;
+                        break;
+                    default:
+                        Log.w(TAG, "skipping transform " + transform);
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "transform parsing failed", ex);
+            }
+        }
+    }
+
     protected void setStyle(String name, Object value) {
         switch(name) {
             case "left":    { int left = TypeConverter.toInteger(value);    _rect.right += left - _rect.left; _rect.left = left; } break;
@@ -125,6 +170,7 @@ public class Element extends BaseObject {
             case "opacity":     _opacity = TypeConverter.toFloat(value); break;
             case "z-index":     _z = TypeConverter.toInteger(value); break;
             case "visibility":  _visible = value.equals("inherit") || value.equals("visible"); break;
+            case "transform": setTransform(value.toString()); break;
             case "recursive-visibility": {
                 boolean globallyVisible = _globallyVisible;
                 boolean visible = TypeConverter.toBoolean(value);
@@ -176,11 +222,11 @@ public class Element extends BaseObject {
     }
 
     protected final int getBaseX(int w) {
-        return _rect.left + (_scrollOffset != null && w > _rect.width()? _scrollOffset.x: 0);
+        return _rect.left + (_scrollOffset != null && w > _rect.width()? _scrollOffset.x: 0) + (_translate != null? _translate.x: 0);
     }
 
     protected final int getBaseY(int h) {
-        return _rect.top + (_scrollOffset != null && h > _rect.height()? _scrollOffset.y: 0);
+        return _rect.top + (_scrollOffset != null && h > _rect.height()? _scrollOffset.y: 0) + (_translate != null? _translate.y: 0);
     }
 
     public final void paintChildren(PaintState parent) {
@@ -209,7 +255,8 @@ public class Element extends BaseObject {
         Rect rect = new Rect(_rect);
         Element el = _parent;
         while(el != null) {
-            rect.offset(el._rect.left, el._rect.top);
+            Rect elRect = el.getRect();
+            rect.offset(elRect.left, elRect.top);
             el = el._parent;
         }
         return rect;
@@ -223,17 +270,17 @@ public class Element extends BaseObject {
         if (!_globallyVisible)
             return false;
 
-        int baseX = _rect.left;
-        int baseY = _rect.top;
-        int offsetX = x - baseX;
-        int offsetY = y - baseY;
         boolean handled = false;
+        Rect rect = getRect();
 
-        //Log.v(TAG, this + ": position " + x + ", " + y + " " + _rect + ", in " + _rect.contains(x, y) + ", scrollable: " + (_scrollX || _scrollY));
+        //Log.v(TAG, this + ": position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_scrollX || _scrollY));
 
         if (_children != null) {
             for(int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
+                Rect childRect = child.getRect();
+                int offsetX = x - getBaseX(childRect.width());
+                int offsetY = y - getBaseY(childRect.height());
                 if (child.sendEvent(eventId, offsetX, offsetY, event)) {
                     handled = true;
                     break;
@@ -245,7 +292,7 @@ public class Element extends BaseObject {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                if (_rect.contains(x, y) && (_scrollX || _scrollY || hasCallbackFor(click))) {
+                if (rect.contains(x, y) && (_scrollX || _scrollY || hasCallbackFor(click))) {
                     if (_scrollBase == null)
                         _scrollBase = new Point(); //FIXME: optimise me
                     _eventId = eventId;
@@ -282,8 +329,8 @@ public class Element extends BaseObject {
 
                         if (_useScrollX) {
                             int clientWidth = _combinedRect.width();
-                            if (_scrollX && _rect.width() < clientWidth) {
-                                if (_rect.width() - dx > clientWidth)
+                            if (_scrollX && rect.width() < clientWidth) {
+                                if (rect.width() - dx > clientWidth)
                                     dx = clientWidth + dx;
                                 if (dx > 0)
                                     dx = 0;
@@ -294,8 +341,8 @@ public class Element extends BaseObject {
 
                         if (_useScrollY) {
                             int clientHeight = _combinedRect.height();
-                            if (_scrollY && _rect.height() < clientHeight) {
-                                if (_rect.width() - dy > clientHeight)
+                            if (_scrollY && rect.height() < clientHeight) {
+                                if (rect.width() - dy > clientHeight)
                                     dy = clientHeight + dy;
                                 if (dy > 0)
                                     dy = 0;
@@ -313,10 +360,10 @@ public class Element extends BaseObject {
                     return true;
 
                 if (_eventId == eventId) {
-                    if (_rect.contains(x, y) && hasCallbackFor(click)) {
+                    if (rect.contains(x, y) && hasCallbackFor(click)) {
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
-                        mouseEvent.add("offsetX", offsetX);
-                        mouseEvent.add("offsetY", offsetY);
+                        mouseEvent.add("offsetX", x - rect.left);
+                        mouseEvent.add("offsetY", y - rect.top);
                         emit(null, click, mouseEvent);
                         mouseEvent.close();
                         return true;

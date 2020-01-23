@@ -1,6 +1,7 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.Log;
 
@@ -65,8 +66,9 @@ public final class Text extends Element {
     public void paint(PaintState state) {
         beginPaint();
         if (_text != null) {
-            _lastRect.left = state.baseX + _rect.left;
-            _lastRect.top = state.baseY + _rect.top; //fixme: get actual bounding box
+            Rect rect = getRect();
+            _lastRect.left = state.baseX + rect.left;
+            _lastRect.top = state.baseY + rect.top; //fixme: get actual bounding box
 
             float textSize = _paint.getTextSize();
             float lineHeight = textSize * 1.2f; //fixme: support proper line height/baseline
@@ -109,7 +111,7 @@ public final class Text extends Element {
         if (_wrap == Wrap.Wrap) {
             while(offset < length) {
                 float measuredWidth[] = new float[1];
-                int n = _paint.breakText(_text, offset, length, true, _rect.width(), measuredWidth);
+                int n = _paint.breakText(_text, offset, length, true, getRect().width(), measuredWidth);
                 _layout.add(offset, offset + n, (int)measuredWidth[0]);
                 offset += n;
                 ++lines;
