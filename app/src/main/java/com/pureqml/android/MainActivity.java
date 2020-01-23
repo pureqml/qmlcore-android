@@ -76,16 +76,14 @@ public final class MainActivity
                 _uiRenderer = new IRenderer() {
                     @Override
                     public void invalidateRect(Rect rect) {
-                        synchronized (holder) {
-                            if (rect != null) {
-                                if (!rect.isEmpty()) {
-                                    //Log.v(TAG, "invalidateRect " + rect);
-                                    view.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
-                                }
-                            } else {
-                                Log.v(TAG, "invalidateAll");
-                                view.postInvalidate();
+                        if (rect != null) {
+                            if (!rect.isEmpty()) {
+                                //Log.v(TAG, "invalidateRect " + rect);
+                                view.postInvalidate(rect.left, rect.top, rect.right, rect.bottom);
                             }
+                        } else {
+                            Log.v(TAG, "invalidateAll");
+                            view.postInvalidate();
                         }
                     }
                 };
