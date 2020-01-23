@@ -151,35 +151,24 @@ public final class MainActivity
     }
 
     @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.i(TAG, "key up " + event.toString());
-
-        if (_keyDownHandled) {
-            Log.i(TAG, "key up skipped, key down processed");
-            return true;
-        }
-
-        return super.onKeyUp(keyCode, event);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, final KeyEvent event) {
-        Log.i(TAG, "key down " + event.toString());
-
-        String keyName = GetKeyName(keyCode);
-        _keyDownHandled = false;
-        if (_executionEnvironment != null && keyName != null) {
-            try {
-                _keyDownHandled = _executionEnvironment.sendEvent(keyName, event).get();
-            } catch (Exception e) {
-                Log.e(TAG, "execution exception", e);
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        Log.i(TAG, "dispatchKeyEvent " + event);
+        String keyName = GetKeyName(event.getKeyCode());
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            _keyDownHandled = false;
+            if (_executionEnvironment != null && keyName != null) {
+                try {
+                    _keyDownHandled = _executionEnvironment.sendEvent(keyName, event).get();
+                } catch (Exception e) {
+                    Log.e(TAG, "execution exception", e);
+                }
             }
         }
 
         if (_keyDownHandled)
             return true;
 
-        return super.onKeyDown(keyCode, event);
+        return super.dispatchKeyEvent(event);
     }
 
     @Override
