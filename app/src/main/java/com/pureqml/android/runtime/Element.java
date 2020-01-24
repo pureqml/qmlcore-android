@@ -130,7 +130,6 @@ public class Element extends BaseObject {
     private void setTransform(String value) {
         Matcher matcher = _transformPattern.matcher(value);
         while(matcher.find()) {
-            Log.v(TAG, "MATCH");
             try {
                 String unit = matcher.group(3);
                 String transform = matcher.group(1);
