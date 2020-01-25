@@ -178,6 +178,7 @@ public final class Input extends Element {
             @Override
             public void run() {
                 view.clearFocus();
+                view.setCursorVisible(false);
             }
         });
     }
@@ -189,6 +190,7 @@ public final class Input extends Element {
         viewHolder.getHandler().post(new Runnable() {
             @Override
             public void run() {
+                view.setCursorVisible(true);
                 if (!view.requestFocus())
                     Log.w(TAG, "requestFocus failed");
             }
