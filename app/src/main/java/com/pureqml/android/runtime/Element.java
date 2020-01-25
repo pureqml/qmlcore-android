@@ -125,7 +125,7 @@ public class Element extends BaseObject {
         }
     }
 
-    static private Pattern _transformPattern = Pattern.compile("(\\w+)\\s*\\(([-+\\d]+)\\s*(.*)\\s*\\)\\s*");
+    static private Pattern _transformPattern = Pattern.compile("(\\w+)\\s*\\(([-+\\d]+)\\s*(\\w*)\\s*\\)\\s*");
 
     private void setTransform(String value) {
         Matcher matcher = _transformPattern.matcher(value);
@@ -134,7 +134,7 @@ public class Element extends BaseObject {
                 String unit = matcher.group(3);
                 String transform = matcher.group(1);
                 if (!unit.equals("px")) {
-                    Log.w(TAG, "unknown unit " + unit + " used for " + transform + ", skipping");
+                    Log.w(TAG, "unknown unit '" + unit + "' used for '" + transform + "', skipping");
                     continue;
                 }
 
