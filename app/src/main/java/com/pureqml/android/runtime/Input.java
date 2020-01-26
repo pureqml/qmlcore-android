@@ -69,6 +69,8 @@ public final class Input extends Element {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     Log.i(TAG, "IME_ACTION_DONE");
                     _env.blockUiInput(false);
+                    _env.focusView(v, false);
+                    Input.this.emitChangeEvent();
                 }
                 return false;
             }
@@ -221,6 +223,14 @@ public final class Input extends Element {
             @Override
             public void run() {
                 emit(null, hasFocus? "focus": "blur");
+            }
+        });
+    }
+    private void emitChangeEvent() {
+        _env.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                emit(null, "change");
             }
         });
     }
