@@ -262,6 +262,7 @@ public class Element extends BaseObject {
     }
 
     public boolean sendEvent(String keyName, KeyEvent event) {
+        Log.v(TAG, "sending " + keyName + " key...");
         return emitUntilTrue(null, "keydown", keyName);
     }
 

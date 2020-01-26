@@ -615,11 +615,6 @@ public final class ExecutionEnvironment extends Service
     }
 
     @Override
-    public boolean getDPadMode() {
-        return _dpadMode;
-    }
-
-    @Override
     public void focusView(View view, boolean set) {
         Log.v(TAG, "focusView: " + view + ", set: " + set);
         //fixme: better logic here.

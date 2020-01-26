@@ -35,20 +35,21 @@ public final class Input extends Element {
         view = new EditText(context);
         viewHolder = new ViewHolder<EditText>(context, view);
 
-        if (!_env.getDPadMode()) {
-            view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, final boolean hasFocus) {
-                    _env.getExecutor().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.i(TAG, "on focus changed: " + hasFocus);
+        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(final View v, final boolean hasFocus) {
+                _env.getExecutor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (v == view) {
+                            Log.i(TAG, "on focus changed: " + hasFocus + " " + v.isFocused());
                             Input.this.emitFocusEvent(hasFocus);
                         }
-                    });
-                }
-            });
-        }
+                    }
+                });
+            }
+        });
+
         view.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -193,7 +194,7 @@ public final class Input extends Element {
         viewHolder.getHandler().post(new Runnable() {
             @Override
             public void run() {
-                view.clearFocus();
+//                view.clearFocus(); //this will trigger refocus and infinite focus loop
                 view.setCursorVisible(false);
             }
         });
