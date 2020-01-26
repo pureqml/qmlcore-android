@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -16,6 +17,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 
 import com.pureqml.android.runtime.Element;
 
@@ -33,6 +35,8 @@ public final class MainActivity
     private Rect                    _surfaceFrame;
     private IRenderer               _uiRenderer;
     boolean                         _keyDownHandled;
+    boolean                         _showSoftKeyboard;
+    InputMethodManager              _imm;
 
     private ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -126,6 +130,8 @@ public final class MainActivity
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
+        _imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
         _mainView = (MainView) findViewById(R.id.contextView);
         _mainView.getHolder().addCallback(new SurfaceHolderCallback());
         _mainView.setOnTouchListener(new View.OnTouchListener() {
@@ -149,23 +155,62 @@ public final class MainActivity
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        Log.i(TAG, "onConfigurationChanged: keyboard: " + newConfig.keyboard + ", hidden: " + newConfig.keyboardHidden + ", hard keyboard hidden: " + newConfig.hardKeyboardHidden);
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        Log.i(TAG, "dispatchKeyEvent " + event);
+        if (!_showSoftKeyboard && _executionEnvironment.isUiInputBlocked()) {
+            Log.v(TAG, "ui input blocked");
+            return super.dispatchKeyEvent(event);
+        }
+
         String keyName = GetKeyName(event.getKeyCode());
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            _keyDownHandled = false;
-            if (_executionEnvironment != null && keyName != null) {
-                try {
-                    _keyDownHandled = _executionEnvironment.sendEvent(keyName, event).get();
-                } catch (Exception e) {
-                    Log.e(TAG, "execution exception", e);
+        if (keyName == null) {
+            Log.v(TAG, "unknown key name for code " + event.getKeyCode());
+            return super.dispatchKeyEvent(event);
+        }
+
+        View focusedView = _executionEnvironment.getFocusedView();
+        boolean dpadCenterToInput = (focusedView != null) && (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER);
+
+        switch (event.getAction()) {
+            case KeyEvent.ACTION_DOWN: {
+                _keyDownHandled = false;
+                if (dpadCenterToInput) {
+                    Log.d(TAG, "let input open IME...");
+                    _imm.showSoftInput(focusedView, InputMethodManager.SHOW_FORCED);
+                    _keyDownHandled = true;
+                    _showSoftKeyboard = true;
+                    _executionEnvironment.blockUiInput(true);
+                } else if (_executionEnvironment != null) {
+                    try {
+                        _keyDownHandled = _executionEnvironment.sendEvent(keyName, event).get();
+                    } catch (Exception e) {
+                        Log.e(TAG, "execution exception", e);
+                    }
                 }
+                break;
             }
+            case KeyEvent.ACTION_UP:
+                if (dpadCenterToInput) {
+                    Log.d(TAG, "IME activation button ACTION_UP");
+                    _showSoftKeyboard = false;
+                    return true;
+                }
+                if (_showSoftKeyboard) {
+                    Log.d(TAG, "IME activation button ACTION_UP");
+                    return true;
+                }
+                break;
         }
 
         if (_keyDownHandled)
             return true;
 
+        Log.v(TAG, "returning key to system");
         return super.dispatchKeyEvent(event);
     }
 

@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.eclipsesource.v8.JavaCallback;
@@ -94,6 +95,8 @@ public final class ExecutionEnvironment extends Service
     private ViewGroup                   _rootView;
     private int                         _eventId;
     private boolean                     _dpadMode;
+    private boolean                     _blockInput;
+    private View                        _focusedView;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -614,5 +617,29 @@ public final class ExecutionEnvironment extends Service
     @Override
     public boolean getDPadMode() {
         return _dpadMode;
+    }
+
+    @Override
+    public void focusView(View view, boolean set) {
+        Log.v(TAG, "focusView: " + view + ", set: " + set);
+        //fixme: better logic here.
+        if (set) {
+            _focusedView = view;
+        } else {
+            _blockInput = false;
+            _focusedView = null;
+        }
+    }
+
+    public View getFocusedView() {
+        return _focusedView;
+    }
+
+    public void blockUiInput(boolean block) {
+        _blockInput = block;
+    }
+
+    public boolean isUiInputBlocked() {
+        return _blockInput;
     }
 }

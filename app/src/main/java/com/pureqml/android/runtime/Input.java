@@ -1,14 +1,19 @@
 package com.pureqml.android.runtime;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import com.pureqml.android.IExecutionEnvironment;
 
@@ -54,6 +59,17 @@ public final class Input extends Element {
             @Override
             public void afterTextChanged(Editable s) {
                 Input.this.setValue(s.toString());
+            }
+        });
+        view.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                Log.d(TAG, "onEditorAction: " + actionId);
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    Log.i(TAG, "IME_ACTION_DONE");
+                    _env.blockUiInput(false);
+                }
+                return false;
             }
         });
     }
@@ -181,6 +197,7 @@ public final class Input extends Element {
                 view.setCursorVisible(false);
             }
         });
+        _env.focusView(view, false);
     }
 
     @Override
@@ -195,6 +212,7 @@ public final class Input extends Element {
                     Log.w(TAG, "requestFocus failed");
             }
         });
+        _env.focusView(view, true);
     }
 
     private void emitFocusEvent(final boolean hasFocus) {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.DisplayMetrics;
 import android.view.SurfaceHolder;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.eclipsesource.v8.V8;
@@ -42,4 +43,7 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
 
     void register(IResource res);
     boolean getDPadMode();
+
+    void focusView(View view, boolean set);
+    void blockUiInput(boolean block);
 }
