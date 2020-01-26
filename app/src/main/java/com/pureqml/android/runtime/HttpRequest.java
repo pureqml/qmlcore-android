@@ -1,5 +1,6 @@
 package com.pureqml.android.runtime;
 
+import android.net.http.HttpResponseCache;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8;
@@ -10,6 +11,7 @@ import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.IExecutionEnvironment;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,6 +20,7 @@ import java.net.URL;
 
 public final class HttpRequest {
     private static final String TAG = "HttpRequestDispatcher";
+    private static boolean cacheInstalled;
 
     static class Request implements Runnable {
         private static final String TAG = "HttpRequest";
@@ -134,6 +137,7 @@ public final class HttpRequest {
             try {
                 _url = new URL(request.get("url").toString());
                 Log.d(TAG, "url: " + _url);
+
                 _connection = (HttpURLConnection) _url.openConnection();
                 _connection.setDoInput(true);
 
@@ -157,11 +161,28 @@ public final class HttpRequest {
             }
         }
     }
+    private static synchronized void setupCache(IExecutionEnvironment env) {
+        if (cacheInstalled)
+            return;
+
+        File httpCacheDir = new File(env.getContext().getCacheDir(), "http");
+        long httpCacheSize = 30 * 1024 * 1024;
+        try {
+            Log.d(TAG, "installing cache at " + httpCacheDir + " for " + httpCacheSize + " bytes");
+            HttpResponseCache.install(httpCacheDir, httpCacheSize);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            cacheInstalled = true;
+        }
+    }
 
     public static void request(IExecutionEnvironment env, V8Array arguments) {
         if (arguments.length() < 1) {
             throw new IllegalArgumentException("not enough arguments for httpRequest");
         }
+        setupCache(env);
         V8Object request = (V8Object)arguments.get(0);
         arguments.close();
 
