@@ -20,6 +20,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,6 +60,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -87,6 +89,7 @@ public final class ExecutionEnvironment extends Service
     private Element                     _rootElement;
     private V8Object                    _exports;
     private ExecutorService             _executor;
+    private ExecutorService             _rendererThread;
     private Timers                      _timers;
     private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
@@ -94,12 +97,13 @@ public final class ExecutionEnvironment extends Service
     private DisplayMetrics              _metrics;
     private ViewGroup                   _rootView;
     private int                         _eventId;
-    private boolean                     _dpadMode;
     private boolean                     _blockInput;
     private View                        _focusedView;
+    private SurfaceHolder               _surfaceHolder;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
+        _rendererThread = Executors.newSingleThreadExecutor();
         _executor = Executors.newSingleThreadExecutor();
         _executor.submit(new Callable<Void>() {
             @Override
@@ -169,7 +173,6 @@ public final class ExecutionEnvironment extends Service
                     switch (uiModeManager.getCurrentModeType()) {
                         case Configuration.UI_MODE_TYPE_TELEVISION:
                             Log.i(TAG, "Running on TV device");
-                            _dpadMode = true;
                             info.add("device", DeviceTV);
                             break;
                         default:
@@ -189,6 +192,14 @@ public final class ExecutionEnvironment extends Service
                 HttpRequest.request(ExecutionEnvironment.this, v8Array);
             }
         }, "httpRequest");
+
+        v8FD.registerJavaMethod(new JavaCallback() {
+            @Override
+            public Object invoke(V8Object v8Object, V8Array v8Array) {
+                ExecutionEnvironment.this.paint();
+                return null;
+            }
+        }, "paint");
 
         V8Object objectProto    = Wrapper.generateClass(this, _v8, v8FD, "Object", BaseObject.class, new Class<?>[] { IExecutionEnvironment.class });
         V8Object elementProto   = Wrapper.generateClass(this, _v8, v8FD, "Element", Element.class, new Class<?>[] { IExecutionEnvironment.class });
@@ -287,7 +298,6 @@ public final class ExecutionEnvironment extends Service
             _exports.close();
             _exports = null;
         }
-        schedulePaint();
     }
 
     @Override
@@ -372,8 +382,6 @@ public final class ExecutionEnvironment extends Service
             return callback.call(null, arguments);
         } catch (Exception e) {
             Log.e(TAG, "callback invocation failed", e);
-        } finally {
-            schedulePaint();
         }
         return null;
     }
@@ -423,7 +431,6 @@ public final class ExecutionEnvironment extends Service
                     }
                 }
                 _imageWaiters.remove(url);
-                schedulePaint();
             }
         });
     }
@@ -447,47 +454,45 @@ public final class ExecutionEnvironment extends Service
         _updatedElements.add(el);
     }
 
-    @Override
-    public void repaint(final SurfaceHolder holder) {
-        final Future<Void> f = _executor.submit(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                Canvas canvas = null;
-                Rect rect = _rootElement.getCombinedRect();
-                try {
-                    canvas = holder.lockCanvas(rect);
-                    PaintState paint = new PaintState(canvas);
+    public void paint(final SurfaceHolder holder) {
+        if (_rootElement == null || holder == null)
+            return;
 
-                    Paint bgPaint = new Paint();
-                    bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                    canvas.drawRect(rect, bgPaint);
-
-                    _rootElement.paint(paint);
-                } catch (Exception e) {
-                    Log.e(TAG, "schedulePaint failed", e);
-                } finally {
-                    if (canvas != null)
-                        holder.unlockCanvasAndPost(canvas);
-                }
-                return null;
-            }
-        });
+        Canvas canvas = null;
+        Rect rect = _rootElement.getCombinedRect();
+        Log.v(TAG, "paint: " + rect);
         try {
-            f.get();
-        } catch (InterruptedException e) {
-            Log.e(TAG, "repaint interrupted", e);
-        } catch (ExecutionException e) {
+            canvas = holder.lockCanvas(rect);
+            PaintState paint = new PaintState(canvas);
+
+            Paint bgPaint = new Paint();
+            bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+            canvas.drawRect(rect, bgPaint);
+
+            _rootElement.paint(paint);
+        } catch (Exception e) {
             Log.e(TAG, "repaint failed", e);
+        } finally {
+            if (canvas != null)
+                holder.unlockCanvasAndPost(canvas);
         }
     }
 
-    @Override
-    public void schedulePaint() {
+    public void paint() {
+        _rendererThread.submit(new Runnable() {
+            @Override
+            public void run() {
+                ExecutionEnvironment.this.paint(_surfaceHolder);
+            }
+        });
+    }
+
+    private Rect popDirtyRect() {
         Element root = _rootElement;
         if (root == null || _updatedElements.isEmpty() || _renderer == null)
-            return;
+            return null;
 
-        //Log.v(TAG, "schedulePaint: " + _updatedElements.size() + " elements");
+        //Log.v(TAG, "popDirtyRect: " + _updatedElements.size() + " elements");
         final Rect clipRect = _surfaceGeometry;
         Rect combinedRect = new Rect();
         for(Element el : _updatedElements) {
@@ -506,8 +511,14 @@ public final class ExecutionEnvironment extends Service
                 combinedRect.union(last);
         }
         _updatedElements.clear();
-        if (!combinedRect.isEmpty()) {
-            //Log.v(TAG, "schedulePaint: combined rect: " + combinedRect.toString());
+        return !combinedRect.isEmpty()? combinedRect: null;
+    }
+
+    @Override
+    public void schedulePaint() {
+        Rect combinedRect = popDirtyRect();
+        if (combinedRect != null) {
+            Log.v(TAG, "schedulePaint: combined rect: " + combinedRect.toString());
             _renderer.invalidateRect(combinedRect);
         }
     }
@@ -523,8 +534,6 @@ public final class ExecutionEnvironment extends Service
                 } catch(Exception e) {
                     Log.e(TAG, "key handler failed", e);
                     return false;
-                } finally {
-                    schedulePaint();
                 }
             }
         });
@@ -552,8 +561,6 @@ public final class ExecutionEnvironment extends Service
                 } catch(Exception e) {
                     Log.e(TAG, "click handler failed", e);
                     return false;
-                } finally {
-                    schedulePaint();
                 }
             }
         });
@@ -636,5 +643,13 @@ public final class ExecutionEnvironment extends Service
 
     public boolean isUiInputBlocked() {
         return _blockInput;
+    }
+
+    public void setSurfaceHolder(SurfaceHolder holder) {
+        _surfaceHolder = holder;
+    }
+
+    SurfaceHolder getSurfaceHolder() {
+        return _surfaceHolder;
     }
 }

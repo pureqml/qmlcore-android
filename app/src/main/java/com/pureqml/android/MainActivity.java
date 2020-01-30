@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -31,7 +32,7 @@ public final class MainActivity
     private static final String TAG = "main";
     private boolean                 _executionEnvironmentBound = false;
     private ExecutionEnvironment    _executionEnvironment;
-    private MainView                _mainView;
+    private SurfaceView             _mainView;
     private Rect                    _surfaceFrame;
     private IRenderer               _uiRenderer;
     boolean                         _keyDownHandled;
@@ -44,10 +45,10 @@ public final class MainActivity
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
             _executionEnvironment.acquireResource();
             synchronized (MainActivity.this) {
-                _mainView.setExecutionEnvironment(_executionEnvironment);
                 ViewGroup rootView = (ViewGroup)findViewById(android.R.id.content);
                 rootView = (ViewGroup)rootView.getChildAt(0);
                 _executionEnvironment.setRootView(rootView);
+                _executionEnvironment.setSurfaceHolder(_mainView.getHolder());
 
                 if (_surfaceFrame != null)
                     _executionEnvironment.setSurfaceFrame(_surfaceFrame);
@@ -62,7 +63,7 @@ public final class MainActivity
             Log.i(TAG, "execution environment service died...");
             synchronized (MainActivity.this) {
                 _executionEnvironment.setRootView(null);
-                _mainView.setExecutionEnvironment(null);
+                _executionEnvironment.setSurfaceHolder(null);
                 _executionEnvironment = null;
             }
         }
@@ -120,7 +121,7 @@ public final class MainActivity
         public void surfaceRedrawNeeded(SurfaceHolder holder) {
             Log.i(TAG, "redraw needed");
             if (_executionEnvironment != null)
-                _executionEnvironment.repaint(holder);
+                _executionEnvironment.paint(holder);
         }
     };
 
@@ -132,8 +133,14 @@ public final class MainActivity
 
         _imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        _mainView = (MainView) findViewById(R.id.contextView);
-        _mainView.getHolder().addCallback(new SurfaceHolderCallback());
+        _mainView = (SurfaceView) findViewById(R.id.contextView);
+
+        SurfaceHolder surfaceHolder = _mainView.getHolder();
+        surfaceHolder.setFormat(PixelFormat.TRANSLUCENT);
+        _mainView.setZOrderMediaOverlay(true);
+
+        surfaceHolder.addCallback(new SurfaceHolderCallback());
+
         _mainView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     tools:context="com.pureqml.android.MainActivity">
 
-    <com.pureqml.android.MainView
+    <SurfaceView
         android:id="@+id/contextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

@@ -3,7 +3,6 @@ package com.pureqml.android;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.DisplayMetrics;
-import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -35,7 +34,6 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     void invokeVoidCallback(V8Function callback, V8Object receiver, V8Array arguments);
     void schedulePaint();
     void update(Element el);
-    void repaint(SurfaceHolder holder);
 
     //image loader api
     AssetManager getAssets();
