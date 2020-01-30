@@ -170,7 +170,7 @@ public class Element extends BaseObject {
             case "z-index":     _z = TypeConverter.toInteger(value); break;
             case "visibility":  _visible = value.equals("inherit") || value.equals("visible"); break;
             case "transform": setTransform(value.toString()); break;
-            case "recursive-visibility": {
+            case "-pure-recursive-visibility": {
                 boolean globallyVisible = _globallyVisible;
                 boolean visible = TypeConverter.toBoolean(value);
                 if (globallyVisible != visible) {
