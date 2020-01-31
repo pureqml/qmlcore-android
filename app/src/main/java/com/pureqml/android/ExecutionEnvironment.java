@@ -463,13 +463,15 @@ public final class ExecutionEnvironment extends Service
         Log.v(TAG, "paint: " + rect);
         try {
             canvas = holder.lockCanvas(rect);
-            PaintState paint = new PaintState(canvas);
+            if (canvas != null) {
+                PaintState paint = new PaintState(canvas);
 
-            Paint bgPaint = new Paint();
-            bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-            canvas.drawRect(rect, bgPaint);
+                Paint bgPaint = new Paint();
+                bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                canvas.drawRect(rect, bgPaint);
 
-            _rootElement.paint(paint);
+                _rootElement.paint(paint);
+            }
         } catch (Exception e) {
             Log.e(TAG, "repaint failed", e);
         } finally {
