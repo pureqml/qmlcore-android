@@ -236,15 +236,20 @@ public class Element extends BaseObject {
             for (Element child : _children) {
                 Rect childRect = child.getRect();
                 PaintState state = new PaintState(parent, getBaseX(childRect.width()), getBaseY(childRect.height()), child._opacity);
-                if (child._clip) {
-                    state.setClipRect(new Rect(state.baseX, state.baseY, childRect.width(), childRect.height()));
-                    if (state.clipRect == null || state.clipRect.isEmpty())
-                        continue;
-                }
                 if (!child._visible || !state.visible())
                     continue;
 
+                boolean clip = child._clip;
+                if (clip) {
+                    state.canvas.save();
+                    state.canvas.clipRect(new Rect(state.baseX, state.baseY, childRect.width(), childRect.height()));
+                }
+
                 child.paint(state);
+
+                if (clip) {
+                    state.canvas.restore();
+                }
 
                 _combinedRect.union(childRect);
                 _combinedRect.union(child.getCombinedRect());
