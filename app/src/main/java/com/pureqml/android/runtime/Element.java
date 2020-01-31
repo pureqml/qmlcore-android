@@ -32,14 +32,15 @@ public class Element extends BaseObject {
 
     private   float             _opacity            = 1;
     protected boolean           _visible            = true;
-    protected boolean           _globallyVisible    = false;
+    protected boolean           _globallyVisible;
+    private boolean             _clip;
     protected Element           _parent;
     protected int               _z;
     protected List<Element>     _children;
-    private boolean             _scrollX = false;
-    private boolean             _scrollY = false;
-    private boolean             _useScrollX = false;
-    private boolean             _useScrollY = false;
+    private boolean             _scrollX;
+    private boolean             _scrollY;
+    private boolean             _useScrollX;
+    private boolean             _useScrollY;
     private Point               _scrollOffset;
     private Point               _scrollBase;
     private int                 _eventId;
@@ -116,9 +117,11 @@ public class Element extends BaseObject {
         String value = (String)objValue;
         switch(value) {
             case "auto":
+                _clip = false;
                 return true;
             case "hidden":
-                return false;
+                _clip = true;
+                return true;
             default:
                 Log.v(TAG, "ignoring overflow: " + value);
                 return false;
@@ -233,13 +236,19 @@ public class Element extends BaseObject {
             for (Element child : _children) {
                 Rect childRect = child.getRect();
                 PaintState state = new PaintState(parent, getBaseX(childRect.width()), getBaseY(childRect.height()), child._opacity);
-                if (child._visible && state.visible()) {
-                    child.paint(state);
-
-                    _combinedRect.union(childRect);
-                    _combinedRect.union(child.getCombinedRect());
-                    _lastRect.union(child.getLastRenderedRect());
+                if (child._clip) {
+                    state.setClipRect(new Rect(state.baseX, state.baseY, childRect.width(), childRect.height()));
+                    if (state.clipRect == null || state.clipRect.isEmpty())
+                        continue;
                 }
+                if (!child._visible || !state.visible())
+                    continue;
+
+                child.paint(state);
+
+                _combinedRect.union(childRect);
+                _combinedRect.union(child.getCombinedRect());
+                _lastRect.union(child.getLastRenderedRect());
             }
         }
     }
