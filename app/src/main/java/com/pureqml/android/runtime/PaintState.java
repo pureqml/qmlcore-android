@@ -1,7 +1,6 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Canvas;
-import android.graphics.Rect;
 
 public final class PaintState {
     public static final float opacityThreshold = 1.0f / 255;

@@ -1,7 +1,6 @@
 package com.pureqml.android.runtime;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Build;
 import android.text.Editable;
@@ -12,7 +11,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.pureqml.android.IExecutionEnvironment;
