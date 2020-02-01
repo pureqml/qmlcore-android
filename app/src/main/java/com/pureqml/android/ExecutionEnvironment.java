@@ -456,8 +456,13 @@ public final class ExecutionEnvironment extends Service
         if (_rootElement == null || holder == null)
             return;
 
+        Rect rect = popDirtyRect();
+        if (rect != null)
+            Log.v(TAG, "paint: rect: " + rect.toString());
+        else
+            return;
+
         Canvas canvas = null;
-        Rect rect = _rootElement.getCombinedRect();
         Log.v(TAG, "paint: " + rect);
         try {
             canvas = holder.lockCanvas(rect);
@@ -512,15 +517,6 @@ public final class ExecutionEnvironment extends Service
         }
         _updatedElements.clear();
         return !combinedRect.isEmpty()? combinedRect: null;
-    }
-
-    @Override
-    public void schedulePaint() {
-        Rect combinedRect = popDirtyRect();
-        if (combinedRect != null) {
-            Log.v(TAG, "schedulePaint: combined rect: " + combinedRect.toString());
-            _renderer.invalidateRect(combinedRect);
-        }
     }
 
     public Future<Boolean> sendEvent(final String keyName, final KeyEvent event) {

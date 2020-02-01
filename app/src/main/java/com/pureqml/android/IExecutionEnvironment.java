@@ -32,7 +32,6 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     //invoke function + schedulePaint
     Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments);
     void invokeVoidCallback(V8Function callback, V8Object receiver, V8Array arguments);
-    void schedulePaint();
     void update(Element el);
 
     //image loader api
