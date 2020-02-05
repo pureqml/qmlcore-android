@@ -19,6 +19,10 @@ public final class TextLayout {
             this.end = end;
             this.width = width;
         }
+
+        public String toString() {
+            return "" + start + "-" + end + " (" + width + "px)";
+        }
     }
 
     public List<Stripe> stripes;
@@ -32,5 +36,23 @@ public final class TextLayout {
         stripes.add(new Stripe(start, end, width));
         if (width > this.width)
             this.width = width;
+    }
+
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("{ text: ");
+        b.append(text);
+        b.append(", ");
+        b.append(width);
+        b.append("x");
+        b.append(height);
+        b.append(" [");
+        for(Stripe s: stripes) {
+            b.append(s.toString());
+            b.append(" ");
+        }
+        b.append("]");
+
+        return b.toString();
     }
 }
