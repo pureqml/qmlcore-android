@@ -18,11 +18,21 @@ public final class Text extends Element {
         Wrap
     };
 
+    enum HorizontalAlignment {
+        AlignLeft, AlignRight, AlignHCenter, AlignJustify
+    };
+
+    enum VerticalAlignment {
+        AlignTop, AlignBottom, AlignVCenter
+    };
+
     private final static String TAG = "rt.Text";
-    Paint       _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    String      _text;
-    TextLayout  _layout;
-    Wrap        _wrap = Wrap.NoWrap;
+    Paint               _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    String              _text;
+    TextLayout          _layout;
+    Wrap                _wrap = Wrap.NoWrap;
+    HorizontalAlignment _halign = HorizontalAlignment.AlignLeft;
+    VerticalAlignment   _valign = VerticalAlignment.AlignTop;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -31,7 +41,9 @@ public final class Text extends Element {
     @Override
     protected void setStyle(String name, Object value) {
         switch(name) {
-            case "color":           _paint.setColor(TypeConverter.toColor((String)value)); break;
+            case "color":
+                _paint.setColor(TypeConverter.toColor((String)value));
+                break;
             case "font-size":
                 try {
                     _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getDisplayMetrics()));
@@ -53,6 +65,41 @@ public final class Text extends Element {
                     _wrap = Wrap.Wrap;
                 else
                     Log.w(TAG, "unsupported white-space rule");
+                break;
+
+            case "text-align":
+                switch((String)value) {
+                    case "left":
+                        _halign = HorizontalAlignment.AlignLeft;
+                        break;
+                    case "center":
+                        _halign = HorizontalAlignment.AlignHCenter;
+                        break;
+                    case "right":
+                        _halign = HorizontalAlignment.AlignRight;
+                        break;
+                    case "justify":
+                        _halign = HorizontalAlignment.AlignJustify;
+                        break;
+                    default:
+                        Log.w(TAG, "ignoring text-align value " + value);
+                }
+                break;
+
+            case "-pure-text-vertical-align":
+                switch((String)value) {
+                    case "top":
+                        _valign = VerticalAlignment.AlignTop;
+                        break;
+                    case "middle":
+                        _valign = VerticalAlignment.AlignVCenter;
+                        break;
+                    case "bottom":
+                        _valign = VerticalAlignment.AlignBottom;
+                        break;
+                    default:
+                        Log.w(TAG, "ignoring vertical-text-align value " + value);
+                }
                 break;
 
             default:
