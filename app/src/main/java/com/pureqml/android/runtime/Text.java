@@ -120,21 +120,30 @@ public final class Text extends Element {
             float textSize = _paint.getTextSize();
             float lineHeight = textSize * 1.2f; //fixme: support proper line height/baseline
             float x = _lastRect.left;
-            float y = _lastRect.top + lineHeight;
-            int r;
+            float y = _lastRect.top - _paint.ascent();
             if (_layout == null) {
-                r = _lastRect.left + (int) Math.round(_paint.measureText(_text, 0, _text.length()));
-                if (r > _lastRect.right)
-                    _lastRect.right = r;
                 state.canvas.drawText(_text, x, y, _paint);
                 y += lineHeight;
             } else {
-                //fixme: stub
+                switch (_halign) {
+                    case AlignHCenter:
+                        x += (rect.width() - _layout.width) / 2;
+                        break;
+                    case AlignRight:
+                        x += rect.width() - _layout.width;
+                        break;
+                }
+                switch (_valign) {
+                    case AlignVCenter:
+                        y += (rect.height() - _layout.height) / 2;
+                        break;
+                    case AlignBottom:
+                        y += rect.height() - _layout.height;
+                        break;
+                }
+                Log.v(TAG, "paint: " + _layout + ", halign: " + _halign + ", valign: "  + _valign + ", rect: " + rect);
                 for (TextLayout.Stripe stripe : _layout.stripes) {
                     state.canvas.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
-                    r = _lastRect.left + (int) Math.round(_paint.measureText(_text, stripe.start, stripe.end) + _lastRect.left);
-                    if (r > _lastRect.right)
-                        _lastRect.right = r;
                     y += lineHeight;
                 }
             }
