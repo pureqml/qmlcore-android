@@ -247,35 +247,38 @@ public class Element extends BaseObject {
 
     @SuppressWarnings("unchecked")
     public final void paintChildren(PaintState parent) {
-        if (_children != null) {
-            LinkedList<Element> children;
+        if (_children == null)
+            return;
 
-            synchronized (_children) {
-                children = (LinkedList<Element>)_children.clone();
+        LinkedList<Element> children;
+        synchronized (_children) {
+            children = (LinkedList<Element>)_children.clone();
+        }
+
+        for (Element child : children) {
+            Rect childRect = child.getRect();
+            PaintState state = new PaintState(parent, getBaseX(childRect.width()), getBaseY(childRect.height()), child._opacity);
+            if (!child._visible || !state.visible())
+                continue;
+
+            boolean clip = child._clip;
+            boolean paint = true;
+            if (clip) {
+                state.canvas.save();
+                if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childRect.width(), state.baseY + childRect.height())))
+                    paint = false;
             }
 
-            for (Element child : children) {
-                Rect childRect = child.getRect();
-                PaintState state = new PaintState(parent, getBaseX(childRect.width()), getBaseY(childRect.height()), child._opacity);
-                if (!child._visible || !state.visible())
-                    continue;
-
-                boolean clip = child._clip;
-                if (clip) {
-                    state.canvas.save();
-                    state.canvas.clipRect(new Rect(state.baseX, state.baseY, childRect.width(), childRect.height()));
-                }
-
+            if (paint)
                 child.paint(state);
 
-                if (clip) {
-                    state.canvas.restore();
-                }
-
-                _combinedRect.union(childRect);
-                _combinedRect.union(child.getCombinedRect());
-                _lastRect.union(child.getLastRenderedRect());
+            if (clip) {
+                state.canvas.restore();
             }
+
+            _combinedRect.union(childRect);
+            _combinedRect.union(child.getCombinedRect());
+            _lastRect.union(child.getLastRenderedRect());
         }
     }
 
