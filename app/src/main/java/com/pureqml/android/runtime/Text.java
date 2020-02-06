@@ -120,7 +120,7 @@ public final class Text extends Element {
             float textSize = _paint.getTextSize();
             float lineHeight = textSize * 1.2f; //fixme: support proper line height/baseline
             float x = _lastRect.left;
-            float y = _lastRect.top + _paint.ascent();
+            float y = _lastRect.top + lineHeight;
             int r;
             if (_layout == null) {
                 r = _lastRect.left + (int) Math.round(_paint.measureText(_text, 0, _text.length()));
