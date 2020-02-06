@@ -42,7 +42,7 @@ public class Element extends BaseObject {
     private boolean             _useScrollX;
     private boolean             _useScrollY;
     private Point               _scrollOffset;
-    private Point               _scrollBase;
+    private Point               _motionStartPos;
     private int                 _eventId;
 
     public Element(IExecutionEnvironment env) {
@@ -307,11 +307,11 @@ public class Element extends BaseObject {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
                 if (rect.contains(x, y) && (_scrollX || _scrollY || hasCallbackFor(click))) {
-                    if (_scrollBase == null)
-                        _scrollBase = new Point(); //FIXME: optimise me
+                    if (_motionStartPos == null)
+                        _motionStartPos = new Point(); //FIXME: optimise me? (unwrap to 2 int members)
                     _eventId = eventId;
-                    _scrollBase.x = (int)event.getX();
-                    _scrollBase.y = (int)event.getY();
+                    _motionStartPos.x = (int)event.getX();
+                    _motionStartPos.y = (int)event.getY();
                     _useScrollX = _useScrollY = false;
                     return true;
                 } else
@@ -320,9 +320,9 @@ public class Element extends BaseObject {
 
             case MotionEvent.ACTION_MOVE: {
                 if (_eventId == eventId && (_scrollX || _scrollY)) {
-                    if (_scrollBase != null) {
-                        int dx = (int) (event.getX() - _scrollBase.x);
-                        int dy = (int) (event.getY() - _scrollBase.y);
+                    if (_motionStartPos != null) {
+                        int dx = (int) (event.getX() - _motionStartPos.x);
+                        int dy = (int) (event.getY() - _motionStartPos.y);
                         if (_scrollOffset == null)
                             _scrollOffset = new Point();
 
