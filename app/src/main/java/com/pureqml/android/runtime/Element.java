@@ -257,7 +257,7 @@ public class Element extends BaseObject {
 
         for (Element child : children) {
             Rect childRect = child.getRect();
-            PaintState state = new PaintState(parent, getBaseX(childRect.width()), getBaseY(childRect.height()), child._opacity);
+            PaintState state = new PaintState(parent, child.getBaseX(childRect.width()), child.getBaseY(childRect.height()), child._opacity);
             if (!child._visible || !state.visible())
                 continue;
 
