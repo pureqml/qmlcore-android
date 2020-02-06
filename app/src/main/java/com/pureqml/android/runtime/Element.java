@@ -233,6 +233,7 @@ public class Element extends BaseObject {
         return _rect.top + (_scrollOffset != null && h > _rect.height()? _scrollOffset.y: 0) + (_translate != null? _translate.y: 0);
     }
 
+    @SuppressWarnings("unchecked")
     public final void paintChildren(PaintState parent) {
         if (_children != null) {
             LinkedList<Element> children;
