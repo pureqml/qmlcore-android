@@ -43,6 +43,7 @@ public class Element extends BaseObject {
     private boolean             _useScrollY;
     private Point               _scrollOffset;
     private Point               _motionStartPos;
+    private Point               _scrollPos;
     private int                 _eventId;
 
     public Element(IExecutionEnvironment env) {
@@ -65,8 +66,17 @@ public class Element extends BaseObject {
         return _visible && _opacity >= PaintState.opacityThreshold;
     }
 
-    public final int getScrollX() { return _scrollOffset != null? -_scrollOffset.x: 0; }
-    public final int getScrollY() { return _scrollOffset != null? -_scrollOffset.y: 0; }
+    public final int getScrollX() {
+        int x = _scrollOffset != null? -_scrollOffset.x: 0;
+        x += _scrollPos != null? -_scrollPos.x: 0;
+        return x;
+    }
+
+    public final int getScrollY() {
+        int y = _scrollOffset != null? -_scrollOffset.y: 0;
+        y += _scrollPos != null? -_scrollPos.y: 0;
+        return y;
+    }
 
     public void append(BaseObject child) throws AlreadyHasAParentException {
         if (child == null)
@@ -226,11 +236,13 @@ public class Element extends BaseObject {
     }
 
     protected final int getBaseX(int w) {
-        return _rect.left + (_scrollOffset != null && w > _rect.width()? _scrollOffset.x: 0) + (_translate != null? _translate.x: 0);
+        int x = -getScrollX();
+        return _rect.left + (w > _rect.width()? x: 0) + (_translate != null? _translate.x: 0);
     }
 
     protected final int getBaseY(int h) {
-        return _rect.top + (_scrollOffset != null && h > _rect.height()? _scrollOffset.y: 0) + (_translate != null? _translate.y: 0);
+        int y = -getScrollY();
+        return _rect.top + (h > _rect.height()? y: 0) + (_translate != null? _translate.y: 0);
     }
 
     @SuppressWarnings("unchecked")
@@ -359,6 +371,7 @@ public class Element extends BaseObject {
                                     dx = 0;
                                 Log.i(TAG, "adjusting scrollX to " + dx);
                                 _scrollOffset.x = dx;
+                                update();
                             }
                         }
 
@@ -371,9 +384,11 @@ public class Element extends BaseObject {
                                     dy = 0;
                                 Log.i(TAG, "adjusting scrollY to " + dy);
                                 _scrollOffset.y = dy;
+                                update();
                             }
                         }
                     }
+                    emit(null, "scroll");
                     return true;
                 } else
                     return handled;
@@ -383,7 +398,20 @@ public class Element extends BaseObject {
                     return true;
 
                 if (_eventId == eventId) {
-                    if (rect.contains(x, y) && hasCallbackFor(click)) {
+                    if ((_useScrollX || _useScrollY) && _scrollOffset != null) {
+                        if (_scrollPos == null)
+                            _scrollPos = new Point();
+
+                        _useScrollX = _useScrollY = false;
+                        _scrollPos.x += _scrollOffset.x;
+                        _scrollPos.y += _scrollOffset.y;
+                        Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
+                        _scrollOffset = null;
+
+                        emit(null, "scroll");
+                        update();
+                        return true;
+                    } else if (rect.contains(x, y) && hasCallbackFor(click)) {
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
                         mouseEvent.add("offsetX", x - rect.left);
                         mouseEvent.add("offsetY", y - rect.top);
@@ -391,7 +419,6 @@ public class Element extends BaseObject {
                         mouseEvent.close();
                         return true;
                     }
-                    emit(null, "scroll");
                 }
                 return false;
             }
