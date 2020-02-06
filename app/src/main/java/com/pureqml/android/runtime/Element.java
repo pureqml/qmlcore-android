@@ -36,7 +36,7 @@ public class Element extends BaseObject {
     private boolean             _clip;
     protected Element           _parent;
     protected int               _z;
-    protected List<Element>     _children;
+    protected LinkedList<Element> _children;
     private boolean             _scrollX;
     private boolean             _scrollY;
     private boolean             _useScrollX;
@@ -83,7 +83,9 @@ public class Element extends BaseObject {
         el._parent = this;
         if (_children == null)
             _children = new LinkedList<Element>();
-        _children.add(el);
+        synchronized (_children) {
+            _children.add(el);
+        }
         el.update();
     }
 
@@ -233,7 +235,13 @@ public class Element extends BaseObject {
 
     public final void paintChildren(PaintState parent) {
         if (_children != null) {
-            for (Element child : _children) {
+            LinkedList<Element> children;
+
+            synchronized (_children) {
+                children = (LinkedList<Element>)_children.clone();
+            }
+
+            for (Element child : children) {
                 Rect childRect = child.getRect();
                 PaintState state = new PaintState(parent, getBaseX(childRect.width()), getBaseY(childRect.height()), child._opacity);
                 if (!child._visible || !state.visible())

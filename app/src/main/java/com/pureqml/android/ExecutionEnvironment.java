@@ -449,7 +449,9 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public void update(Element el) {
-        _updatedElements.add(el);
+        synchronized (_updatedElements) {
+            _updatedElements.add(el);
+        }
     }
 
     public void paint(final SurfaceHolder holder) {
