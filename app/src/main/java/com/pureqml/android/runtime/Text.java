@@ -141,7 +141,7 @@ public final class Text extends Element {
                         y += rect.height() - _layout.height;
                         break;
                 }
-                Log.v(TAG, "paint: " + _layout + ", halign: " + _halign + ", valign: "  + _valign + ", rect: " + rect);
+                //Log.v(TAG, "paint: " + _layout + ", halign: " + _halign + ", valign: "  + _valign + ", rect: " + rect);
                 for (TextLayout.Stripe stripe : _layout.stripes) {
                     state.canvas.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
                     y += lineHeight;
