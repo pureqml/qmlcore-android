@@ -288,7 +288,7 @@ public class Element extends BaseObject {
     }
 
     public Rect getScreenRect() {
-        Rect rect = new Rect(_rect);
+        Rect rect = getRect();
         Element el = _parent;
         while(el != null) {
             Rect elRect = el.getRect();
