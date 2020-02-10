@@ -59,7 +59,7 @@ public final class Rectangle extends Element {
 
         Canvas canvas = state.canvas;
         float opacity = state.opacity;
-        Rect rect = translateRect(getRect(), state.baseX, state.baseY);
+        Rect rect = getDstRect(state);
 
         if (_background.getColor() != 0) {
             Paint paint = patchAlpha(_background, Color.alpha(_color), opacity);

@@ -449,10 +449,10 @@ public class Element extends BaseObject {
     public void focus() {}
     public void blur() {}
 
-    static final Rect translateRect(Rect rect, int dx, int dy) {
-        Rect r = new Rect(rect);
-        r.offset(dx, dy);
-        return r;
+    public Rect getDstRect(PaintState state) {
+        Rect rect = new Rect(0, 0, _rect.width(), _rect.height());
+        rect.offset(state.baseX, state.baseY);
+        return rect;
     }
 
     static final Paint patchAlpha(Paint paint, int alpha, float opacity) {

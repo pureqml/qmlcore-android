@@ -114,8 +114,8 @@ public final class Text extends Element {
         beginPaint();
         if (_text != null) {
             Rect rect = getRect();
-            _lastRect.left = state.baseX + rect.left;
-            _lastRect.top = state.baseY + rect.top; //fixme: get actual bounding box
+            _lastRect.left = state.baseX;
+            _lastRect.top = state.baseY; //fixme: get actual bounding box
 
             float textSize = _paint.getTextSize();
             float lineHeight = textSize; //fixme: support proper line height/baseline
