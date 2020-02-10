@@ -113,6 +113,8 @@ public class Element extends BaseObject {
         _env.update(this);
     }
 
+    public void updateStyle() {}
+
     protected void removeChild(Element child) {
         if (_children != null)
             _children.remove(child);
