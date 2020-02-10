@@ -11,6 +11,9 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.TypeConverter;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public final class Text extends Element {
 
     enum Wrap {
@@ -158,26 +161,35 @@ public final class Text extends Element {
         _text = text;
     }
 
+    static private Pattern newLinePattern = Pattern.compile("<br.*?>");
+
+    private String preprocess(String text) {
+        return text.replaceAll("\\s+", " ");
+    }
+
+    private void layoutLine(int begin, int end, int maxWidth) {
+        if (_wrap == Wrap.Wrap) {
+            _layout.wrap(_paint, begin, end, maxWidth);
+        } else {
+            int width = (int)_paint.measureText(_layout.text);
+            _layout.add(begin, end, width);
+        }
+    }
+
     public void layoutText(V8Function callback) {
         Log.v(TAG, "layout text: " + _text);
-        int offset = 0, length = _text.length();
-        int lines = 0;
-        _layout = new TextLayout(_text);
+        _layout = new TextLayout(preprocess(_text));
+        Rect rect = getRect();
 
-        if (_wrap == Wrap.Wrap) {
-            while(offset < length) {
-                float measuredWidth[] = new float[1];
-                int n = _paint.breakText(_text, offset, length, true, getRect().width(), measuredWidth);
-                _layout.add(offset, offset + n, (int)measuredWidth[0]);
-                offset += n;
-                ++lines;
-            }
-        } else {
-            int width = (int)_paint.measureText(_text);
-            _layout.add(0, _text.length(), width);
-            lines = 1;
+        Matcher matcher = newLinePattern.matcher(_layout.text);
+        int begin = 0;
+        while(matcher.find()) {
+            layoutLine(begin, matcher.start(), rect.width());
+            begin = matcher.end();
         }
-        _layout.height = (int) (lines * _paint.getTextSize());
+        layoutLine(begin, _layout.text.length(), rect.width());
+
+        _layout.height = (int) (_layout.stripes.size() * _paint.getTextSize());
 
         V8Object metrics = new V8Object(_env.getRuntime());
         metrics.add("width", _layout.width);

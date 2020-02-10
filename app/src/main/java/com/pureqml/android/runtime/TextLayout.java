@@ -1,5 +1,7 @@
 package com.pureqml.android.runtime;
 
+import android.graphics.Paint;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,6 +38,15 @@ public final class TextLayout {
         stripes.add(new Stripe(start, end, width));
         if (width > this.width)
             this.width = width;
+    }
+
+    public void wrap(Paint paint, int begin, int end, int maxWidth) {
+        while(begin < end) {
+            float measuredWidth[] = new float[1];
+            int n = paint.breakText(text, begin, end, true, maxWidth, measuredWidth);
+            add(begin, begin + n, (int)measuredWidth[0]);
+            begin += n;
+        }
     }
 
     public String toString() {
