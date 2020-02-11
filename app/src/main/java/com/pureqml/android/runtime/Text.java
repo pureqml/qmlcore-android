@@ -117,7 +117,7 @@ public final class Text extends Element {
                     int b = Integer.valueOf(matcher.group(6));
                     float a = Float.valueOf(matcher.group(7));
                     if ((dx | dy) != 0 && a > 0) {
-                        _paint.setShadowLayer((int)Math.round(Math.hypot(dx, dy)), dx, dy, Color.argb((int)(255 * a), r, g, b));
+                        _paint.setShadowLayer((float)Math.hypot(dx, dy), dx, dy, Color.argb((int)(255 * a), r, g, b));
                     } else
                         _paint.clearShadowLayer();
                 } else
