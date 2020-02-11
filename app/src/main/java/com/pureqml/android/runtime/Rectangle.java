@@ -7,6 +7,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 
 import com.pureqml.android.IExecutionEnvironment;
 
@@ -46,7 +47,13 @@ public final class Rectangle extends Element {
             case "background-color":    _color = toColor((String)value); _background.setAlpha(Color.alpha(_color)); _background.setColor(_color); break;
             case "border-color":        getBorder().setColor(toColor((String)value)); break;
             case "border-width":        getBorder().setStrokeWidth(toInteger(value)); break;
-            case "border-radius":       _radius = toInteger(value); break;
+            case "border-radius":
+                try
+                { _radius = toInteger(value); }
+                catch(Exception ex)
+                { Log.w(TAG, "unsupported radius spec", ex); }
+                break;
+
             default:
                 super.setStyle(name, value); return;
         }
