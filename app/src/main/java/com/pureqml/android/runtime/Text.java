@@ -1,5 +1,6 @@
 package com.pureqml.android.runtime;
 
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -40,6 +41,8 @@ public final class Text extends Element {
     public Text(IExecutionEnvironment env) {
         super(env);
     }
+
+    static private Pattern textShadowPattern = Pattern.compile("(\\d+)px\\s*(\\d+)px\\s*(\\d+)px\\s*rgba\\(\\s*(\\d+)\\s*,(\\d+)\\s*,(\\d+)\\s*,([\\d\\.]+)\\s*\\)");
 
     @Override
     protected void setStyle(String name, Object value) {
@@ -103,6 +106,22 @@ public final class Text extends Element {
                     default:
                         Log.w(TAG, "ignoring vertical-text-align value " + value);
                 }
+                break;
+            case "text-shadow":
+                Matcher matcher = textShadowPattern.matcher(value.toString());
+                if (matcher.matches()) {
+                    int dx = Integer.valueOf(matcher.group(1));
+                    int dy = Integer.valueOf(matcher.group(2));
+                    int r = Integer.valueOf(matcher.group(4));
+                    int g = Integer.valueOf(matcher.group(5));
+                    int b = Integer.valueOf(matcher.group(6));
+                    float a = Float.valueOf(matcher.group(7));
+                    if ((dx | dy) != 0 && a > 0) {
+                        _paint.setShadowLayer((int)Math.round(Math.hypot(dx, dy)), dx, dy, Color.argb((int)(255 * a), r, g, b));
+                    } else
+                        _paint.clearShadowLayer();
+                } else
+                    Log.w(TAG, "unsupported text shadow spec: " + value.toString());
                 break;
 
             default:
