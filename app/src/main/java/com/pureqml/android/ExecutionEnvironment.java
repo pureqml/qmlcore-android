@@ -311,23 +311,28 @@ public final class ExecutionEnvironment extends Service
             for(Map.Entry<Long, BaseObject> entry : _objects.entrySet()) {
                 entry.getValue().discard();
             }
-            _objects.clear();
 
             if (_rootElement != null) {
                 _rootElement.discard();
                 _rootElement = null;
             }
 
-            if (_rootObject != null) {
-                _rootObject.close();
-                _rootObject = null;
-            }
-            if (_exports != null) {
-                _exports.close();
-                _exports = null;
-            }
+            _executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    if (_rootObject != null) {
+                        _rootObject.close();
+                        _rootObject = null;
+                    }
+                    if (_exports != null) {
+                        _exports.close();
+                        _exports = null;
+                    }
 
-            _v8.close();
+                    _v8.close();
+                    _objects.clear();
+                }
+            });
             return null;
             }
         });
