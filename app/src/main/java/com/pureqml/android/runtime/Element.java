@@ -36,6 +36,10 @@ public class Element extends BaseObject {
     protected Element           _parent;
     protected int               _z;
     protected LinkedList<Element> _children;
+
+    private static final float  DetectionDistance = 5;
+    private static final float  DetectionDistance2 = DetectionDistance * DetectionDistance;
+
     private boolean             _scrollX;
     private boolean             _scrollY;
     private boolean             _useScrollX;
@@ -66,14 +70,14 @@ public class Element extends BaseObject {
     }
 
     public final int getScrollX() {
-        int x = _scrollOffset != null? -_scrollOffset.x: 0;
-        x += _scrollPos != null? -_scrollPos.x: 0;
+        int x = _scrollOffset != null? _scrollOffset.x: 0;
+        x += _scrollPos != null? _scrollPos.x: 0;
         return x;
     }
 
     public final int getScrollY() {
-        int y = _scrollOffset != null? -_scrollOffset.y: 0;
-        y += _scrollPos != null? -_scrollPos.y: 0;
+        int y = _scrollOffset != null? _scrollOffset.y: 0;
+        y += _scrollPos != null? _scrollPos.y: 0;
         return y;
     }
 
@@ -237,13 +241,13 @@ public class Element extends BaseObject {
     }
 
     protected final int getBaseX(int w) {
-        int x = -getScrollX();
-        return _rect.left + (w > _rect.width()? x: 0) + (_translate != null? _translate.x: 0);
+        int x = _parent != null? -_parent.getScrollX(): 0;
+        return _rect.left + x + (_translate != null? _translate.x: 0);
     }
 
     protected final int getBaseY(int h) {
-        int y = -getScrollY();
-        return _rect.top + (h > _rect.height()? y: 0) + (_translate != null? _translate.y: 0);
+        int y = _parent != null? -_parent.getScrollY(): 0;
+        return _rect.top + y + (_translate != null? _translate.y: 0);
     }
 
     @SuppressWarnings("unchecked")
@@ -334,6 +338,10 @@ public class Element extends BaseObject {
                 if (rect.contains(x, y) && (_scrollX || _scrollY || hasCallbackFor(click))) {
                     if (_motionStartPos == null)
                         _motionStartPos = new Point(); //FIXME: optimise me? (unwrap to 2 int members)
+                    if (_scrollPos == null)
+                        _scrollPos = new Point();
+                    if (_scrollOffset == null)
+                        _scrollOffset = new Point();
                     _eventId = eventId;
                     _motionStartPos.x = (int)event.getX();
                     _motionStartPos.y = (int)event.getY();
@@ -348,46 +356,51 @@ public class Element extends BaseObject {
                     if (_motionStartPos != null) {
                         int dx = (int) (event.getX() - _motionStartPos.x);
                         int dy = (int) (event.getY() - _motionStartPos.y);
-                        if (_scrollOffset == null)
-                            _scrollOffset = new Point();
 
                         if (!_useScrollX && !_useScrollY) {
-                            if (_scrollX && _scrollY) {
-                                if (Math.abs(dx) > Math.abs(dy))
+                            float distance = (float)Math.hypot((double)dx, (double)dy);
+                            if (distance >= DetectionDistance2) {
+                                if (_scrollX && _scrollY) {
+                                    if (Math.abs(dx) > Math.abs(dy))
+                                        _useScrollX = true;
+                                    else
+                                        _useScrollY = true;
+                                } else if (_scrollX) {
                                     _useScrollX = true;
-                                else
+                                } else if (_scrollY) {
                                     _useScrollY = true;
-                            } else if (_scrollX) {
-                                _useScrollX = true;
-                            } else if (_scrollY) {
-                                _useScrollY = true;
+                                }
                             }
-                            else
-                                throw new Exception("invalid scrollX/scrollY combination");
                         }
 
                         if (_useScrollX) {
                             int clientWidth = _combinedRect.width();
-                            if (_scrollX && rect.width() < clientWidth) {
-                                if (rect.width() - dx > clientWidth)
-                                    dx = clientWidth + dx;
-                                if (dx > 0)
-                                    dx = 0;
-                                Log.i(TAG, "adjusting scrollX to " + dx);
-                                _scrollOffset.x = dx;
+                            if (rect.width() < clientWidth) {
+                                _scrollOffset.x = -dx;
+
+                                if (_scrollOffset.x + rect.width() > clientWidth)
+                                    _scrollOffset.x = clientWidth - rect.width();
+
+                                if (_scrollPos.x + _scrollOffset.x < 0)
+                                    _scrollOffset.x = -_scrollPos.x;
+
+                                Log.v(TAG, "adjusting scrollX to " + _scrollOffset.x);
                                 update();
                             }
                         }
 
                         if (_useScrollY) {
                             int clientHeight = _combinedRect.height();
-                            if (_scrollY && rect.height() < clientHeight) {
-                                if (rect.width() - dy > clientHeight)
-                                    dy = clientHeight + dy;
-                                if (dy > 0)
-                                    dy = 0;
-                                Log.i(TAG, "adjusting scrollY to " + dy);
-                                _scrollOffset.y = dy;
+                            if (rect.height() < clientHeight) {
+                                _scrollOffset.y = -dy;
+
+                                if (_scrollOffset.y + rect.height() > clientHeight)
+                                    _scrollOffset.y = clientHeight - rect.width();
+
+                                if (_scrollPos.y + _scrollOffset.y < 0)
+                                    _scrollOffset.y = -_scrollPos.y;
+
+                                Log.v(TAG, "adjusting scrollY to " + _scrollOffset.y);
                                 update();
                             }
                         }
@@ -403,9 +416,6 @@ public class Element extends BaseObject {
 
                 if (_eventId == eventId) {
                     if ((_useScrollX || _useScrollY) && _scrollOffset != null) {
-                        if (_scrollPos == null)
-                            _scrollPos = new Point();
-
                         _useScrollX = _useScrollY = false;
                         _scrollPos.x += _scrollOffset.x;
                         _scrollPos.y += _scrollOffset.y;
