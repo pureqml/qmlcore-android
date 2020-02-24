@@ -374,35 +374,37 @@ public class Element extends BaseObject {
                         }
 
                         if (_useScrollX) {
-                            int clientWidth = _combinedRect.width();
-                            if (rect.width() < clientWidth) {
+                            int clientWidth = _combinedRect.width(), w = rect.width();
+                            if (w < clientWidth) {
                                 _scrollOffset.x = -dx;
 
-                                if (_scrollOffset.x + rect.width() > clientWidth)
-                                    _scrollOffset.x = clientWidth - rect.width();
+                                if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
+                                    _scrollOffset.x = clientWidth - w - _scrollPos.x;
 
                                 if (_scrollPos.x + _scrollOffset.x < 0)
                                     _scrollOffset.x = -_scrollPos.x;
 
-                                Log.v(TAG, "adjusting scrollX to " + _scrollOffset.x);
+                                Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
                                 update();
-                            }
+                            } else
+                                _scrollPos.x = _scrollOffset.x = 0;
                         }
 
                         if (_useScrollY) {
-                            int clientHeight = _combinedRect.height();
+                            int clientHeight = _combinedRect.height(), h = rect.height();
                             if (rect.height() < clientHeight) {
                                 _scrollOffset.y = -dy;
 
-                                if (_scrollOffset.y + rect.height() > clientHeight)
-                                    _scrollOffset.y = clientHeight - rect.width();
+                                if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
+                                    _scrollOffset.y = clientHeight - h - _scrollPos.y;
 
                                 if (_scrollPos.y + _scrollOffset.y < 0)
                                     _scrollOffset.y = -_scrollPos.y;
 
-                                Log.v(TAG, "adjusting scrollY to " + _scrollOffset.y);
+                                Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
                                 update();
-                            }
+                            } else
+                                _scrollPos.y = _scrollOffset.y = 0;
                         }
                     }
                     emit(null, "scroll");
