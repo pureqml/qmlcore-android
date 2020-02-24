@@ -239,14 +239,12 @@ public class Element extends BaseObject {
     protected final void endPaint() {
     }
 
-    protected final int getBaseX(int w) {
-        int x = _parent != null? -_parent.getScrollX(): 0;
-        return _rect.left + x + (_translate != null? _translate.x: 0);
+    protected final int getBaseX() {
+        return _rect.left + (_translate != null? _translate.x: 0);
     }
 
-    protected final int getBaseY(int h) {
-        int y = _parent != null? -_parent.getScrollY(): 0;
-        return _rect.top + y + (_translate != null? _translate.y: 0);
+    protected final int getBaseY() {
+        return _rect.top + (_translate != null? _translate.y: 0);
     }
 
     @SuppressWarnings("unchecked")
@@ -255,10 +253,11 @@ public class Element extends BaseObject {
             return;
 
         LinkedList<Element> children = _children;
+        int scrollX = -getScrollX(), scrollY = -getScrollY();
 
         for (Element child : children) {
             Rect childRect = child.getRect();
-            PaintState state = new PaintState(parent, child.getBaseX(childRect.width()), child.getBaseY(childRect.height()), child._opacity);
+            PaintState state = new PaintState(parent, scrollX + child.getBaseX(), scrollY + child.getBaseY(), child._opacity);
             if (!child._visible || !state.visible())
                 continue;
 
@@ -318,8 +317,8 @@ public class Element extends BaseObject {
             for(int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
                 Rect childRect = child.getRect();
-                int offsetX = x - getBaseX(childRect.width());
-                int offsetY = y - getBaseY(childRect.height());
+                int offsetX = x - getBaseX();
+                int offsetY = y - getBaseY();
                 if (child.sendEvent(eventId, offsetX, offsetY, event)) {
                     handled = true;
                     break;
