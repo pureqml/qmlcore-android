@@ -348,62 +348,60 @@ public class Element extends BaseObject {
 
             case MotionEvent.ACTION_MOVE: {
                 if (_eventId == eventId && (_scrollX || _scrollY)) {
-                    if (_motionStartPos != null) {
-                        int dx = (int) (event.getX() - _motionStartPos.x);
-                        int dy = (int) (event.getY() - _motionStartPos.y);
+                    int dx = (int) (event.getX() - _motionStartPos.x);
+                    int dy = (int) (event.getY() - _motionStartPos.y);
 
-                        if (!_useScrollX && !_useScrollY) {
-                            float distance = (float)Math.hypot((double)dx, (double)dy);
-                            if (distance >= DetectionDistance2) {
-                                if (_scrollX && _scrollY) {
-                                    if (Math.abs(dx) > Math.abs(dy))
-                                        _useScrollX = true;
-                                    else
-                                        _useScrollY = true;
-                                } else if (_scrollX) {
+                    if (!_useScrollX && !_useScrollY) {
+                        float distance = (float)Math.hypot((double)dx, (double)dy);
+                        if (distance >= DetectionDistance2) {
+                            if (_scrollX && _scrollY) {
+                                if (Math.abs(dx) > Math.abs(dy))
                                     _useScrollX = true;
-                                } else if (_scrollY) {
+                                else
                                     _useScrollY = true;
-                                }
+                            } else if (_scrollX) {
+                                _useScrollX = true;
+                            } else if (_scrollY) {
+                                _useScrollY = true;
                             }
                         }
+                    }
 
-                        if (_useScrollX) {
-                            int clientWidth = _combinedRect.width(), w = rect.width();
-                            if (w < clientWidth) {
-                                _scrollOffset.x = -dx;
+                    if (_useScrollX) {
+                        int clientWidth = _combinedRect.width(), w = rect.width();
+                        if (w < clientWidth) {
+                            _scrollOffset.x = -dx;
 
-                                if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
-                                    _scrollOffset.x = clientWidth - w - _scrollPos.x;
+                            if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
+                                _scrollOffset.x = clientWidth - w - _scrollPos.x;
 
-                                if (_scrollPos.x + _scrollOffset.x < 0)
-                                    _scrollOffset.x = -_scrollPos.x;
+                            if (_scrollPos.x + _scrollOffset.x < 0)
+                                _scrollOffset.x = -_scrollPos.x;
 
-                                Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
-                                update();
-                            } else if (clientWidth > 0) {
-                                Log.v(TAG, "reset scrollX to 0: " + clientWidth + ", " + w);
-                                _scrollPos.x = _scrollOffset.x = 0;
-                            }
+                            Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
+                            update();
+                        } else if (clientWidth > 0) {
+                            Log.v(TAG, "reset scrollX to 0: " + clientWidth + ", " + w);
+                            _scrollPos.x = _scrollOffset.x = 0;
                         }
+                    }
 
-                        if (_useScrollY) {
-                            int clientHeight = _combinedRect.height(), h = rect.height();
-                            if (rect.height() < clientHeight) {
-                                _scrollOffset.y = -dy;
+                    if (_useScrollY) {
+                        int clientHeight = _combinedRect.height(), h = rect.height();
+                        if (rect.height() < clientHeight) {
+                            _scrollOffset.y = -dy;
 
-                                if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
-                                    _scrollOffset.y = clientHeight - h - _scrollPos.y;
+                            if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
+                                _scrollOffset.y = clientHeight - h - _scrollPos.y;
 
-                                if (_scrollPos.y + _scrollOffset.y < 0)
-                                    _scrollOffset.y = -_scrollPos.y;
+                            if (_scrollPos.y + _scrollOffset.y < 0)
+                                _scrollOffset.y = -_scrollPos.y;
 
-                                Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
-                                update();
-                            } else if (clientHeight > 0) {
-                                Log.v(TAG, "reset scrollY to 0");
-                                _scrollPos.y = _scrollOffset.y = 0;
-                            }
+                            Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
+                            update();
+                        } else if (clientHeight > 0) {
+                            Log.v(TAG, "reset scrollY to 0");
+                            _scrollPos.y = _scrollOffset.y = 0;
                         }
                     }
                     emit(null, "scroll");
