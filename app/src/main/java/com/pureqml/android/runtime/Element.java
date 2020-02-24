@@ -382,7 +382,7 @@ public class Element extends BaseObject {
 
                                 Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
                                 update();
-                            } else {
+                            } else if (clientWidth > 0) {
                                 Log.v(TAG, "reset scrollX to 0: " + clientWidth + ", " + w);
                                 _scrollPos.x = _scrollOffset.x = 0;
                             }
@@ -401,7 +401,7 @@ public class Element extends BaseObject {
 
                                 Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
                                 update();
-                            } else {
+                            } else if (clientHeight > 0) {
                                 Log.v(TAG, "reset scrollY to 0");
                                 _scrollPos.y = _scrollOffset.y = 0;
                             }
