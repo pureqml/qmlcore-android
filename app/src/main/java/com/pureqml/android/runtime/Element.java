@@ -96,9 +96,8 @@ public class Element extends BaseObject {
         el._parent = this;
         if (_children == null)
             _children = new LinkedList<Element>();
-        synchronized (_children) {
-            _children.add(el);
-        }
+
+        _children.add(el);
         el.update();
     }
 
@@ -255,10 +254,7 @@ public class Element extends BaseObject {
         if (_children == null)
             return;
 
-        LinkedList<Element> children;
-        synchronized (_children) {
-            children = (LinkedList<Element>)_children.clone();
-        }
+        LinkedList<Element> children = _children;
 
         for (Element child : children) {
             Rect childRect = child.getRect();
@@ -386,8 +382,10 @@ public class Element extends BaseObject {
 
                                 Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
                                 update();
-                            } else
+                            } else {
+                                Log.v(TAG, "reset scrollX to 0: " + clientWidth + ", " + w);
                                 _scrollPos.x = _scrollOffset.x = 0;
+                            }
                         }
 
                         if (_useScrollY) {
@@ -403,8 +401,10 @@ public class Element extends BaseObject {
 
                                 Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
                                 update();
-                            } else
+                            } else {
+                                Log.v(TAG, "reset scrollY to 0");
                                 _scrollPos.y = _scrollOffset.y = 0;
+                            }
                         }
                     }
                     emit(null, "scroll");

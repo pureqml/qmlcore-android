@@ -87,7 +87,6 @@ public final class ExecutionEnvironment extends Service
     private Element                     _rootElement;
     private V8Object                    _exports;
     private ExecutorService             _executor;
-    private ExecutorService             _rendererThread;
     private Timers                      _timers;
     private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
@@ -101,7 +100,6 @@ public final class ExecutionEnvironment extends Service
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
-        _rendererThread = Executors.newSingleThreadExecutor();
         _executor = Executors.newSingleThreadExecutor();
         _executor.submit(new Callable<Void>() {
             @Override
@@ -491,7 +489,7 @@ public final class ExecutionEnvironment extends Service
     }
 
     public void paint() {
-        _rendererThread.submit(new Runnable() {
+        _executor.submit(new Runnable() {
             @Override
             public void run() {
                 ExecutionEnvironment.this.paint(_surfaceHolder);
