@@ -413,7 +413,7 @@ public class Element extends BaseObject {
                     return true;
 
                 if (_eventId == eventId) {
-                    if ((_useScrollX || _useScrollY) && _scrollOffset != null) {
+                    if (_useScrollX || _useScrollY) {
                         _useScrollX = _useScrollY = false;
                         _scrollPos.x += _scrollOffset.x;
                         _scrollPos.y += _scrollOffset.y;
