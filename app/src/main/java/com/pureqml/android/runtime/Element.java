@@ -347,7 +347,8 @@ public class Element extends BaseObject {
             }
 
             case MotionEvent.ACTION_MOVE: {
-                if (_eventId == eventId && (_scrollX || _scrollY)) {
+                boolean handleMove = false;
+                if (!handled && _eventId == eventId && (_scrollX || _scrollY)) {
                     int dx = (int) (event.getX() - _motionStartPos.x);
                     int dy = (int) (event.getY() - _motionStartPos.y);
 
@@ -364,6 +365,7 @@ public class Element extends BaseObject {
                             } else if (_scrollY) {
                                 _useScrollY = true;
                             }
+                            handleMove = true;
                         }
                     }
 
@@ -384,11 +386,12 @@ public class Element extends BaseObject {
                             Log.v(TAG, "reset scrollX to 0: " + clientWidth + ", " + w);
                             _scrollPos.x = _scrollOffset.x = 0;
                         }
+                        handleMove = true;
                     }
 
                     if (_useScrollY) {
                         int clientHeight = _combinedRect.height(), h = rect.height();
-                        if (rect.height() < clientHeight) {
+                        if (h < clientHeight) {
                             _scrollOffset.y = -dy;
 
                             if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
@@ -403,9 +406,11 @@ public class Element extends BaseObject {
                             Log.v(TAG, "reset scrollY to 0");
                             _scrollPos.y = _scrollOffset.y = 0;
                         }
+                        handleMove = true;
                     }
-                    emit(null, "scroll");
-                    return true;
+                    if (handleMove)
+                        emit(null, "scroll");
+                    return handleMove;
                 } else
                     return handled;
             }
