@@ -133,8 +133,12 @@ public class Element extends BaseObject {
         String value = (String)objValue;
         switch(value) {
             case "auto":
+            case "scroll":
                 _clip = false;
                 return true;
+            case "visible":
+                _clip = false;
+                return false;
             case "hidden":
                 _clip = true;
                 return true;
