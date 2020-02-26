@@ -40,8 +40,8 @@ public class Element extends BaseObject {
     private static final float  DetectionDistance = 5;
     private static final float  DetectionDistance2 = DetectionDistance * DetectionDistance;
 
-    private boolean             _scrollX;
-    private boolean             _scrollY;
+    private boolean             _enableScrollX;
+    private boolean             _enableScrollY;
     private boolean             _useScrollX;
     private boolean             _useScrollY;
     private Point               _scrollOffset;
@@ -204,9 +204,9 @@ public class Element extends BaseObject {
             }
             case "cursor": break; //ignoring
 
-            case "overflow":    _scrollX = _scrollY = getOverflowValue(value); break;
-            case "overflow-x":  _scrollX = getOverflowValue(value);  break;
-            case "overflow-y":  _scrollY = getOverflowValue(value);  break;
+            case "overflow":    _enableScrollX = _enableScrollY = getOverflowValue(value); break;
+            case "overflow-x":  _enableScrollX = getOverflowValue(value);  break;
+            case "overflow-y":  _enableScrollY = getOverflowValue(value);  break;
 
             default:
                 Log.w(TAG, "ignoring setStyle " + name + ": " + value);
@@ -315,7 +315,7 @@ public class Element extends BaseObject {
         boolean handled = false;
         Rect rect = getRect();
 
-        //Log.v(TAG, this + ": position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_scrollX || _scrollY));
+        //Log.v(TAG, this + ": position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
 
         if (_children != null) {
             for(int i = _children.size() - 1; i >= 0; --i) {
@@ -334,7 +334,7 @@ public class Element extends BaseObject {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                if (rect.contains(x, y) && (_scrollX || _scrollY || hasCallbackFor(click))) {
+                if (rect.contains(x, y) && (_enableScrollX || _enableScrollY || hasCallbackFor(click))) {
                     if (_motionStartPos == null)
                         _motionStartPos = new Point(); //FIXME: optimise me? (unwrap to 2 int members)
                     if (_scrollPos == null)
@@ -352,21 +352,21 @@ public class Element extends BaseObject {
 
             case MotionEvent.ACTION_MOVE: {
                 boolean handleMove = false;
-                if (!handled && _eventId == eventId && (_scrollX || _scrollY)) {
+                if (!handled && _eventId == eventId && (_enableScrollX || _enableScrollY)) {
                     int dx = (int) (event.getX() - _motionStartPos.x);
                     int dy = (int) (event.getY() - _motionStartPos.y);
 
                     if (!_useScrollX && !_useScrollY) {
                         float distance = (float)Math.hypot((double)dx, (double)dy);
                         if (distance >= DetectionDistance2) {
-                            if (_scrollX && _scrollY) {
+                            if (_enableScrollX && _enableScrollY) {
                                 if (Math.abs(dx) > Math.abs(dy))
                                     _useScrollX = true;
                                 else
                                     _useScrollY = true;
-                            } else if (_scrollX) {
+                            } else if (_enableScrollX) {
                                 _useScrollX = true;
-                            } else if (_scrollY) {
+                            } else if (_enableScrollY) {
                                 _useScrollY = true;
                             }
                             handleMove = true;
