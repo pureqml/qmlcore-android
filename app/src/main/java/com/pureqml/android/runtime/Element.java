@@ -69,6 +69,9 @@ public class Element extends BaseObject {
         return _visible && _opacity >= PaintState.opacityThreshold;
     }
 
+    public final boolean scrollXEnabled() { return _parent != null? _parent._enableScrollX: false; }
+    public final boolean scrollYEnabled() { return _parent != null? _parent._enableScrollY: false; }
+
     public final int getScrollX() {
         int x = _scrollOffset != null? _scrollOffset.x: 0;
         x += _scrollPos != null? _scrollPos.x: 0;
@@ -332,9 +335,12 @@ public class Element extends BaseObject {
 
         final String click = "click";
 
+		boolean enableScrollX = scrollXEnabled();
+		boolean enableScrollY = scrollYEnabled();
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                if (rect.contains(x, y) && (_enableScrollX || _enableScrollY || hasCallbackFor(click))) {
+                if (rect.contains(x, y) && (enableScrollX || enableScrollY || hasCallbackFor(click))) {
                     if (_motionStartPos == null)
                         _motionStartPos = new Point(); //FIXME: optimise me? (unwrap to 2 int members)
                     if (_scrollPos == null)
@@ -352,21 +358,21 @@ public class Element extends BaseObject {
 
             case MotionEvent.ACTION_MOVE: {
                 boolean handleMove = false;
-                if (!handled && _eventId == eventId && (_enableScrollX || _enableScrollY)) {
+                if (!handled && _eventId == eventId && (enableScrollX || enableScrollY)) {
                     int dx = (int) (event.getX() - _motionStartPos.x);
                     int dy = (int) (event.getY() - _motionStartPos.y);
 
                     if (!_useScrollX && !_useScrollY) {
                         float distance = (float)Math.hypot((double)dx, (double)dy);
                         if (distance >= DetectionDistance2) {
-                            if (_enableScrollX && _enableScrollY) {
+                            if (enableScrollX && enableScrollY) {
                                 if (Math.abs(dx) > Math.abs(dy))
                                     _useScrollX = true;
                                 else
                                     _useScrollY = true;
-                            } else if (_enableScrollX) {
+                            } else if (enableScrollX) {
                                 _useScrollX = true;
-                            } else if (_enableScrollY) {
+                            } else if (enableScrollY) {
                                 _useScrollY = true;
                             }
                             handleMove = true;
@@ -413,21 +419,20 @@ public class Element extends BaseObject {
                     return handled;
             }
             case MotionEvent.ACTION_UP: {
-                if (handled)
-                    return true;
-
                 if (_eventId == eventId) {
                     if (_useScrollX || _useScrollY) {
-                        _useScrollX = _useScrollY = false;
-                        _scrollPos.x += _scrollOffset.x;
-                        _scrollPos.y += _scrollOffset.y;
-                        Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
-                        _scrollOffset = null;
+						_useScrollX = _useScrollY = false;
+						_scrollPos.x += _scrollOffset.x;
+						_scrollPos.y += _scrollOffset.y;
+						Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
+						_scrollOffset = null;
 
-                        emit(null, "scroll");
-                        update();
-                        return true;
-                    } else if (rect.contains(x, y) && hasCallbackFor(click)) {
+						emit(null, "scroll");
+						update();
+						return true;
+					} if (handled) {
+						return true;
+					} else if (rect.contains(x, y) && hasCallbackFor(click)) {
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
                         mouseEvent.add("offsetX", x - rect.left);
                         mouseEvent.add("offsetY", y - rect.top);
