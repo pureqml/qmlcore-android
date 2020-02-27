@@ -46,7 +46,7 @@ public final class MainActivity
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
             _executionEnvironment.acquireResource();
             synchronized (MainActivity.this) {
-                ViewGroup rootView = (ViewGroup)findViewById(android.R.id.content);
+                ViewGroup rootView = (ViewGroup)findViewById(R.id.content);
                 rootView = (ViewGroup)rootView.getChildAt(0);
                 _executionEnvironment.setRootView(rootView);
                 _executionEnvironment.setSurfaceHolder(_mainView.getHolder());
