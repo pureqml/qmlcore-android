@@ -47,6 +47,7 @@ public class Element extends BaseObject {
     private Point               _scrollOffset;
     private Point               _motionStartPos;
     private Point               _scrollPos;
+    private Point               _publicScrollPos; //bloody html, scroll is reported on parent element
     private int                 _eventId;
 
     public Element(IExecutionEnvironment env) {
@@ -69,19 +70,27 @@ public class Element extends BaseObject {
         return _visible && _opacity >= PaintState.opacityThreshold;
     }
 
-    public final boolean scrollXEnabled() { return _parent != null? _parent._enableScrollX: false; }
-    public final boolean scrollYEnabled() { return _parent != null? _parent._enableScrollY: false; }
+    final boolean scrollXEnabled() { return _parent != null? _parent._enableScrollX: false; }
+    final boolean scrollYEnabled() { return _parent != null? _parent._enableScrollY: false; }
 
-    public final int getScrollX() {
+    final int getScrollXImpl() {
         int x = _scrollOffset != null? _scrollOffset.x: 0;
         x += _scrollPos != null? _scrollPos.x: 0;
         return x;
     }
 
-    public final int getScrollY() {
+    final int getScrollYImpl() {
         int y = _scrollOffset != null? _scrollOffset.y: 0;
         y += _scrollPos != null? _scrollPos.y: 0;
         return y;
+    }
+
+    public final int getScrollX() {
+        return _publicScrollPos != null? _publicScrollPos.x: 0;
+    }
+
+    public final int getScrollY() {
+        return _publicScrollPos != null? _publicScrollPos.y: 0;
     }
 
     public void append(BaseObject child) throws AlreadyHasAParentException {
@@ -260,7 +269,7 @@ public class Element extends BaseObject {
             return;
 
         LinkedList<Element> children = _children;
-        int scrollX = -getScrollX(), scrollY = -getScrollY();
+        int scrollX = -getScrollXImpl(), scrollY = -getScrollYImpl();
 
         for (Element child : children) {
             Rect childRect = child.getRect();
@@ -311,6 +320,12 @@ public class Element extends BaseObject {
         return emitUntilTrue(null, "keydown", keyName);
     }
 
+    private final void emitScroll() {
+        _parent._publicScrollPos = new Point(getScrollXImpl(), getScrollYImpl());
+        _parent.emit(null, "scroll");
+        update();
+    }
+
     public boolean sendEvent(int eventId, int x, int y, MotionEvent event) throws Exception {
         if (!_globallyVisible)
             return false;
@@ -318,8 +333,8 @@ public class Element extends BaseObject {
         boolean handled = false;
 
         //Log.v(TAG, this + ": position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
-        x += getScrollX();
-        y += getScrollY();
+        x += getScrollXImpl();
+        y += getScrollYImpl();
 
         if (_children != null) {
             for (int i = _children.size() - 1; i >= 0; --i) {
@@ -397,7 +412,6 @@ public class Element extends BaseObject {
                             _scrollOffset.x = -_scrollPos.x;
 
                         Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
-                        update();
                         handleMove = true;
                     }
 
@@ -411,11 +425,10 @@ public class Element extends BaseObject {
                             _scrollOffset.y = -_scrollPos.y;
 
                         Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
-                        update();
                         handleMove = true;
                     }
                     if (handleMove)
-                        emit(null, "scroll");
+                        emitScroll();
                     return handleMove;
                 } else
                     return handled;
@@ -429,11 +442,9 @@ public class Element extends BaseObject {
                         Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
                         _scrollOffset = null;
 
-                        emit(null, "scroll");
-                        update();
+                        emitScroll();
                         return true;
-                    }
-                    if (handled) {
+                    } else if (handled) {
                         return true;
                     } else if (rect.contains(x, y) && hasCallbackFor(click)) {
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
