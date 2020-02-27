@@ -1,5 +1,7 @@
 package com.pureqml.android.runtime;
 
+import android.util.SparseArray;
+
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
@@ -8,8 +10,6 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.ExecutionEnvironment;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -18,7 +18,7 @@ public final class Timers {
 
     ExecutionEnvironment    _env;
     Timer                   _timer = new Timer();
-    HashMap<Integer, TimerTask> _tasks = new HashMap<Integer, TimerTask>();
+    SparseArray<TimerTask>  _tasks = new SparseArray<TimerTask>();
     int                     _nextId = 1;
 
     class Task extends TimerTask {
@@ -94,8 +94,8 @@ public final class Timers {
 
     public void discard() {
         _timer.cancel();
-        for(Map.Entry<Integer, TimerTask> entry : _tasks.entrySet()) {
-            entry.getValue().cancel();
+        for(int i = 0, n = _tasks.size(); i < n; ++i) {
+            _tasks.valueAt(i).cancel();
         }
         _tasks.clear();
     }
