@@ -18,6 +18,7 @@ import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -77,7 +78,7 @@ public final class ExecutionEnvironment extends Service
 
     class WeakRefList<E> extends ArrayList<WeakReference<E>> {};
     //Element collection
-    private Map<Long, BaseObject>       _objects = new HashMap<Long, BaseObject>(10000);
+    private SparseArray<BaseObject>     _objects = new SparseArray<BaseObject>(10000);
     private HashMap<URL, List<ImageLoadedCallback>>
                                         _imageWaiters = new HashMap<>();
     private WeakRefList<IResource>      _resources = new WeakRefList<IResource>();
@@ -306,8 +307,8 @@ public final class ExecutionEnvironment extends Service
             try { _rootObject.executeVoidFunction("discard", null); }
             catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
-            for(Map.Entry<Long, BaseObject> entry : _objects.entrySet()) {
-                entry.getValue().discard();
+            for(int i = 0, n = _objects.size(); i < n; ++i) {
+                _objects.valueAt(i).discard();
             }
 
             if (_rootElement != null) {
@@ -358,22 +359,22 @@ public final class ExecutionEnvironment extends Service
     }
 
     @Override
-    public BaseObject getObjectById(long id) {
-        BaseObject object = _objects.get(Long.valueOf(id));
+    public BaseObject getObjectById(int id) {
+        BaseObject object = _objects.get(id);
         if (object == null)
             throw new NullPointerException("object " + id + " was never registered or garbage collected");
         return object;
     }
 
     @Override
-    public void putObject(long id, BaseObject object) {
+    public void putObject(int id, BaseObject object) {
         if (object == null)
             throw new NullPointerException("putting null is not allowed");
-        _objects.put(Long.valueOf(id), object);
+        _objects.put(id, object);
     }
 
     @Override
-    public void removeObject(long id) {
+    public void removeObject(int id) {
         _objects.remove(id);
     }
 

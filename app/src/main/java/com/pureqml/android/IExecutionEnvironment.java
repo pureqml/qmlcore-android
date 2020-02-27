@@ -25,9 +25,9 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     V8 getRuntime();
     DisplayMetrics getDisplayMetrics();
 
-    BaseObject getObjectById(long id);
-    void putObject(long id, BaseObject element);
-    void removeObject(long id);
+    BaseObject getObjectById(int id);
+    void putObject(int id, BaseObject element);
+    void removeObject(int id);
 
     //invoke function + schedulePaint
     Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments);
