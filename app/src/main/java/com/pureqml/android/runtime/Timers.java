@@ -59,6 +59,7 @@ public final class Timers {
                 int timeout = arguments.getInteger(1);
                 int id = _nextId++;
                 TimerTask task = new Task(id, arguments.getObject(0), true);
+                _tasks.put(id, task);
                 _timer.schedule(task, timeout);
                 arguments.close();
                 return id;
@@ -70,6 +71,7 @@ public final class Timers {
                 int period = arguments.getInteger(1);
                 int id = _nextId++;
                 TimerTask task = new Task(id, arguments.getObject(0), false);
+                _tasks.put(id, task);
                 _timer.schedule(task, period, period);
                 arguments.close();
                 return id;
@@ -83,6 +85,7 @@ public final class Timers {
                 TimerTask task = _tasks.get(id);
                 if (task != null) {
                     task.cancel();
+                    _tasks.remove(id);
                 } else {
                     //Log.v(TAG, "invalid/completed task " + id  + " cancelled");
                 }
