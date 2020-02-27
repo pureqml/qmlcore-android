@@ -137,14 +137,14 @@ public class Element extends BaseObject {
         switch(value) {
             case "auto":
             case "scroll":
-                _clip = false;
+                _clip = true;
                 return true;
             case "visible":
                 _clip = false;
                 return false;
             case "hidden":
                 _clip = true;
-                return true;
+                return false;
             default:
                 Log.v(TAG, "ignoring overflow: " + value);
                 return false;
@@ -316,7 +316,6 @@ public class Element extends BaseObject {
             return false;
 
         boolean handled = false;
-        Rect rect = getRect();
 
         //Log.v(TAG, this + ": position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
 
@@ -333,10 +332,17 @@ public class Element extends BaseObject {
             }
         }
 
+        if (_parent == null)
+        	return handled;
+
         final String click = "click";
 
-		boolean enableScrollX = scrollXEnabled();
-		boolean enableScrollY = scrollYEnabled();
+		Rect parentRect = _parent.getRect();
+		Rect rect = getRect();
+		int clientWidth = _combinedRect.width(), w = parentRect.width();
+		int clientHeight = _combinedRect.height(), h = rect.height();
+		boolean enableScrollX = scrollXEnabled() && clientWidth > w;
+		boolean enableScrollY = scrollYEnabled() && clientHeight > h;
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
@@ -380,37 +386,31 @@ public class Element extends BaseObject {
                     }
 
                     if (_useScrollX) {
-                        int clientWidth = _combinedRect.width(), w = rect.width();
-                        if (w < clientWidth) {
-                            _scrollOffset.x = -dx;
+						_scrollOffset.x = -dx;
 
-                            if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
-                                _scrollOffset.x = clientWidth - w - _scrollPos.x;
+						if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
+							_scrollOffset.x = clientWidth - w - _scrollPos.x;
 
-                            if (_scrollPos.x + _scrollOffset.x < 0)
-                                _scrollOffset.x = -_scrollPos.x;
+						if (_scrollPos.x + _scrollOffset.x < 0)
+							_scrollOffset.x = -_scrollPos.x;
 
-                            Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
-                            update();
-                            handleMove = true;
-                        }
+						Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
+						update();
+						handleMove = true;
                     }
 
                     if (_useScrollY) {
-                        int clientHeight = _combinedRect.height(), h = rect.height();
-                        if (h < clientHeight) {
-                            _scrollOffset.y = -dy;
+						_scrollOffset.y = -dy;
 
-                            if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
-                                _scrollOffset.y = clientHeight - h - _scrollPos.y;
+						if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
+							_scrollOffset.y = clientHeight - h - _scrollPos.y;
 
-                            if (_scrollPos.y + _scrollOffset.y < 0)
-                                _scrollOffset.y = -_scrollPos.y;
+						if (_scrollPos.y + _scrollOffset.y < 0)
+							_scrollOffset.y = -_scrollPos.y;
 
-                            Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
-                            update();
-                            handleMove = true;
-                        }
+						Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
+						update();
+						handleMove = true;
                     }
                     if (handleMove)
                         emit(null, "scroll");
