@@ -318,9 +318,11 @@ public class Element extends BaseObject {
         boolean handled = false;
 
         //Log.v(TAG, this + ": position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
+        x += getScrollX();
+        y += getScrollY();
 
         if (_children != null) {
-            for(int i = _children.size() - 1; i >= 0; --i) {
+            for (int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
                 Rect childRect = child.getRect();
                 int offsetX = x - getBaseX();
@@ -333,16 +335,16 @@ public class Element extends BaseObject {
         }
 
         if (_parent == null)
-        	return handled;
+            return handled;
 
         final String click = "click";
 
-		Rect parentRect = _parent.getRect();
-		Rect rect = getRect();
-		int clientWidth = _combinedRect.width(), w = parentRect.width();
-		int clientHeight = _combinedRect.height(), h = rect.height();
-		boolean enableScrollX = scrollXEnabled() && clientWidth > w;
-		boolean enableScrollY = scrollYEnabled() && clientHeight > h;
+        Rect parentRect = _parent.getRect();
+        Rect rect = getRect();
+        int clientWidth = rect.width(), w = parentRect.width();
+        int clientHeight = rect.height(), h = parentRect.height();
+        boolean enableScrollX = scrollXEnabled() && clientWidth > w;
+        boolean enableScrollY = scrollYEnabled() && clientHeight > h;
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
@@ -354,8 +356,8 @@ public class Element extends BaseObject {
                     if (_scrollOffset == null)
                         _scrollOffset = new Point();
                     _eventId = eventId;
-                    _motionStartPos.x = (int)event.getX();
-                    _motionStartPos.y = (int)event.getY();
+                    _motionStartPos.x = (int) event.getX();
+                    _motionStartPos.y = (int) event.getY();
                     _useScrollX = _useScrollY = false;
                     return true;
                 } else
@@ -369,7 +371,7 @@ public class Element extends BaseObject {
                     int dy = (int) (event.getY() - _motionStartPos.y);
 
                     if (!_useScrollX && !_useScrollY) {
-                        float distance = (float)Math.hypot((double)dx, (double)dy);
+                        float distance = (float) Math.hypot((double) dx, (double) dy);
                         if (distance >= DetectionDistance2) {
                             if (enableScrollX && enableScrollY) {
                                 if (Math.abs(dx) > Math.abs(dy))
@@ -386,31 +388,31 @@ public class Element extends BaseObject {
                     }
 
                     if (_useScrollX) {
-						_scrollOffset.x = -dx;
+                        _scrollOffset.x = -dx;
 
-						if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
-							_scrollOffset.x = clientWidth - w - _scrollPos.x;
+                        if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
+                            _scrollOffset.x = clientWidth - w - _scrollPos.x;
 
-						if (_scrollPos.x + _scrollOffset.x < 0)
-							_scrollOffset.x = -_scrollPos.x;
+                        if (_scrollPos.x + _scrollOffset.x < 0)
+                            _scrollOffset.x = -_scrollPos.x;
 
-						Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
-						update();
-						handleMove = true;
+                        Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
+                        update();
+                        handleMove = true;
                     }
 
                     if (_useScrollY) {
-						_scrollOffset.y = -dy;
+                        _scrollOffset.y = -dy;
 
-						if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
-							_scrollOffset.y = clientHeight - h - _scrollPos.y;
+                        if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
+                            _scrollOffset.y = clientHeight - h - _scrollPos.y;
 
-						if (_scrollPos.y + _scrollOffset.y < 0)
-							_scrollOffset.y = -_scrollPos.y;
+                        if (_scrollPos.y + _scrollOffset.y < 0)
+                            _scrollOffset.y = -_scrollPos.y;
 
-						Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
-						update();
-						handleMove = true;
+                        Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
+                        update();
+                        handleMove = true;
                     }
                     if (handleMove)
                         emit(null, "scroll");
@@ -421,18 +423,19 @@ public class Element extends BaseObject {
             case MotionEvent.ACTION_UP: {
                 if (_eventId == eventId) {
                     if (_useScrollX || _useScrollY) {
-						_useScrollX = _useScrollY = false;
-						_scrollPos.x += _scrollOffset.x;
-						_scrollPos.y += _scrollOffset.y;
-						Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
-						_scrollOffset = null;
+                        _useScrollX = _useScrollY = false;
+                        _scrollPos.x += _scrollOffset.x;
+                        _scrollPos.y += _scrollOffset.y;
+                        Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
+                        _scrollOffset = null;
 
-						emit(null, "scroll");
-						update();
-						return true;
-					} if (handled) {
-						return true;
-					} else if (rect.contains(x, y) && hasCallbackFor(click)) {
+                        emit(null, "scroll");
+                        update();
+                        return true;
+                    }
+                    if (handled) {
+                        return true;
+                    } else if (rect.contains(x, y) && hasCallbackFor(click)) {
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
                         mouseEvent.add("offsetX", x - rect.left);
                         mouseEvent.add("offsetY", y - rect.top);
