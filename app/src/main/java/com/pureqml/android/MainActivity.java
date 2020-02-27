@@ -24,6 +24,7 @@ import com.pureqml.android.runtime.Element;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import /*manifest.author.domain*/R; //DO NOT REMOVE IT, IT'S NEEDED FOR APP PACKAGING
 
 public final class MainActivity
         extends AppCompatActivity
