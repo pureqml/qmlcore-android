@@ -58,7 +58,7 @@ public final class Text extends Element {
                 }
                 break;
             case "font-weight":
-                if (value.equals("bold"))
+                if (value.equals("bold") || ((value instanceof Integer) && (int)value >= 600))
                     _paint.setTypeface(Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD));
                 else
                     Log.v(TAG, "ignoring font-weight " + value);
