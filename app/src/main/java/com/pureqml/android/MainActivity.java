@@ -1,10 +1,12 @@
 package com.pureqml.android;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentCallbacks2;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -18,6 +20,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.pureqml.android.runtime.Element;
@@ -89,6 +93,33 @@ public final class MainActivity
                         } else {
                             Log.v(TAG, "invalidateAll");
                             view.postInvalidate();
+                        }
+                    }
+
+                    @Override
+                    public void keepScreenOn(boolean enable) {
+                        Log.i(TAG, "keepScreenOn " + enable);
+                        Window window = MainActivity.this.getWindow();
+                        if (enable)
+                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        else
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    }
+
+                    @SuppressLint("SourceLockedOrientationActivity")
+                    @Override
+                    public void lockOrientation(String orientation) {
+                        Log.i(TAG, "lockOrientation " + orientation);
+                        switch(orientation) {
+                            case "landscape":
+                                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                                break;
+                            case "portrait":
+                                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                                break;
+                            case "auto":
+                                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                                break;
                         }
                     }
                 };

@@ -98,6 +98,8 @@ public final class ExecutionEnvironment extends Service
     private boolean                     _blockInput;
     private View                        _focusedView;
     private SurfaceHolder               _surfaceHolder;
+    private String                      _orientation;
+    private boolean                     _keepScreenOn;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -133,8 +135,12 @@ public final class ExecutionEnvironment extends Service
     synchronized void setRenderer(IRenderer renderer) {
         Log.v(TAG, "setRenderer " + renderer);
         _renderer = renderer;
-        if (renderer != null)
+        if (renderer != null) {
             renderer.invalidateRect(null); //fullscreen update
+            if (_orientation != null)
+                _renderer.lockOrientation(_orientation);
+            _renderer.keepScreenOn(_keepScreenOn);
+        }
     }
 
     @Nullable
@@ -183,6 +189,31 @@ public final class ExecutionEnvironment extends Service
                 return info;
             }
         }, "getDeviceInfo");
+
+        v8FD.registerJavaMethod(new JavaVoidCallback() {
+            @Override
+            public void invoke(V8Object v8Object, V8Array v8Array) {
+                Log.i(TAG, "setDeviceFeature: " + v8Array);
+                if (v8Array.length() < 2)
+                    throw new RuntimeException("setDevice feature requires two arguments");
+                String name = v8Array.get(0).toString();
+                switch(name) {
+                    case "orientation":
+                        _orientation = v8Array.get(1).toString();
+                        if (_renderer != null)
+                            _renderer.lockOrientation(_orientation);
+                        break;
+                    case "keep-screen-on":
+                        _keepScreenOn = TypeConverter.toBoolean(v8Array.get(1));
+                        if (_renderer != null)
+                            _renderer.keepScreenOn(_keepScreenOn);
+                        break;
+                    default:
+                        Log.w(TAG, "skipping device feature " + v8Array);
+                }
+            }
+        }, "setDeviceFeature");
+
         v8FD.registerJavaMethod(new JavaVoidCallback() {
             @Override
             public void invoke(V8Object v8Object, V8Array v8Array) {
