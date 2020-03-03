@@ -70,8 +70,9 @@ public class Element extends BaseObject {
         return _visible && _opacity >= PaintState.opacityThreshold;
     }
 
-    final boolean scrollXEnabled() { return _parent != null? _parent._enableScrollX: false; }
-    final boolean scrollYEnabled() { return _parent != null? _parent._enableScrollY: false; }
+    final boolean scrollXEnabled()  { return _parent != null? _parent._enableScrollX: false; }
+    final boolean scrollYEnabled()  { return _parent != null? _parent._enableScrollY: false; }
+    final boolean scrollUsed()      { return _parent != null? _parent._useScrollX || _parent._useScrollY: false; }
 
     final int getScrollXImpl() {
         int x = _scrollOffset != null? _scrollOffset.x: 0;
@@ -435,6 +436,8 @@ public class Element extends BaseObject {
             }
             case MotionEvent.ACTION_UP: {
                 if (_eventId == eventId) {
+                    boolean scrollUsed = scrollUsed();
+                    Log.v(TAG, "handled by parent " + handled + ", parent scroll: " + scrollUsed);
                     if (_useScrollX || _useScrollY) {
                         _useScrollX = _useScrollY = false;
                         _scrollPos.x += _scrollOffset.x;
@@ -445,8 +448,10 @@ public class Element extends BaseObject {
                         emitScroll();
                         return true;
                     } else if (handled) {
+                        Log.v(TAG, "handled by parent");
                         return true;
-                    } else if (rect.contains(x, y) && hasCallbackFor(click)) {
+                    } else if (!scrollUsed && rect.contains(x, y) && hasCallbackFor(click)) {
+                        Log.d(TAG, "emitting click");
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
                         mouseEvent.add("offsetX", x - rect.left);
                         mouseEvent.add("offsetY", y - rect.top);
