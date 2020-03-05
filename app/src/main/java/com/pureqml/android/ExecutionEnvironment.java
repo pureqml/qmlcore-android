@@ -100,6 +100,7 @@ public final class ExecutionEnvironment extends Service
     private SurfaceHolder               _surfaceHolder;
     private String                      _orientation;
     private boolean                     _keepScreenOn;
+    private boolean                     _fullScreen;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -202,6 +203,11 @@ public final class ExecutionEnvironment extends Service
                         _orientation = v8Array.get(1).toString();
                         if (_renderer != null)
                             _renderer.lockOrientation(_orientation);
+                        break;
+                    case "fullscreen":
+                        _fullScreen = TypeConverter.toBoolean(v8Array.get(1));
+                        if (_renderer != null)
+                            _renderer.setFullScreen(_fullScreen);
                         break;
                     case "keep-screen-on":
                         _keepScreenOn = TypeConverter.toBoolean(v8Array.get(1));

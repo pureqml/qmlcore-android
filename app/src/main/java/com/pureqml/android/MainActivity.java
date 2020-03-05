@@ -106,6 +106,18 @@ public final class MainActivity
                             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                     }
 
+                    @Override
+                    public void setFullScreen(boolean enable) {
+                        Log.i(TAG, "setFullScreen " + enable);
+                        Window window = MainActivity.this.getWindow();
+                        final View decorView = window.getDecorView();
+
+                        decorView.setSystemUiVisibility(
+                            View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        );
+                    }
+
                     @SuppressLint("SourceLockedOrientationActivity")
                     @Override
                     public void lockOrientation(String orientation) {
