@@ -97,25 +97,38 @@ public final class MainActivity
                     }
 
                     @Override
-                    public void keepScreenOn(boolean enable) {
+                    public void keepScreenOn(final boolean enable) {
                         Log.i(TAG, "keepScreenOn " + enable);
-                        Window window = MainActivity.this.getWindow();
-                        if (enable)
-                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        else
-                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        final Window window = MainActivity.this.getWindow();
+                        final View decorView = window.getDecorView();
+                        decorView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (enable)
+                                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                else
+                                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                            }
+                        });
                     }
 
                     @Override
-                    public void setFullScreen(boolean enable) {
+                    public void setFullScreen(final boolean enable) {
                         Log.i(TAG, "setFullScreen " + enable);
                         Window window = MainActivity.this.getWindow();
                         final View decorView = window.getDecorView();
+                        final int flags = View.SYSTEM_UI_FLAG_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
-                        decorView.setSystemUiVisibility(
-                            View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        );
+                        decorView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (enable)
+                                    decorView.setSystemUiVisibility(decorView.getSystemUiVisibility() | flags);
+                                else
+                                    decorView.setSystemUiVisibility(decorView.getSystemUiVisibility() & ~flags);
+                            }
+                        });
                     }
 
                     @SuppressLint("SourceLockedOrientationActivity")
