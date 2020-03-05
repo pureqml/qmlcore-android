@@ -1,5 +1,6 @@
 package com.pureqml.android.runtime;
 
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.eclipsesource.v8.JavaCallback;
@@ -26,16 +27,37 @@ public final class Timers {
         V8Object    _callback;
         boolean     _singleShot;
 
-        Task(int id, V8Object callback, boolean singleShot) { _id = id; _callback = callback; _singleShot = singleShot; }
+        Task(int id, V8Object callback, boolean singleShot) {
+            _id = id;
+            _callback = callback.twin();
+            _singleShot = singleShot;
+        }
+
+        private final void releaseCallback() {
+            //Log.v(TAG, "Timer task " + _id + " released callback");
+
+            if (_callback != null) {
+                _callback.close();
+                _callback = null;
+            }
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            //Log.v(TAG, "Timer task " + _id + " finalized");
+            releaseCallback();
+            super.finalize();
+        }
 
         @Override
         public void run() {
             _env.getExecutor().execute(new Runnable() {
                 @Override
                 public void run() {
-                    //Log.v(TAG, "timer task " + _id + " fired");
+                    //Log.v(TAG, "Timer task " + _id + " fired");
                     V8Function func = (V8Function)_callback;
-                    _env.invokeCallback(func, null, null);
+                    if (func != null)
+                        _env.invokeCallback(func, null, null);
                     if (_singleShot)
                         cancel();
                 }
@@ -44,8 +66,9 @@ public final class Timers {
 
         @Override
         public boolean cancel() {
-            _callback.close();
+            //Log.v(TAG, "Timer task " + _id + " has been cancelled: ");
             _tasks.remove(_id);
+            releaseCallback();
             return super.cancel();
         }
     }
