@@ -18,7 +18,7 @@ public final class Console {
                 Object value = parameters.get(i);
                 if (i > 0)
                     b.append(' ');
-                b.append(value.toString());
+                b.append(value != null? value.toString(): "null");
                 if (value instanceof Releasable)
                     ((Releasable)value).release();
             }
