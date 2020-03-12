@@ -131,6 +131,9 @@ public class Element extends BaseObject {
 
     public void updateStyle() {}
 
+    public void addClass(String classname)
+    { Log.w(TAG, "ignoring addClass " + classname); }
+
     protected void removeChild(Element child) {
         if (_children != null)
             _children.remove(child);
