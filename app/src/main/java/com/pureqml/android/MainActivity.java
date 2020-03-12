@@ -117,8 +117,9 @@ public final class MainActivity
                         Log.i(TAG, "setFullScreen " + enable);
                         Window window = MainActivity.this.getWindow();
                         final View decorView = window.getDecorView();
-                        final int flags = View.SYSTEM_UI_FLAG_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+                        final int flags = View.SYSTEM_UI_FLAG_IMMERSIVE
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
                         decorView.post(new Runnable() {
                             @Override
