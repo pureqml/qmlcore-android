@@ -153,16 +153,6 @@ public final class Input extends Element {
     }
 
     @Override
-    void update() {
-        super.update();
-        if (!getRect().isEmpty() && _globallyVisible) {
-            final Rect rect = getScreenRect();
-            Log.i(TAG, "input layout " + rect.toString());
-            viewHolder.setRect(_env.getRootView(), rect);
-        }
-    }
-
-    @Override
     public boolean sendEvent(int id, int x, int y, final MotionEvent event) {
         if (!getRect().contains(x, y))
             return false;
@@ -224,6 +214,7 @@ public final class Input extends Element {
             }
         });
     }
+
     private void emitChangeEvent() {
         _env.getExecutor().execute(new Runnable() {
             @Override
@@ -231,5 +222,22 @@ public final class Input extends Element {
                 emit(null, "change");
             }
         });
+    }
+
+    @Override
+    public void paint(PaintState state) {
+        super.paint(state);
+        beginPaint();
+        paintChildren(state);
+
+        Rect rect = getRect();
+
+        if (!rect.isEmpty()) {
+            rect.offsetTo(state.baseX, state.baseY);
+            Log.i(TAG, "input layout " + rect.toString());
+            viewHolder.setRect(_env.getRootView(), rect);
+        }
+
+        endPaint();
     }
 }
