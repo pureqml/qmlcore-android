@@ -268,6 +268,15 @@ public final class Input extends Element {
                 });
                 break;
             }
+            case "-pure-placeholder-color":
+                final int color = TypeConverter.toColor(value.toString());
+                viewHolder.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        view.setHintTextColor(color);
+                    }
+                });
+                break;
 
             default:
                 super.setStyle(name, value);
