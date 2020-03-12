@@ -177,7 +177,7 @@ public final class MainActivity
         public void surfaceRedrawNeeded(SurfaceHolder holder) {
             Log.i(TAG, "redraw needed");
             if (_executionEnvironment != null)
-                _executionEnvironment.paint(holder);
+                _executionEnvironment.paint();
         }
     };
 
