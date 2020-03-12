@@ -22,7 +22,7 @@ public final class ViewHolder<ViewType extends View> {
 
     public void discard(final ViewGroup rootView) {
         if (rootView != null) {
-            handler.post(new Runnable() {
+            rootView.post(new Runnable() {
                 @Override
                 public void run() {
                     view.setVisibility(View.GONE);
@@ -62,7 +62,7 @@ public final class ViewHolder<ViewType extends View> {
         }
 
         if (visible) {
-            handler.post(new Runnable() {
+            rootView.post(new Runnable() {
                 @Override
                 public void run() {
                     if (view.getParent() == null) {
@@ -78,7 +78,7 @@ public final class ViewHolder<ViewType extends View> {
                     }
                 }});
         } else {
-            handler.post(new Runnable() {
+            rootView.post(new Runnable() {
                 @Override
                 public void run() {
                     if (view.getParent() != null) {
