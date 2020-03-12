@@ -3,12 +3,15 @@ package com.pureqml.android;
 
 import android.graphics.Color;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 
 public final class TypeConverter {
+    private static final String TAG = "TypeConverter";
+
     public static final boolean toBoolean(Object value) {
         if (value instanceof Boolean)
             return (boolean)value;
@@ -47,7 +50,34 @@ public final class TypeConverter {
     }
 
     public static final int toColor(String value) {
-        if (value.startsWith("rgba(")) {
+        if (value.startsWith("#")) {
+            int r, g, b, a = 255;
+            int length = value.length();
+            switch(length)
+            {
+                case 4:
+                case 5:
+                    r = Short.parseShort(value.substring(1, 2), 16);
+                    g = Short.parseShort(value.substring(2, 3), 16);
+                    b = Short.parseShort(value.substring(3, 4), 16);
+                    r |= (r << 4);
+                    g |= (g << 4);
+                    b |= (b << 4);
+                    if (length == 5) {
+                        a = Short.parseShort(value.substring(4, 5), 16);
+                        a |= (a << 4);
+                    }
+                    return Color.argb(a, r, g, b);
+                case 7:
+                case 9:
+                    r = Short.parseShort(value.substring(1, 3), 16);
+                    g = Short.parseShort(value.substring(3, 5), 16);
+                    b = Short.parseShort(value.substring(5, 7), 16);
+                    if (length == 9)
+                        a = Short.parseShort(value.substring(7, 9), 16);
+                    return Color.argb(a, r, g, b);
+            }
+        } else if (value.startsWith("rgba(")) {
             String [] components = value.substring(5, value.length() - 1).split(",");
             short a = (short)(255 * Float.parseFloat(components[3]));
             return Color.argb(
@@ -56,8 +86,9 @@ public final class TypeConverter {
                 Short.parseShort(components[1]),
                 Short.parseShort(components[2])
             );
-        } else
-            return 0xffff00ff; //invalid color
+        }
+        Log.w(TAG, "invalid color specification: " + value);
+        return 0xffff00ff; //invalid color
     }
 
     public static final int toFontSize(String value, DisplayMetrics metrics) throws Exception {

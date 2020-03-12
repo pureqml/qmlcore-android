@@ -14,6 +14,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.TypeConverter;
 
 public final class Input extends Element {
     public static final String TAG = "Input";
@@ -239,5 +240,39 @@ public final class Input extends Element {
         }
 
         endPaint();
+    }
+
+    @Override
+    protected void setStyle(String name, Object value) {
+        switch(name)
+        {
+            case "color": {
+                final int color = TypeConverter.toColor(value.toString());
+                viewHolder.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        view.setTextColor(color);
+                    }
+                });
+                break;
+            }
+
+            case "background":
+            case "background-color": {
+                final int color = TypeConverter.toColor(value.toString());
+                viewHolder.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        view.setBackgroundColor(color);
+                    }
+                });
+                break;
+            }
+
+            default:
+                super.setStyle(name, value);
+                return;
+        }
+        update();
     }
 }
