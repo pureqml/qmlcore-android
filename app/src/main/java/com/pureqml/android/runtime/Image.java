@@ -65,19 +65,25 @@ public final class Image extends Element implements ImageLoadedCallback {
     public void onImageLoaded(URL url) {
         if (url.equals(_url)) {
             Bitmap bitmap = _image.getBitmap();
-            if (bitmap != null) {
-                V8Array args = new V8Array(_env.getRuntime());
-                V8Object metrics = new V8Object(_env.getRuntime());
-                metrics.add("width", bitmap.getWidth());
-                metrics.add("height", bitmap.getHeight());
-                args.push(metrics);
+            V8Array args = new V8Array(_env.getRuntime());
+            try {
+                if (bitmap != null) {
+                    V8Object metrics = new V8Object(_env.getRuntime());
+                    metrics.add("width", bitmap.getWidth());
+                    metrics.add("height", bitmap.getHeight());
+                    args.push(metrics);
 
-                _env.invokeVoidCallback(_callback, null, args);
+                    _env.invokeVoidCallback(_callback, null, args);
+                    metrics.close();
+                } else {
+                    args.push((Object)null);
+                    _env.invokeVoidCallback(_callback, null, args);
+                }
+            } finally {
                 args.close();
-                metrics.close();
+                update();
             }
 
-            update();
         }
     }
 
