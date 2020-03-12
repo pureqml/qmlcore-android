@@ -7,6 +7,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -254,6 +255,21 @@ public final class Input extends Element {
                         view.setTextColor(color);
                     }
                 });
+                break;
+            }
+            case "font-size": {
+                try {
+                    final int fontSize = TypeConverter.toFontSize(value.toString(), _env.getDisplayMetrics());
+                    Log.v(TAG, "FONT SIZE " + fontSize);
+                    viewHolder.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
+                        }
+                    });
+                } catch (Exception ex) {
+                    Log.e(TAG, "invalid font-size: ", ex);
+                }
                 break;
             }
 
