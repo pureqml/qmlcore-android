@@ -37,6 +37,7 @@ public final class Text extends Element {
     Wrap                _wrap = Wrap.NoWrap;
     HorizontalAlignment _halign = HorizontalAlignment.AlignLeft;
     VerticalAlignment   _valign = VerticalAlignment.AlignTop;
+    int                 _cachedWidth = -1;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -131,6 +132,11 @@ public final class Text extends Element {
         update();
     }
 
+    void update() {
+        _cachedWidth = -1;
+        super.update();
+    }
+
     @Override
     public void paint(PaintState state) {
         beginPaint();
@@ -142,8 +148,14 @@ public final class Text extends Element {
             float textSize = _paint.getTextSize();
             float lineHeight = textSize; //fixme: support proper line height/baseline
             float x = _lastRect.left;
-            float y = _lastRect.top - _paint.ascent();
+            final int ascent = (int)Math.ceil(-_paint.ascent()); //it's negative, we want positive
+            float y = _lastRect.top + ascent;
             if (_layout == null) {
+                //simple layoutless line
+                if (_cachedWidth < 0) {
+                    _cachedWidth = (int)_paint.measureText(_text);
+                }
+                _lastRect.right = _lastRect.left + _cachedWidth;
                 state.canvas.drawText(_text, x, y, _paint);
                 y += lineHeight;
             } else {
@@ -169,7 +181,7 @@ public final class Text extends Element {
                     y += lineHeight;
                 }
             }
-            _lastRect.bottom = (int) (y - lineHeight);
+            _lastRect.bottom = (int) (y - lineHeight + _paint.descent());
         }
         paintChildren(state);
         endPaint();
