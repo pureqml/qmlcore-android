@@ -177,8 +177,10 @@ public final class MainActivity
         @Override
         public void surfaceRedrawNeeded(SurfaceHolder holder) {
             Log.i(TAG, "redraw needed");
-            if (_executionEnvironment != null)
+            if (_executionEnvironment != null) {
+                _executionEnvironment.update(_executionEnvironment.getRootElement());
                 _executionEnvironment.paint();
+            }
         }
     };
 

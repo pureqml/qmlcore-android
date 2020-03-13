@@ -490,6 +490,9 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public void update(Element el) {
+        if (el == null)
+            return;
+
         synchronized (_updatedElements) {
             _updatedElements.add(el);
         }
