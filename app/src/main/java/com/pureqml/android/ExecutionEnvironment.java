@@ -505,8 +505,10 @@ public final class ExecutionEnvironment extends Service
         Rect rect = popDirtyRect();
         if (rect != null)
             Log.v(TAG, "paint: rect: " + rect.toString());
-        else
+        else {
+            Log.v(TAG, "paint: dirty rect is empty, skipping");
             return;
+        }
 
         Canvas canvas = null;
         Log.v(TAG, "paint: " + rect);
