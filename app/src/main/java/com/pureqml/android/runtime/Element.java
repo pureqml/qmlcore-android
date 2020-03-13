@@ -13,6 +13,8 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.TypeConverter;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -206,7 +208,7 @@ public class Element extends BaseObject {
             case "width":   { int width = TypeConverter.toInteger(value);   _rect.right = _rect.left + width; } break;
             case "height":  { int height = TypeConverter.toInteger(value);  _rect.bottom = _rect.top + height; } break;
             case "opacity":     _opacity = TypeConverter.toFloat(value); break;
-            case "z-index":     _z = TypeConverter.toInteger(value); break;
+            case "z-index":     _z = TypeConverter.toInteger(value); if (this._parent != null) this._parent.sortChildren(); break;
             case "visibility":  _visible = value.equals("inherit") || value.equals("visible"); break;
             case "transform": setTransform(value.toString()); break;
             case "-pure-recursive-visibility": {
@@ -516,5 +518,17 @@ public class Element extends BaseObject {
         Paint alphaPaint = new Paint(paint);
         alphaPaint.setAlpha(alpha);
         return alphaPaint;
+    }
+
+    static private final class ZComparator implements Comparator<Element>
+    {
+        public int compare(Element e1, Element e2)
+        {
+            return e1._z - e2._z;
+        }
+    }
+
+    protected final void sortChildren() {
+        Collections.sort(_children, new ZComparator());
     }
 }

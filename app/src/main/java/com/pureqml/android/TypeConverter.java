@@ -98,7 +98,7 @@ public final class TypeConverter {
             int pt = Integer.valueOf(value.substring(0, value.length() - 2));
             return (int)(pt / 72.0f * metrics.ydpi);
         } else
-            throw new Exception("invalid font size");
+            throw new Exception("invalid unit in " + value);
     }
 
     public static final Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
