@@ -114,7 +114,7 @@ public final class Image extends Element implements ImageLoadedCallback {
         }
 
         public void merge(Background y, Rect dst, Rect src) {
-            Log.v(TAG, "merge in " + mode + " " + dst + " ← " + src);
+            //Log.v(TAG, "merge in " + mode + " " + dst + " ← " + src);
             float aspect;
             float wx, hx;
             final int dstWidth = dst.width(), dstHeight = dst.height();
@@ -149,7 +149,7 @@ public final class Image extends Element implements ImageLoadedCallback {
                 default:
                     break;
             }
-            Log.v(TAG, "merge out " + mode + " " + dst + " ← " + src);
+            //Log.v(TAG, "merge out " + mode + " " + dst + " ← " + src);
         }
     }
     Background                  _backgroundX = new Background();
