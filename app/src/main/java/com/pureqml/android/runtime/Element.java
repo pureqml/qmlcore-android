@@ -236,21 +236,29 @@ public class Element extends BaseObject {
     }
 
     protected void onGloballyVisibleChanged(boolean value) { }
+    private void setStyleSafe(String name, Object value) {
+        try {
+            this.setStyle(name, value);
+        } catch (Exception ex) {
+            Log.w(TAG, "setStyle failed", ex);
+        }
+    }
 
     public void style(V8Array arguments) throws Exception {
         Object arg0 = arguments.get(0);
         if (arg0 instanceof V8Object) {
             V8Object styles = (V8Object) arg0;
             for (String key : styles.getKeys())
-                setStyle(key, styles.get(key));
+                setStyleSafe(key, styles.get(key));
         } else if (arguments.length() == 2) {
             Object value = arguments.get(1);
-            setStyle(arguments.getString(0), TypeConverter.getValue(_env, null, value));
+            setStyleSafe(arguments.getString(0), TypeConverter.getValue(_env, null, value));
             if (value instanceof Releasable)
                 ((Releasable)value).release();
         }
         else
-            throw new Exception("invalid setStyle invocation");//fixme: leak of resources here
+            Log.w(TAG, "invalid setStyle invocation " + arguments);
+
         if (arg0 instanceof Releasable)
             ((Releasable)arg0).release();
     }
