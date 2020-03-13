@@ -218,11 +218,15 @@ public class Element extends BaseObject {
                 }
                 break;
             }
-            case "cursor": break; //ignoring
 
             case "overflow":    _enableScrollX = _enableScrollY = getOverflowValue(value); break;
             case "overflow-x":  _enableScrollX = getOverflowValue(value);  break;
             case "overflow-y":  _enableScrollY = getOverflowValue(value);  break;
+
+            case "cursor":
+            case "pointer-events":
+            case "touch-actions":
+                break; //ignoring
 
             default:
                 Log.w(TAG, "ignoring setStyle " + name + ": " + value);
