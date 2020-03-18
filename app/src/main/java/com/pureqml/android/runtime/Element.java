@@ -358,7 +358,6 @@ public class Element extends BaseObject {
         if (_children != null) {
             for (int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
-                Rect childRect = child.getRect();
                 int offsetX = x - getBaseX();
                 int offsetY = y - getBaseY();
                 if (child.sendEvent(eventId, offsetX, offsetY, event)) {
