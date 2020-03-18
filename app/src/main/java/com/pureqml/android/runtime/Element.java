@@ -340,7 +340,7 @@ public class Element extends BaseObject {
     }
 
     private final void emitScroll() {
-        _parent._publicScrollPos = new Point(-(getBaseX() + getScrollXImpl()), -(getBaseY() + getScrollYImpl()));
+        _parent._publicScrollPos = new Point(getScrollXImpl(), getScrollYImpl());
         _parent.emit(null, "scroll");
         update();
     }
