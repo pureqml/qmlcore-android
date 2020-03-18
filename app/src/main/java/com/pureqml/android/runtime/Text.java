@@ -208,7 +208,7 @@ public final class Text extends Element {
     }
 
     public void layoutText(V8Function callback) {
-        Log.v(TAG, "layout text: " + _text);
+//        Log.v(TAG, "layout text: " + _text);
         _layout = new TextLayout(preprocess(_text));
         Rect rect = getRect();
 
