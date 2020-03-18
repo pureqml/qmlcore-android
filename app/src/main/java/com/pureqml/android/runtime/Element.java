@@ -460,8 +460,11 @@ public class Element extends BaseObject {
                         _scrollPos.x += _scrollOffset.x;
                         _scrollPos.y += _scrollOffset.y;
                         Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
+                        boolean noScroll = _scrollOffset.x == 0 && _scrollOffset.y == 0;
                         _scrollOffset = null;
 
+                        if (noScroll)
+                            return false;
                         emitScroll();
                         return true;
                     } else if (handled) {
