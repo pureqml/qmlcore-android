@@ -411,12 +411,18 @@ public class Element extends BaseObject {
                                     _useScrollX = true;
                                 else
                                     _useScrollY = true;
+                                handleMove = true;
                             } else if (enableScrollX) {
-                                _useScrollX = true;
+                                if (Math.abs(dx) > Math.abs(dy)) {
+                                    _useScrollX = true;
+                                    handleMove = true;
+                                }
                             } else if (enableScrollY) {
-                                _useScrollY = true;
-                            }
-                            handleMove = true;
+                                if (Math.abs(dy) > Math.abs(dx)) {
+                                    _useScrollY = true;
+                                    handleMove = true;
+                                }
+                             }
                         }
                     }
 
