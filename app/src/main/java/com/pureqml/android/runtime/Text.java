@@ -142,20 +142,37 @@ public final class Text extends Element {
         beginPaint();
         if (_text != null) {
             Rect rect = getRect();
-            _lastRect.left = state.baseX;
-            _lastRect.top = state.baseY; //fixme: get actual bounding box
-
             float textSize = _paint.getTextSize();
             float lineHeight = textSize; //fixme: support proper line height/baseline
-            float x = _lastRect.left;
             final int ascent = (int)Math.ceil(-_paint.ascent()); //it's negative, we want positive
-            float y = _lastRect.top + ascent;
+            float x = state.baseX;
+            float y = state.baseY + ascent;
             if (_layout == null) {
                 //simple layoutless line
                 if (_cachedWidth < 0) {
                     _cachedWidth = (int)_paint.measureText(_text);
                 }
-                _lastRect.right = _lastRect.left + _cachedWidth;
+
+                switch (_halign) {
+                    case AlignHCenter:
+                        x += (rect.width() - _cachedWidth) / 2;
+                        break;
+                    case AlignRight:
+                        x += rect.width() - _cachedWidth;
+                        break;
+                }
+                switch (_valign) {
+                    case AlignVCenter:
+                        y += (rect.height() - lineHeight) / 2;
+                        break;
+                    case AlignBottom:
+                        y += rect.height() - lineHeight;
+                        break;
+                }
+                _lastRect.left = (int)x;
+                _lastRect.right = (int)x + _cachedWidth;
+                _lastRect.top = (int)y - ascent;
+
                 state.canvas.drawText(_text, x, y, _paint);
                 y += lineHeight;
             } else {
