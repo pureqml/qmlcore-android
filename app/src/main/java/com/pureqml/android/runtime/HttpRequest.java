@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
 
 public final class HttpRequest {
     private static final String TAG = "HttpRequestDispatcher";
@@ -65,6 +66,12 @@ public final class HttpRequest {
         public void run() {
             int code = 0;
             String text;
+            ExecutorService executor = _env.getExecutor();
+            if (executor == null) {
+                Log.w(TAG, "executor == null, cancelling request");
+                return;
+            }
+
             try {
                 code = _connection.getResponseCode();
                 Log.d(TAG, "response code: " + code);
@@ -87,7 +94,7 @@ public final class HttpRequest {
 
                 final int argCode = code;
                 final String argText = text;
-                _env.getExecutor().execute(new Runnable() {
+                executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         if (_callback != null)
@@ -96,7 +103,7 @@ public final class HttpRequest {
                 });
             } catch (final Exception e) {
                 Log.w(TAG, "http connection failed", e);
-                _env.getExecutor().execute(new Runnable() {
+                executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         emitError(e);

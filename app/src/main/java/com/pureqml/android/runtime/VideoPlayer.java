@@ -182,12 +182,15 @@ public final class VideoPlayer extends BaseObject implements IResource {
     public void stop() {
         Log.i(TAG, "Player.stop");
         source = null;
-        player.stop();
+        if (player != null)
+            player.stop();
     }
 
     public void setSource(String url) {
         Log.i(TAG, "Player.setSource " + url);
         source = url;
+        if (player == null)
+            return;
 
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
 

@@ -13,6 +13,7 @@ import com.pureqml.android.ExecutionEnvironment;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
 
 public final class Timers {
     public static final String TAG = "Timers";
@@ -45,7 +46,16 @@ public final class Timers {
         @Override
         protected void finalize() throws Throwable {
             //Log.v(TAG, "Timer task " + _id + " finalized");
-            releaseCallback();
+            ExecutorService executor = _env.getExecutor();
+            if (executor != null) {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        releaseCallback();
+                    }
+                });
+            } else
+                Log.w(TAG, "no executor, callback won't be recycled");
             super.finalize();
         }
 
@@ -79,6 +89,10 @@ public final class Timers {
         v8.registerJavaMethod(new JavaCallback() {
             @Override
             public Object invoke(V8Object v8Object, V8Array arguments) {
+                if (_timer == null) {
+                    Log.w(TAG, "skipping setTimeout, timer is dead");
+                    return -1;
+                }
                 int timeout = arguments.getInteger(1);
                 int id = _nextId++;
                 TimerTask task = new Task(id, arguments.getObject(0), true);
@@ -91,6 +105,10 @@ public final class Timers {
         v8.registerJavaMethod(new JavaCallback() {
             @Override
             public Object invoke(V8Object v8Object, V8Array arguments) {
+                if (_timer == null) {
+                    Log.w(TAG, "skipping setInterval, timer is dead");
+                    return -1;
+                }
                 int period = arguments.getInteger(1);
                 int id = _nextId++;
                 TimerTask task = new Task(id, arguments.getObject(0), false);
@@ -119,10 +137,16 @@ public final class Timers {
     }
 
     public void discard() {
-        _timer.cancel();
+        Timer timer = _timer;
+        _timer = null; //block all new tasks
+        timer.cancel();
+
         for(int i = 0, n = _tasks.size(); i < n; ++i) {
-            _tasks.valueAt(i).cancel();
+            TimerTask task = _tasks.valueAt(i);
+            if (task != null)
+                task.cancel();
         }
         _tasks.clear();
+        timer.purge();
     }
 }

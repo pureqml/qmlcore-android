@@ -50,13 +50,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -318,7 +318,8 @@ public final class ExecutionEnvironment extends Service
             _executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    _rootElement.emit(_rootObject, "resize", _surfaceGeometry.width(), _surfaceGeometry.height());
+                    if (_rootElement != null)
+                        _rootElement.emit(_rootObject, "resize", _surfaceGeometry.width(), _surfaceGeometry.height());
                 }
             });
         }
@@ -379,10 +380,16 @@ public final class ExecutionEnvironment extends Service
         } catch (ExecutionException e) {
             Log.e(TAG, "stopping environment failed", e);
         }
-        _executor.shutdownNow();
+        Log.i(TAG, "shutting down main executor...");
+        _executor.shutdown();
+        try
+        { _executor.awaitTermination(3, TimeUnit.SECONDS); }
+        catch(Exception ex)
+        { _executor.shutdownNow(); }
+        Log.i(TAG, "main executor shut down");
 
         _executor = null;
-        _objects = null;
+        _objects.clear();
     }
 
     @Override
@@ -499,7 +506,7 @@ public final class ExecutionEnvironment extends Service
     }
 
     public void paint(final SurfaceHolder holder) {
-        if (_rootElement == null || holder == null)
+        if (_rootElement == null || holder == null || holder.getSurface() == null)
             return;
 
         Rect rect = popDirtyRect();
@@ -532,12 +539,16 @@ public final class ExecutionEnvironment extends Service
     }
 
     public void paint() {
-        _executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                ExecutionEnvironment.this.paint(_surfaceHolder);
-            }
-        });
+        if (_executor != null && !_executor.isShutdown()) {
+            _executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    ExecutionEnvironment.this.paint(_surfaceHolder);
+                }
+            });
+        } else {
+            Log.w(TAG, "no executor, skipping paint");
+        }
     }
 
     private Rect popDirtyRect() {
