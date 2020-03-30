@@ -614,23 +614,23 @@ public final class ExecutionEnvironment extends Service
     @SuppressWarnings("unchecked")
     public void acquireResource() {
         Log.i(TAG, "acquireResources");
-        WeakRefList<IResource> resources;
-        synchronized (this) { resources = (WeakRefList<IResource>)_resources.clone(); }
 
-        int i = 0, n = resources.size();
-        while(i < n) {
-            IResource res = resources.get(i).get();
-            if (res != null) {
-                try {
-                    res.acquireResource();
-                } catch (Exception e) {
-                    Log.e(TAG, "acquireResource", e);
-                } finally {
-                    ++i;
+        synchronized (_resources) {
+            int i = 0, n = _resources.size();
+            while (i < n) {
+                IResource res = _resources.get(i).get();
+                if (res != null) {
+                    try {
+                        res.acquireResource();
+                    } catch (Exception e) {
+                        Log.e(TAG, "acquireResource", e);
+                    } finally {
+                        ++i;
+                    }
+                } else {
+                    _resources.remove(i);
+                    n = _resources.size();
                 }
-            } else {
-                resources.remove(i);
-                n = resources.size();
             }
         }
     }
@@ -640,22 +640,22 @@ public final class ExecutionEnvironment extends Service
     public void releaseResource() {
         Log.i(TAG, "releaseResources");
         WeakRefList<IResource> resources;
-        synchronized (this) { resources = (WeakRefList<IResource>)_resources.clone(); }
-
-        int i = 0, n = _resources.size();
-        while(i < n) {
-            IResource res = _resources.get(i).get();
-            if (res != null) {
-                try {
-                    res.releaseResource();
-                } catch (Exception e) {
-                    Log.e(TAG, "releaseResource", e);
-                } finally {
-                    ++i;
+        synchronized (_resources) {
+            int i = 0, n = _resources.size();
+            while (i < n) {
+                IResource res = _resources.get(i).get();
+                if (res != null) {
+                    try {
+                        res.releaseResource();
+                    } catch (Exception e) {
+                        Log.e(TAG, "releaseResource", e);
+                    } finally {
+                        ++i;
+                    }
+                } else {
+                    _resources.remove(i);
+                    n = _resources.size();
                 }
-            } else {
-                _resources.remove(i);
-                n = _resources.size();
             }
         }
     }
