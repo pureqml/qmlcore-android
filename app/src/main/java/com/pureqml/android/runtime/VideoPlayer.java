@@ -219,6 +219,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         if (paused)
         {
             paused = false;
+            VideoPlayer.this.emit(null, "pause", paused);
             player.setPlayWhenReady(true);
         }
         else
@@ -230,6 +231,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         if (!paused)
         {
             paused = true;
+            VideoPlayer.this.emit(null, "pause", paused);
             player.setPlayWhenReady(false);
         }
         else
