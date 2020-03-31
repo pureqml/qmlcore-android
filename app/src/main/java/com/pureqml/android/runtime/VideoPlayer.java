@@ -217,6 +217,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Log.i(TAG, "Player.play");
     }
 
+    public void pause() {
+        Log.i(TAG, "Player.pause");
+    }
+
     public void seek(int pos) {
         Log.i(TAG, "Player.seek " + pos);
     }
