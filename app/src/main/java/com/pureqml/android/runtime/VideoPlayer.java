@@ -59,6 +59,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private String                      source;
     private boolean                     playerVisible = true;
     private boolean                     autoplay = false;
+    private boolean                     paused = false;
 
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
@@ -215,10 +216,26 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void play() {
         Log.i(TAG, "Player.play");
+        if (paused)
+        {
+            paused = false;
+            VideoPlayer.this.emit(null, "pause", paused);
+            player.setPlayWhenReady(true);
+        }
+        else
+            Log.i(TAG, "ignoring play on non-paused stream");
     }
 
     public void pause() {
         Log.i(TAG, "Player.pause");
+        if (!paused)
+        {
+            paused = true;
+            VideoPlayer.this.emit(null, "pause", paused);
+            player.setPlayWhenReady(false);
+        }
+        else
+            Log.i(TAG, "ignoring pause on paused stream");
     }
 
     public void seek(int pos) {
