@@ -172,6 +172,7 @@ public final class ExecutionEnvironment extends Service
                 info.add("language", Locale.getDefault().toString());
                 info.add("modelName", Build.MODEL);
                 info.add("firmware", Build.VERSION.RELEASE);
+                info.add("runtime", "native");
                 try {
                     UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
                     switch (uiModeManager.getCurrentModeType()) {
