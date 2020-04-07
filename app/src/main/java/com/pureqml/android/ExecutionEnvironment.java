@@ -41,6 +41,7 @@ import com.pureqml.android.runtime.Input;
 import com.pureqml.android.runtime.LocalStorage;
 import com.pureqml.android.runtime.PaintState;
 import com.pureqml.android.runtime.Rectangle;
+import com.pureqml.android.runtime.Spinner;
 import com.pureqml.android.runtime.Text;
 import com.pureqml.android.runtime.Timers;
 import com.pureqml.android.runtime.VideoPlayer;
@@ -247,6 +248,8 @@ public final class ExecutionEnvironment extends Service
         textProto.setPrototype(elementProto);
         V8Object inputProto     = Wrapper.generateClass(this, _v8, v8FD, "Input", Input.class, new Class<?>[] { IExecutionEnvironment.class });
         inputProto.setPrototype(elementProto);
+        V8Object spinnerProto     = Wrapper.generateClass(this, _v8, v8FD, "Spinner", Spinner.class, new Class<?>[] { IExecutionEnvironment.class });
+        spinnerProto.setPrototype(elementProto);
         V8Object localStorageProto = Wrapper.generateClass(this, _v8, v8FD, "LocalStorage", LocalStorage.class, new Class<?>[] { IExecutionEnvironment.class });
         localStorageProto.setPrototype(objectProto);
         V8Object videoPlayerProto = Wrapper.generateClass(this, _v8, v8FD, "VideoPlayer", VideoPlayer.class, new Class<?>[] { IExecutionEnvironment.class });
