@@ -47,7 +47,7 @@ public final class Spinner extends Element {
 
         if (!rect.isEmpty()) {
             rect.offsetTo(state.baseX, state.baseY);
-            Log.i(TAG, "input layout " + rect.toString());
+            Log.v(TAG, "spinner layout " + rect.toString());
             viewHolder.setRect(_env.getRootView(), rect);
         }
 
