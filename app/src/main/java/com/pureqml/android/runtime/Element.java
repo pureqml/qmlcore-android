@@ -351,8 +351,10 @@ public class Element extends BaseObject {
             return false;
 
         boolean handled = false;
+        Rect rect = getRect();
+        int clientWidth = rect.width();
+        int clientHeight = rect.height();
 
-        //Log.v(TAG, this + ": position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
         x += getScrollXImpl();
         y += getScrollYImpl();
 
@@ -361,6 +363,9 @@ public class Element extends BaseObject {
                 Element child = _children.get(i);
                 int offsetX = x - getBaseX();
                 int offsetY = y - getBaseY();
+                if (_clip && (offsetX < 0 || offsetY < 0 || offsetX > clientWidth || offsetY > clientHeight))
+                    continue;
+
                 if (child.sendEvent(eventId, offsetX, offsetY, event)) {
                     handled = true;
                     break;
@@ -374,9 +379,7 @@ public class Element extends BaseObject {
         final String click = "click";
 
         Rect parentRect = _parent.getRect();
-        Rect rect = getRect();
-        int clientWidth = rect.width(), w = parentRect.width();
-        int clientHeight = rect.height(), h = parentRect.height();
+        int w = parentRect.width(), h = parentRect.height();
         boolean enableScrollX = scrollXEnabled() && clientWidth > w;
         boolean enableScrollY = scrollYEnabled() && clientHeight > h;
 
@@ -478,7 +481,7 @@ public class Element extends BaseObject {
                         Log.v(TAG, "handled by parent");
                         return true;
                     } else if (!scrollUsed && rect.contains(x, y) && hasCallbackFor(click)) {
-                        Log.d(TAG, "emitting click");
+                        Log.d(TAG, "emitting click: position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
                         mouseEvent.add("offsetX", x - rect.left);
                         mouseEvent.add("offsetY", y - rect.top);
