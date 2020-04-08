@@ -227,7 +227,7 @@ public class Element extends BaseObject {
 
             case "cursor":
             case "pointer-events":
-            case "touch-actions":
+            case "touch-action":
             case "will-change":
                 break; //ignoring
 
