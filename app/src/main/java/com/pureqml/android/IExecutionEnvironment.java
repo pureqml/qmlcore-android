@@ -14,6 +14,7 @@ import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Element;
 
 import java.net.URL;
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 
 public interface IExecutionEnvironment extends ImageLoadedCallback {
@@ -21,6 +22,7 @@ public interface IExecutionEnvironment extends ImageLoadedCallback {
     ExecutorService getExecutor();
     ExecutorService getThreadPool();
     ViewGroup getRootView();
+    Timer getTimer();
 
     V8 getRuntime();
     DisplayMetrics getDisplayMetrics();

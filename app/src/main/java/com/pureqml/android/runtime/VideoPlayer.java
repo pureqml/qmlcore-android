@@ -49,11 +49,14 @@ import com.pureqml.android.TypeConverter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
 
 public final class VideoPlayer extends BaseObject implements IResource {
     private static final String TAG = "VideoPlayer";
+    private static int PollingInterval = 500; //ms
 
     private SimpleExoPlayer             player;
     private SurfaceView                 view;
@@ -65,6 +68,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private boolean                     playerVisible = true;
     private boolean                     autoplay = false;
     private boolean                     paused = false;
+    private TimerTask                   pollingTask = null;
 
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
@@ -80,6 +84,17 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void run() {
                 VideoPlayer.this.emit(null, "error", error);
+            }
+        });
+    }
+
+    private void emitPosition(final double position, final double duration) {
+        _env.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                Log.v(TAG, "emitting position " + position + " / " + duration);
+                VideoPlayer.this.emit(null, "timeupdate", position);
+                VideoPlayer.this.emit(null, "durationchange", duration);
             }
         });
     }
@@ -174,14 +189,33 @@ public final class VideoPlayer extends BaseObject implements IResource {
         player.setPlayWhenReady(autoplay);
         if (source != null)
             setSource(source);
+
+        pollingTask = new TimerTask() {
+            @Override
+            public void run() {
+                SimpleExoPlayer player = VideoPlayer.this.player;
+                if (player != null) {
+                    double position = player.getCurrentPosition() / 1000.0;
+                    double duration = player.getCurrentPosition() / 1000.0;
+                    if (duration > 0)
+                        VideoPlayer.this.emitPosition(position, duration);
+                }
+            }
+        };
+        _env.getTimer().schedule(pollingTask, PollingInterval, PollingInterval);
     }
 
     @Override
     public void releaseResource() {
-        if (this.player != null) {
+        if (pollingTask != null) {
+            try { pollingTask.cancel(); } catch(Exception ex) { }
+            pollingTask = null;
+        }
+
+        if (player != null) {
             player.setVideoSurfaceView(null);
-            this.player.release();
-            this.player = null;
+            player.release();
+            player = null;
         }
     }
 

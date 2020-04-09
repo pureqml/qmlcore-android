@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,6 +134,8 @@ public final class ExecutionEnvironment extends Service
     public Context getContext() {
         return super.getBaseContext();
     }
+
+    public Timer getTimer() { return _timers.getTimer(); }
 
     synchronized void setRenderer(IRenderer renderer) {
         Log.v(TAG, "setRenderer " + renderer);

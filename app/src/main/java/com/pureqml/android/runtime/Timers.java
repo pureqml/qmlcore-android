@@ -23,6 +23,8 @@ public final class Timers {
     SparseArray<TimerTask>  _tasks = new SparseArray<TimerTask>();
     int                     _nextId = 1;
 
+    public Timer getTimer() { return _timer; }
+
     class Task extends TimerTask {
         int         _id;
         V8Object    _callback;
