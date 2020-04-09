@@ -3,6 +3,7 @@ package com.pureqml.android.runtime;
 import android.content.Context;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -27,7 +28,10 @@ import com.google.android.exoplayer2.extractor.ts.Ac3Extractor;
 import com.google.android.exoplayer2.extractor.ts.AdtsExtractor;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
 import com.google.android.exoplayer2.extractor.ts.TsExtractor;
+import com.google.android.exoplayer2.source.BaseMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.hls.HlsExtractorFactory;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
@@ -42,6 +46,7 @@ import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
 import com.pureqml.android.TypeConverter;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -68,6 +73,15 @@ public final class VideoPlayer extends BaseObject implements IResource {
         viewHolder = new ViewHolder<SurfaceView>(context, view);
         this.acquireResource();
         _env.register(this);
+    }
+
+    private void emitError(final String error) {
+        _env.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                VideoPlayer.this.emit(null, "error", error);
+            }
+        });
     }
 
     @Override
@@ -129,12 +143,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onPlayerError(final ExoPlaybackException error) {
                 Log.d(TAG, "onPlayerError " + error);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        VideoPlayer.this.emit(null, "error", error.toString());
-                    }
-                });
+                emitError(error.toString());
             }
 
             @Override
@@ -195,14 +204,65 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
 
+        BaseMediaSource source;
         if (url.indexOf(".m3u8") >= 0) { //FIXME: add proper content type here
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
             factory.setExtractorFactory(new CustomHlsExtractorFactory());
-            player.prepare(factory.createMediaSource(Uri.parse(url)));
+            source = factory.createMediaSource(Uri.parse(url));
         } else {
             ExtractorMediaSource.Factory factory = new ExtractorMediaSource.Factory(dataSourceFactory);
-            player.prepare(factory.createMediaSource(Uri.parse(url)));
+            source = factory.createMediaSource(Uri.parse(url));
         }
+
+        source.addEventListener(new Handler(_env.getContext().getMainLooper()), new MediaSourceEventListener() {
+
+            @Override
+            public void onMediaPeriodCreated(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId) {
+
+            }
+
+            @Override
+            public void onMediaPeriodReleased(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId) {
+
+            }
+
+            @Override
+            public void onLoadStarted(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+
+            }
+
+            @Override
+            public void onLoadCompleted(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+
+            }
+
+            @Override
+            public void onLoadCanceled(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+
+            }
+
+            @Override
+            public void onLoadError(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
+                Log.w(TAG, "onLoadError");
+                VideoPlayer.this.emitError("Source load error: " + error.getLocalizedMessage());
+            }
+
+            @Override
+            public void onReadingStarted(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId) {
+
+            }
+
+            @Override
+            public void onUpstreamDiscarded(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+
+            }
+
+            @Override
+            public void onDownstreamFormatChanged(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+
+            }
+        });
+        player.prepare(source);
         Log.i(TAG, "Player.setSource exited");
     }
 
