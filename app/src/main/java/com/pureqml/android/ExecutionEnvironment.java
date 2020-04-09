@@ -288,8 +288,10 @@ public final class ExecutionEnvironment extends Service
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
+        Log.v(TAG, "runtime created, registering API...");
         registerRuntime();
 
+        Log.v(TAG, "opening application main file...");
         String script;
         final String assetName = "main.js";
         try {
