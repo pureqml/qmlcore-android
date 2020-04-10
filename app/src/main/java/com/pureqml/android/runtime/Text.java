@@ -207,6 +207,7 @@ public final class Text extends Element {
     public void setText(String text) {
         //Log.i(TAG, "setText " + text);
         _text = text;
+        update();
     }
 
     static private Pattern newLinePattern = Pattern.compile("<br.*?>");
