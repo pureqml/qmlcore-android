@@ -127,6 +127,7 @@ public final class Input extends Element {
             view.setHint(placeholder);
         } else if (name.equals("value")) {
             this.value = value;
+            view.setText(value);
         } else if (name.equals("inputmode")) {
             inputmode = value;
             updateType();
