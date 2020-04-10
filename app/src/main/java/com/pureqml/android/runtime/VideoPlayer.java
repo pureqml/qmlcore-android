@@ -71,13 +71,20 @@ public final class VideoPlayer extends BaseObject implements IResource {
         });
     }
 
-    private void emitPosition(final double position, final double duration) {
+    private void pollPosition() {
         _env.getExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                Log.v(TAG, "emitting position " + position + " / " + duration);
-                VideoPlayer.this.emit(null, "timeupdate", position);
-                VideoPlayer.this.emit(null, "durationchange", duration);
+                SimpleExoPlayer player = VideoPlayer.this.player;
+                if (player != null) {
+                    double position = player.getCurrentPosition() / 1000.0;
+                    double duration = player.getCurrentPosition() / 1000.0;
+                    if (duration > 0) {
+                        Log.v(TAG, "emitting position " + position + " / " + duration);
+                        VideoPlayer.this.emit(null, "timeupdate", position);
+                        VideoPlayer.this.emit(null, "durationchange", duration);
+                    }
+                }
             }
         });
     }
@@ -176,13 +183,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         pollingTask = new TimerTask() {
             @Override
             public void run() {
-                SimpleExoPlayer player = VideoPlayer.this.player;
-                if (player != null) {
-                    double position = player.getCurrentPosition() / 1000.0;
-                    double duration = player.getCurrentPosition() / 1000.0;
-                    if (duration > 0)
-                        VideoPlayer.this.emitPosition(position, duration);
-                }
+                VideoPlayer.this.pollPosition();
             }
         };
         _env.getTimer().schedule(pollingTask, PollingInterval, PollingInterval);
