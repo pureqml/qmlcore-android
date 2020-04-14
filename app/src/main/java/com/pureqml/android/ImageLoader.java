@@ -2,9 +2,13 @@ package com.pureqml.android;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.PictureDrawable;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.LruCache;
+
+import com.caverock.androidsvg.SVG;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -21,16 +25,27 @@ public final class ImageLoader {
         ImageResource(URL url) { _url = url; }
 
         @Nullable
-        public Bitmap getBitmap() {
+        public void createLoader() {
             synchronized (_cache) {
                 ImageHolder holder = _cache.get(_url);
-                if (holder != null) {
-                    return holder.getBitmap();
-                } else {
-                    holder = new ImageHolder(_url);
+                if (holder == null) {
+                    String stringUrl = _url.toString();
+                    String svgFileFormat = "svg";
+                    if (stringUrl.contains(".") && svgFileFormat.equalsIgnoreCase(stringUrl.substring(stringUrl.lastIndexOf(".") + 1))) {
+                        holder = new ImageVectorHolder(_url);
+                    } else {
+                        holder = new ImageStaticHolder(_url);
+                    }
                     _cache.put(_url, holder);
                 }
-                return holder.getBitmap();
+            }
+        }
+
+        @Nullable
+        public Bitmap getBitmap(int w, int h) {
+            synchronized (_cache) {
+                ImageHolder holder = _cache.get(_url);
+                return holder.getBitmap(w, h);
             }
         }
     }
@@ -58,14 +73,19 @@ public final class ImageLoader {
                     rawStream = _env.getAssets().open(path.substring(pos)); //strip leading slash
                 } else
                     rawStream = _url.openStream();
-                BufferedInputStream stream = new BufferedInputStream(rawStream);
-                bitmap = BitmapFactory.decodeStream(stream);
+                if (_holder instanceof ImageStaticHolder) {
+                    BufferedInputStream stream = new BufferedInputStream(rawStream);
+                    bitmap = BitmapFactory.decodeStream(stream);
+                    _holder.setContent(bitmap);
+                } else if (_holder instanceof ImageVectorHolder) {
+                    SVG  svg = SVG.getFromInputStream(rawStream);
+                    _holder.setContent(svg);
+                }
             } catch(Exception ex) {
                 Log.e(TAG, "image loading failed", ex);
             } finally {
                 synchronized (_cache) {
                     _cache.remove(_url);
-                    _holder.setBitmap(bitmap);
                     _env.onImageLoaded(_url);
                     _cache.put(_url, _holder);
                 }
@@ -73,25 +93,79 @@ public final class ImageLoader {
         }
     }
 
-    private class ImageHolder {
+    private interface  ImageHolder<T> {
+        URL     _url = null;
+        Bitmap  _image = null;
+        boolean loaded = false;
+        String type = null;
+        public Bitmap getBitmap(int w, int h);
+        public void setContent(T content);
+        public boolean checkLoadStatus();
+        public String getType();
+        int byteCount();
+    }
+
+    private class ImageStaticHolder implements ImageHolder<Bitmap> {
         URL     _url;
         Bitmap  _image;
+        boolean loaded;
 
-        ImageHolder(URL url) {
+        ImageStaticHolder(URL url) {
             _url = url;
             _threadPool.execute(new ImageLoaderTask(url, this));
         }
 
         @Nullable
-        synchronized public Bitmap getBitmap() {
+        synchronized public Bitmap getBitmap(int w, int h) {
             return _image;
         }
 
-        synchronized public void setBitmap(Bitmap bitmap) {
+        synchronized public void setContent(Bitmap bitmap) {
             _image = bitmap;
+            loaded = true;
         }
 
-        synchronized int byteCount() { return _url.toString().length() + (_image != null? _image.getByteCount(): 0); }
+        synchronized public int byteCount() { return _url.toString().length() + (_image != null? _image.getByteCount(): 0); }
+
+        synchronized public boolean checkLoadStatus() { return loaded; }
+
+        synchronized public String  getType() { return type; }
+    }
+
+    private class ImageVectorHolder implements ImageHolder<SVG> {
+        URL     _url;
+        Bitmap  _image;
+        SVG _svg;
+        boolean loaded;
+
+        ImageVectorHolder(URL url) {
+            _url = url;
+            _threadPool.execute(new ImageLoaderTask(url, this));
+        }
+
+        @Nullable
+        synchronized public Bitmap getBitmap(int w, int h) {
+            if (w == 0 || h == 0 || _svg == null) {
+                return null;
+            }
+            PictureDrawable pd = new PictureDrawable(_svg.renderToPicture(w, h));
+            Bitmap bitmap = Bitmap.createBitmap(pd.getIntrinsicWidth(), pd.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            canvas.drawPicture(pd.getPicture());
+            _image = bitmap;
+            return _image;
+        }
+
+        synchronized public void setContent(SVG svg) {
+            _svg = svg;
+            loaded = true;
+        }
+
+        synchronized public int byteCount() { return _url.toString().length() + (_image != null? _image.getByteCount(): 0); }
+
+        synchronized public boolean checkLoadStatus() { return loaded; }
+
+        synchronized public String  getType() { return type; }
     }
 
     private IExecutionEnvironment   _env;
@@ -112,7 +186,7 @@ public final class ImageLoader {
     public ImageResource load(URL url, ImageLoadedCallback callback) {
         synchronized (_cache) {
             ImageHolder holder = _cache.get(url);
-            if (holder != null && holder.getBitmap() != null) {
+            if (holder != null && holder.checkLoadStatus()) {
                 callback.onImageLoaded(holder._url);
             }
         }

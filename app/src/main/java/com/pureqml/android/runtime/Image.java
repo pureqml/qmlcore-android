@@ -181,7 +181,7 @@ public final class Image extends Element implements ImageLoadedCallback {
         }
         //Log.v(TAG, "loading " + url);
         _image = _env.loadImage(_url, this);
-        _image.getBitmap();
+        _image.createLoader();
         _callback = callback;
     }
 
@@ -248,7 +248,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     @Override
     public void onImageLoaded(URL url) {
         if (url.equals(_url)) {
-            Bitmap bitmap = _image.getBitmap();
+            Bitmap bitmap = _image.getBitmap(0, 0);
             V8Array args = new V8Array(_env.getRuntime());
             try {
                 if (bitmap != null) {
@@ -276,12 +276,12 @@ public final class Image extends Element implements ImageLoadedCallback {
         beginPaint();
 
         if (_image != null) {
-            Bitmap bitmap = _image.getBitmap();
+            Rect dst = getDstRect(state);
+            Bitmap bitmap = _image.getBitmap(dst.width(), dst.height());
             if (bitmap != null) {
                 Paint paint = patchAlpha(_paint, 255, state.opacity);
                 //Log.i(TAG, "drawing image "  + src + " " + dst + " " + dst.width() + "x" + dst.height());
                 if (paint != null) {
-                    Rect dst = getDstRect(state);
                     boolean clip = _backgroundX.needClip(_backgroundY);
                     boolean doPaint = true;
                     if (clip) {
