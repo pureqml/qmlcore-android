@@ -1,8 +1,10 @@
 package com.pureqml.android.runtime;
 
 import android.graphics.Paint;
+import android.graphics.Picture;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -37,6 +39,10 @@ public class Element extends BaseObject {
     private boolean             _clip;
     protected Element           _parent;
     protected int               _z;
+    private boolean             _cache = false;
+    private boolean             _cacheValid = false;
+    private Picture             _cachePicture = null;
+
     protected LinkedList<Element> _children;
 
     private static final float  DetectionDistance = 5;
@@ -54,6 +60,19 @@ public class Element extends BaseObject {
 
     public Element(IExecutionEnvironment env) {
         super(env);
+    }
+
+    public void enableCache(boolean enable)
+    {
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return; //fixme: could not be replayed on hw-accelerated canvas, use software on pre-M ?
+        }
+
+        if (_cache != enable) {
+            _cache = enable;
+            if (!enable)
+                _cachePicture = null;
+        }
     }
 
     public final Rect getRect()
@@ -124,11 +143,14 @@ public class Element extends BaseObject {
 
     public void discard() {
         remove();
+        _cacheValid = false;
+        _cachePicture = null;
         super.discard();
     }
 
     void update() {
         _env.update(this);
+        _cacheValid = false;
     }
 
     public void updateStyle() {}
@@ -291,29 +313,61 @@ public class Element extends BaseObject {
         int scrollX = -getScrollXImpl(), scrollY = -getScrollYImpl();
 
         for (Element child : children) {
-            Rect childRect = child.getRect();
-            PaintState state = new PaintState(parent, scrollX + child.getBaseX(), scrollY + child.getBaseY(), child._opacity);
-            if (!child._visible || !state.visible())
+            float opacity = child._opacity * parent.opacity;
+            if (!child._visible || !PaintState.visible(opacity))
                 continue;
 
-            boolean clip = child._clip;
-            boolean paint = true;
-            if (clip) {
-                state.canvas.save();
-                if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childRect.width(), state.baseY + childRect.height())))
-                    paint = false;
+            Rect childRect = child.getRect();
+            int childX = scrollX + child.getBaseX(), childY = scrollY + child.getBaseY();
+            int childWidth = childRect.width(), childHeight = childRect.height();
+            boolean cache = child._cache;
+
+            if (!child._cacheValid) {
+                PaintState state;
+                if (cache) {
+                    if (child._cachePicture == null)
+                        child._cachePicture = new Picture();
+                    state = new PaintState(child._cachePicture, childWidth, childHeight, opacity);
+                } else {
+                    state = new PaintState(parent, childX, childY, opacity);
+                }
+
+                boolean clip = child._clip && !cache; //fixme: disable clipping when caching (should be implicit)
+                boolean paint = true;
+                if (clip) {
+                    state.canvas.save();
+                    if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
+                        paint = false;
+                }
+
+                if (paint) {
+                    child.paint(state);
+                }
+
+                if (clip) {
+                    state.canvas.restore();
+                }
+                if (cache) {
+                    state.end();
+                    child._cacheValid = true;
+                }
             }
 
-            if (paint)
-                child.paint(state);
-
-            if (clip) {
-                state.canvas.restore();
+            if (child._cacheValid) {
+                int saveCount = parent.canvas.save();
+                parent.canvas.translate(parent.baseX + childX, parent.baseY + childY);
+                parent.canvas.drawPicture(child._cachePicture);
+                parent.canvas.restoreToCount(saveCount);
             }
 
+            childRect.offset(parent.baseX, parent.baseY);
             _combinedRect.union(childRect);
+
             _combinedRect.union(child.getCombinedRect());
-            _lastRect.union(child.getLastRenderedRect());
+            Rect last = child.getLastRenderedRect();
+            if (cache)
+                last.offset(childX, childY);
+            _lastRect.union(last);
         }
     }
 

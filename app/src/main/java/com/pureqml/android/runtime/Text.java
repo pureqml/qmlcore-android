@@ -207,6 +207,7 @@ public final class Text extends Element {
     public void setText(String text) {
         //Log.i(TAG, "setText " + text);
         _text = text;
+        //enableCache(text != null && text.length() != 0);
         update();
     }
 

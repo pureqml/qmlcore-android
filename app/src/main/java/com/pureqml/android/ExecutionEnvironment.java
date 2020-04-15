@@ -569,17 +569,23 @@ public final class ExecutionEnvironment extends Service
         for(Element el : _updatedElements) {
             if (el.visible()) {
                 Rect rect = new Rect(el.getScreenRect());
-                if (rect.intersect(clipRect))
+                if (rect.intersect(clipRect)) {
+                    //Log.v(TAG, "screen rect " + rect);
                     combinedRect.union(rect);
+                }
 
                 rect = new Rect(el.getCombinedRect());
-                if (rect.intersect(clipRect))
+                if (rect.intersect(clipRect)) {
+                    //Log.v(TAG, "combined rect " + rect);
                     combinedRect.union(rect);
+                }
 
             }
             Rect last = new Rect(el.getLastRenderedRect());
-            if (last.intersect(clipRect))
+            if (last.intersect(clipRect)) {
+                //Log.v(TAG, "last rect " + last);
                 combinedRect.union(last);
+            }
         }
         _updatedElements.clear();
         return !combinedRect.isEmpty()? combinedRect: null;
