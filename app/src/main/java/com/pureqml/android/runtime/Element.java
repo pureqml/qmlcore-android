@@ -27,7 +27,7 @@ public class Element extends BaseObject {
     };
 
     private Rect                _rect               = new Rect();
-    protected Rect              _combinedRect       = new Rect();
+    private Rect                _combinedRect       = new Rect();
     protected Rect              _lastRect           = new Rect();
     private Point               _translate;
 
