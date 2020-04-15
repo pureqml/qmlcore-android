@@ -250,8 +250,13 @@ public class Element extends BaseObject {
             case "cursor":
             case "pointer-events":
             case "touch-action":
-            case "will-change":
                 break; //ignoring
+
+            case "will-change":
+                //Log.v(TAG, "will-change: " + value);
+                if (value.toString().contains("scroll-position"))
+                    enableCache(true);
+                break;
 
             default:
                 Log.w(TAG, "ignoring setStyle " + name + ": " + value);
