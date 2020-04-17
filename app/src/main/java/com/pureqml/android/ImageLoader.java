@@ -94,21 +94,17 @@ public final class ImageLoader {
     }
 
     private interface  ImageHolder<T> {
-        URL     _url = null;
-        Bitmap  _image = null;
-        boolean loaded = false;
-        String type = null;
         public Bitmap getBitmap(int w, int h);
         public void setContent(T content);
-        public boolean checkLoadStatus();
-        public String getType();
+        public boolean isLoaded();
+        public URL getUrl();
         int byteCount();
     }
 
     private class ImageStaticHolder implements ImageHolder<Bitmap> {
         URL     _url;
         Bitmap  _image;
-        boolean loaded;
+        boolean loaded = false;
 
         ImageStaticHolder(URL url) {
             _url = url;
@@ -127,16 +123,16 @@ public final class ImageLoader {
 
         synchronized public int byteCount() { return _url.toString().length() + (_image != null? _image.getByteCount(): 0); }
 
-        synchronized public boolean checkLoadStatus() { return loaded; }
+        synchronized public boolean isLoaded() { return loaded; }
 
-        synchronized public String  getType() { return type; }
+        synchronized public URL getUrl() { return _url; }
     }
 
     private class ImageVectorHolder implements ImageHolder<SVG> {
         URL     _url;
         Bitmap  _image;
         SVG _svg;
-        boolean loaded;
+        boolean loaded = false;
 
         ImageVectorHolder(URL url) {
             _url = url;
@@ -163,9 +159,9 @@ public final class ImageLoader {
 
         synchronized public int byteCount() { return _url.toString().length() + (_image != null? _image.getByteCount(): 0); }
 
-        synchronized public boolean checkLoadStatus() { return loaded; }
+        synchronized public boolean isLoaded() { return loaded; }
 
-        synchronized public String  getType() { return type; }
+        synchronized public URL getUrl() { return _url; }
     }
 
     private IExecutionEnvironment   _env;
@@ -186,8 +182,8 @@ public final class ImageLoader {
     public ImageResource load(URL url, ImageLoadedCallback callback) {
         synchronized (_cache) {
             ImageHolder holder = _cache.get(url);
-            if (holder != null && holder.checkLoadStatus()) {
-                callback.onImageLoaded(holder._url);
+            if (holder != null && holder.isLoaded()) {
+                callback.onImageLoaded(holder.getUrl());
             }
         }
         return new ImageResource(url);
