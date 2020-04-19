@@ -87,8 +87,9 @@ public class Element extends BaseObject {
     { return _combinedRect; }
     public final Rect getLastRenderedRect()
     { return _lastRect; }
-    public final boolean visible() {
-        return _visible && _opacity >= PaintState.opacityThreshold;
+
+    public boolean globallyVisible() {
+        return _globallyVisible;
     }
 
     final boolean scrollXEnabled()  { return _parent != null? _parent._enableScrollX: false; }

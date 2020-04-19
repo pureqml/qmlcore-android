@@ -567,7 +567,7 @@ public final class ExecutionEnvironment extends Service
         final Rect clipRect = _surfaceGeometry;
         Rect combinedRect = new Rect();
         for(Element el : _updatedElements) {
-            if (el.visible()) {
+            if (el.globallyVisible()) {
                 Rect rect = new Rect(el.getScreenRect());
                 if (rect.intersect(clipRect)) {
                     //Log.v(TAG, "screen rect " + rect);
