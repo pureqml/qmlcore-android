@@ -85,7 +85,8 @@ public final class ExecutionEnvironment extends Service
     private V8Object                    _rootObject;
     private Element                     _rootElement;
     private V8Object                    _exports;
-    private ExecutorService             _executor;
+    private ExecutorService             _scriptExecutor;
+    private ExecutorService             _paintExecutor;
     private Timers                      _timers;
     private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
@@ -104,8 +105,9 @@ public final class ExecutionEnvironment extends Service
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
-        _executor = Executors.newSingleThreadExecutor();
-        _executor.submit(new Callable<Void>() {
+        _scriptExecutor = Executors.newSingleThreadExecutor();
+        _paintExecutor = Executors.newSingleThreadExecutor();
+        _scriptExecutor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 Looper.prepare();
@@ -312,7 +314,7 @@ public final class ExecutionEnvironment extends Service
             _rootObject.add("top", 0);
             _rootObject.add("width", _surfaceGeometry.width());
             _rootObject.add("height", _surfaceGeometry.height());
-            _executor.execute(new Runnable() {
+            _scriptExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
                     if (_rootElement != null)
@@ -334,7 +336,7 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public void onDestroy() {
-        Future<Void> future = _executor.submit(new Callable<Void>() {
+        Future<Void> future = _scriptExecutor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
             _timers.discard();
@@ -351,7 +353,7 @@ public final class ExecutionEnvironment extends Service
                 _rootElement = null;
             }
 
-            _executor.submit(new Runnable() {
+            _scriptExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
                     if (_rootObject != null) {
@@ -378,14 +380,14 @@ public final class ExecutionEnvironment extends Service
             Log.e(TAG, "stopping environment failed", e);
         }
         Log.i(TAG, "shutting down main executor...");
-        _executor.shutdown();
+        _scriptExecutor.shutdown();
         try
-        { _executor.awaitTermination(3, TimeUnit.SECONDS); }
+        { _scriptExecutor.awaitTermination(3, TimeUnit.SECONDS); }
         catch(Exception ex)
-        { _executor.shutdownNow(); }
+        { _scriptExecutor.shutdownNow(); }
         Log.i(TAG, "main executor shut down");
 
-        _executor = null;
+        _scriptExecutor = null;
         _objects.clear();
     }
 
@@ -438,7 +440,7 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public ExecutorService getExecutor() {
-        return _executor;
+        return _scriptExecutor;
     }
 
     @Override
@@ -452,7 +454,7 @@ public final class ExecutionEnvironment extends Service
     }
 
     protected void setSurfaceFrame(final Rect rect) {
-        _executor.execute(new Runnable() {
+        _scriptExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 _surfaceGeometry = rect;
@@ -537,11 +539,11 @@ public final class ExecutionEnvironment extends Service
         synchronized (this) {
             if (_paintScheduled)
                 return;
-            if (_executor == null || _executor.isShutdown())
+            if (_scriptExecutor == null || _scriptExecutor.isShutdown())
                 return;
             _paintScheduled = true;
         }
-        _executor.submit(new Runnable() {
+        _paintExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 synchronized (this) { _paintScheduled = false; }
@@ -567,7 +569,7 @@ public final class ExecutionEnvironment extends Service
     }
 
     public Future<Boolean> sendEvent(final String keyName, final KeyEvent event) {
-        return _executor.submit(new Callable<Boolean>() {
+        return _scriptExecutor.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 try {
@@ -593,7 +595,7 @@ public final class ExecutionEnvironment extends Service
                 eventId = _eventId;
             }
         }
-        return _executor.submit(new Callable<Boolean>() {
+        return _scriptExecutor.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 try {

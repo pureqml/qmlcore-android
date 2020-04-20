@@ -167,10 +167,14 @@ public class Element extends BaseObject {
         if (el._parent != null)
             throw new AlreadyHasAParentException();
         el._parent = this;
-        if (_children == null)
-            _children = new ArrayList<>();
 
-        _children.add(el);
+        synchronized (this) {
+            if (_children == null)
+                _children = new ArrayList<>();
+
+            _children.add(el);
+        }
+
         el.update();
     }
 
@@ -198,9 +202,11 @@ public class Element extends BaseObject {
     { Log.d(TAG, "ignoring addClass " + classname); }
 
     protected void removeChild(Element child) {
-        if (_children != null)
-            _children.remove(child);
-        _lastRect.union(child._lastRect);
+        synchronized (this) {
+            if (_children != null)
+                _children.remove(child);
+            _lastRect.union(child._lastRect);
+        }
         update();
     }
 
@@ -392,11 +398,17 @@ public class Element extends BaseObject {
         return _rect.top + (_translate != null? _translate.y: 0);
     }
 
+    @SuppressWarnings("unchecked")
     public final void paintChildren(PaintState parent) {
-        if (_children == null)
-            return;
+        ArrayList<Element> children;
 
-        ArrayList<Element> children = (ArrayList<Element>)_children.clone();
+        synchronized (this) {
+            if (_children == null || _children.isEmpty())
+                return;
+
+            children = (ArrayList<Element>)_children.clone();
+        }
+
         int scrollX = -getScrollXImpl(), scrollY = -getScrollYImpl();
 
         for (Element child : children) {
@@ -497,9 +509,14 @@ public class Element extends BaseObject {
         x += getScrollXImpl();
         y += getScrollYImpl();
 
-        if (_children != null) {
-            for (int i = _children.size() - 1; i >= 0; --i) {
-                Element child = _children.get(i);
+        ArrayList<Element> children;
+        synchronized (this) {
+            children = _children != null? (ArrayList<Element>)_children.clone(): null;
+        }
+
+        if (children != null) {
+            for (int i = children.size() - 1; i >= 0; --i) {
+                Element child = children.get(i);
                 int offsetX = x - getBaseX();
                 int offsetY = y - getBaseY();
                 if (_clip && (offsetX < 0 || offsetY < 0 || offsetX > clientWidth || offsetY > clientHeight))
@@ -709,6 +726,8 @@ public class Element extends BaseObject {
     }
 
     protected final void sortChildren() {
-        Collections.sort(_children, new ZComparator());
+        synchronized (this) {
+            Collections.sort(_children, new ZComparator());
+        }
     }
 }
