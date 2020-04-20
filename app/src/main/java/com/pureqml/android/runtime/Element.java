@@ -157,7 +157,7 @@ public class Element extends BaseObject {
     public void updateStyle() {}
 
     public void addClass(String classname)
-    { Log.w(TAG, "ignoring addClass " + classname); }
+    { Log.d(TAG, "ignoring addClass " + classname); }
 
     protected void removeChild(Element child) {
         if (_children != null)
@@ -260,7 +260,7 @@ public class Element extends BaseObject {
                 break;
 
             default:
-                Log.w(TAG, "ignoring setStyle " + name + ": " + value);
+                Log.d(TAG, "ignoring setStyle " + name + ": " + value);
                 return;
         }
         update();
@@ -557,11 +557,11 @@ public class Element extends BaseObject {
     }
 
     public void setAttribute(String name, String value) {
-        Log.w(TAG, "ignoring setAttribute " + name + ", " + value);
+        Log.d(TAG, "ignoring setAttribute " + name + ", " + value);
     }
 
     public String getAttribute(String name) {
-        Log.w(TAG, "ignoring getAttribute " + name);
+        Log.d(TAG, "ignoring getAttribute " + name);
         return "";
     }
 
