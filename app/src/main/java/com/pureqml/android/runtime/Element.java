@@ -387,8 +387,7 @@ public class Element extends BaseObject {
         Rect rect = getRect();
         Element el = _parent;
         while(el != null) {
-            Rect elRect = el.getRect();
-            rect.offset(elRect.left - el.getScrollXImpl(), elRect.top - el.getScrollYImpl());
+            rect.offset(el.getBaseX() - el.getScrollXImpl(), el.getBaseY() - el.getScrollYImpl());
             el = el._parent;
         }
         return rect;
