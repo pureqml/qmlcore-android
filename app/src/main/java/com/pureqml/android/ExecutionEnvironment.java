@@ -96,6 +96,7 @@ public final class ExecutionEnvironment extends Service
     private IRenderer                   _renderer;
     private DisplayMetrics              _metrics;
     private ViewGroup                   _rootView;
+    private boolean                     _paintScheduled;
     private int                         _eventId;
     private boolean                     _blockInput;
     private View                        _focusedView;
@@ -231,14 +232,6 @@ public final class ExecutionEnvironment extends Service
                 HttpRequest.request(ExecutionEnvironment.this, v8Array);
             }
         }, "httpRequest");
-
-        v8FD.registerJavaMethod(new JavaCallback() {
-            @Override
-            public Object invoke(V8Object v8Object, V8Array v8Array) {
-                ExecutionEnvironment.this.paint();
-                return null;
-            }
-        }, "paint");
 
         V8Object objectProto    = Wrapper.generateClass(this, _v8, v8FD, "Object", BaseObject.class, new Class<?>[] { IExecutionEnvironment.class });
         V8Object elementProto   = Wrapper.generateClass(this, _v8, v8FD, "Element", Element.class, new Class<?>[] { IExecutionEnvironment.class });
@@ -510,6 +503,7 @@ public final class ExecutionEnvironment extends Service
         synchronized (_updatedElements) {
             _updatedElements.add(el);
         }
+        paint();
     }
 
     public void paint(final SurfaceHolder holder) {
@@ -546,16 +540,20 @@ public final class ExecutionEnvironment extends Service
     }
 
     public void paint() {
-        if (_executor != null && !_executor.isShutdown()) {
-            _executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    ExecutionEnvironment.this.paint(_surfaceHolder);
-                }
-            });
-        } else {
-            Log.w(TAG, "no executor, skipping paint");
+        synchronized (this) {
+            if (_paintScheduled)
+                return;
+            if (_executor == null || _executor.isShutdown())
+                return;
+            _paintScheduled = true;
         }
+        _executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (this) { _paintScheduled = false; }
+                ExecutionEnvironment.this.paint(_surfaceHolder);
+            }
+        });
     }
 
     private Rect popDirtyRect() {
