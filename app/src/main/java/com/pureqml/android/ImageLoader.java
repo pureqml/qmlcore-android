@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.LruCache;
 
 import com.caverock.androidsvg.SVG;
+import com.caverock.androidsvg.SVGParseException;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -73,14 +74,8 @@ public final class ImageLoader {
                     rawStream = _env.getAssets().open(path.substring(pos)); //strip leading slash
                 } else
                     rawStream = _url.openStream();
-                if (_holder instanceof ImageStaticHolder) {
-                    BufferedInputStream stream = new BufferedInputStream(rawStream);
-                    bitmap = BitmapFactory.decodeStream(stream);
-                    _holder.setContent(bitmap);
-                } else if (_holder instanceof ImageVectorHolder) {
-                    SVG  svg = SVG.getFromInputStream(rawStream);
-                    _holder.setContent(svg);
-                }
+
+                _holder.load(rawStream);
             } catch(Exception ex) {
                 Log.e(TAG, "image loading failed", ex);
             } finally {
@@ -93,15 +88,15 @@ public final class ImageLoader {
         }
     }
 
-    private interface  ImageHolder<T> {
-        public Bitmap getBitmap(int w, int h);
-        public void setContent(T content);
-        public boolean isLoaded();
-        public URL getUrl();
+    private interface ImageHolder {
+        void load(InputStream stream);
+        Bitmap getBitmap(int w, int h);
+        boolean isLoaded();
+        URL getUrl();
         int byteCount();
     }
 
-    private class ImageStaticHolder implements ImageHolder<Bitmap> {
+    private class ImageStaticHolder implements ImageHolder {
         URL     _url;
         Bitmap  _image;
         boolean loaded = false;
@@ -109,6 +104,10 @@ public final class ImageLoader {
         ImageStaticHolder(URL url) {
             _url = url;
             _threadPool.execute(new ImageLoaderTask(url, this));
+        }
+
+        synchronized public void load(InputStream stream) {
+            _image = BitmapFactory.decodeStream(new BufferedInputStream(stream));
         }
 
         @Nullable
@@ -128,7 +127,7 @@ public final class ImageLoader {
         synchronized public URL getUrl() { return _url; }
     }
 
-    private class ImageVectorHolder implements ImageHolder<SVG> {
+    private class ImageVectorHolder implements ImageHolder {
         URL     _url;
         Bitmap  _image;
         SVG _svg;
@@ -137,6 +136,15 @@ public final class ImageLoader {
         ImageVectorHolder(URL url) {
             _url = url;
             _threadPool.execute(new ImageLoaderTask(url, this));
+        }
+
+        public synchronized void load(InputStream stream) {
+            try {
+                _svg = SVG.getFromInputStream(stream);
+            } catch (SVGParseException e) {
+                Log.e(TAG, "loading vector image failed", e);
+                _svg = null;
+            }
         }
 
         @Nullable
