@@ -63,7 +63,6 @@ public final class ImageLoader {
         @Override
         public void run() {
             Log.i(TAG, "starting loading task on " + _url);
-            Bitmap bitmap = null;
             try {
                 InputStream rawStream = null;
                 if (_url.getProtocol().equals("file")) {
