@@ -163,13 +163,20 @@ public final class MainActivity
             }
         }
 
+        private void fullRedraw() {
+            _executionEnvironment.update(_executionEnvironment.getRootElement());
+            _executionEnvironment.paint();
+        }
+
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             Log.i(TAG, "surface changed " + holder.getSurfaceFrame());
             synchronized (MainActivity.this) {
                 _surfaceFrame = holder.getSurfaceFrame();
-                if (_executionEnvironment != null)
+                if (_executionEnvironment != null) {
                     _executionEnvironment.setSurfaceFrame(_surfaceFrame);
+                    fullRedraw();
+                }
             }
         }
 
@@ -186,10 +193,8 @@ public final class MainActivity
         @Override
         public void surfaceRedrawNeeded(SurfaceHolder holder) {
             Log.i(TAG, "redraw needed");
-            if (_executionEnvironment != null) {
-                _executionEnvironment.update(_executionEnvironment.getRootElement());
-                _executionEnvironment.paint();
-            }
+            if (_executionEnvironment != null)
+                fullRedraw();
         }
     };
 
