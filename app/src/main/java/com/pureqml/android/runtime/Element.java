@@ -399,8 +399,7 @@ public class Element extends BaseObject {
     }
 
     private final void emitScroll() {
-        _parent._publicScrollPos = new Point(getScrollXImpl(), getScrollYImpl());
-        _parent._publicScrollPos.offset(-this.getBaseX(), -this.getBaseY());
+        _parent._publicScrollPos.set(getScrollXImpl() - this.getBaseX() , getScrollYImpl() - this.getBaseY());
         _parent.emit(null, "scroll");
         update();
     }
@@ -451,6 +450,8 @@ public class Element extends BaseObject {
                         _scrollPos = new Point();
                     if (_scrollOffset == null)
                         _scrollOffset = new Point();
+                    if (_parent._publicScrollPos == null)
+                        _parent._publicScrollPos = new Point();
                     _eventId = eventId;
                     _motionStartPos.x = (int) event.getX();
                     _motionStartPos.y = (int) event.getY();
