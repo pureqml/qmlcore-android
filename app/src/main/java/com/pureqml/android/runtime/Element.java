@@ -62,6 +62,39 @@ public class Element extends BaseObject {
         super(env);
     }
 
+    public Rect getRedrawRect(Rect clipRect) {
+        //this function tries to calculate rectangle if this element says it's invalidated
+        Rect elementRect = new Rect();
+        if (_globallyVisible) {
+            Rect rect = new Rect(getScreenRect());
+            if (rect.intersect(clipRect)) {
+                //Log.v(TAG, "screen rect " + rect);
+                elementRect.union(rect);
+            }
+
+            rect = new Rect(_combinedRect);
+            if (rect.intersect(clipRect)) {
+                //Log.v(TAG, "combined rect " + rect);
+                elementRect.union(rect);
+            }
+
+        }
+        Rect last = new Rect(_lastRect);
+        if (last.intersect(clipRect)) {
+            //Log.v(TAG, "last rect " + last);
+            elementRect.union(last);
+        }
+        Element parent = _parent;
+        while(parent != null && !elementRect.isEmpty()) {
+            if (parent._clip) {
+                Rect parentRect = parent.getScreenRect(); //fixme: this makes this loop O(N^2)
+                elementRect.intersect(parentRect);
+            }
+            parent = parent._parent;
+        }
+        return elementRect;
+    }
+
     public void enableCache(boolean enable)
     {
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -81,15 +114,6 @@ public class Element extends BaseObject {
         if (_translate != null)
             rect.offset(_translate.x, _translate.y);
         return rect;
-    }
-
-    public final Rect getCombinedRect()
-    { return _combinedRect; }
-    public final Rect getLastRenderedRect()
-    { return _lastRect; }
-
-    public boolean globallyVisible() {
-        return _globallyVisible;
     }
 
     final boolean scrollXEnabled()  { return _parent != null? _parent._enableScrollX: false; }
@@ -369,8 +393,8 @@ public class Element extends BaseObject {
             childRect.offset(parent.baseX, parent.baseY);
             _combinedRect.union(childRect);
 
-            _combinedRect.union(child.getCombinedRect());
-            Rect last = child.getLastRenderedRect();
+            _combinedRect.union(child._combinedRect);
+            Rect last = child._lastRect;
             if (cache)
                 last.offset(childX, childY);
             _lastRect.union(last);

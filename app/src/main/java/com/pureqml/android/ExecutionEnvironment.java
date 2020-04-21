@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
@@ -104,6 +105,7 @@ public final class ExecutionEnvironment extends Service
     private String                      _orientation;
     private boolean                     _keepScreenOn;
     private boolean                     _fullScreen;
+    private int                         _debugColorIndex;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -506,6 +508,22 @@ public final class ExecutionEnvironment extends Service
         paint();
     }
 
+    private int getDebugColorIndex() {
+        int index = _debugColorIndex++ % 3;
+        int debugAlpha = 0x40;
+        switch(index) {
+            case 0:
+                return Color.argb(debugAlpha, 0xff, 0, 0);
+            case 1:
+                return Color.argb(debugAlpha, 0, 0xff, 0);
+            case 2:
+                return Color.argb(debugAlpha, 0, 0, 0xff);
+            default:
+                return 0;
+        }
+    }
+
+
     public void paint(final SurfaceHolder holder) {
         if (_rootElement == null || holder == null || holder.getSurface() == null)
             return;
@@ -525,11 +543,19 @@ public final class ExecutionEnvironment extends Service
             if (canvas != null) {
                 PaintState paint = new PaintState(canvas);
 
-                Paint bgPaint = new Paint();
-                bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                canvas.drawRect(rect, bgPaint);
+                {
+                    Paint bgPaint = new Paint();
+                    bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                    canvas.drawRect(rect, bgPaint);
+                }
 
                 _rootElement.paint(paint);
+
+//                {
+//                    Paint updatePaint = new Paint();
+//                    updatePaint.setColor(getDebugColorIndex());
+//                    canvas.drawRect(rect, updatePaint);
+//                }
             }
         } catch (Exception e) {
             Log.e(TAG, "repaint failed", e);
@@ -565,25 +591,8 @@ public final class ExecutionEnvironment extends Service
         final Rect clipRect = _surfaceGeometry;
         Rect combinedRect = new Rect();
         for(Element el : _updatedElements) {
-            if (el.globallyVisible()) {
-                Rect rect = new Rect(el.getScreenRect());
-                if (rect.intersect(clipRect)) {
-                    //Log.v(TAG, "screen rect " + rect);
-                    combinedRect.union(rect);
-                }
-
-                rect = new Rect(el.getCombinedRect());
-                if (rect.intersect(clipRect)) {
-                    //Log.v(TAG, "combined rect " + rect);
-                    combinedRect.union(rect);
-                }
-
-            }
-            Rect last = new Rect(el.getLastRenderedRect());
-            if (last.intersect(clipRect)) {
-                //Log.v(TAG, "last rect " + last);
-                combinedRect.union(last);
-            }
+            Rect elementRect = el.getRedrawRect(clipRect);
+            combinedRect.union(elementRect);
         }
         _updatedElements.clear();
         return !combinedRect.isEmpty()? combinedRect: null;
