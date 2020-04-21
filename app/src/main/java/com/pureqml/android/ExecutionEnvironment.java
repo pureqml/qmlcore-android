@@ -453,12 +453,14 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener) {
-        List<ImageLoadedCallback> list = _imageWaiters.get(url);
-        if (list == null) {
-            list = new LinkedList<ImageLoadedCallback>();
-            _imageWaiters.put(url, list);
+        synchronized (_imageWaiters) {
+            List<ImageLoadedCallback> list = _imageWaiters.get(url);
+            if (list == null) {
+                list = new LinkedList<ImageLoadedCallback>();
+                _imageWaiters.put(url, list);
+            }
+            list.add(listener);
         }
-        list.add(listener);
         return _imageLoader.load(url, this);
     }
 
@@ -468,17 +470,19 @@ public final class ExecutionEnvironment extends Service
             @Override
             public void run() {
                 Log.v(TAG, "loaded image " + url);
-                List<ImageLoadedCallback> list = _imageWaiters.get(url);
-                if (list != null) {
-                    for (ImageLoadedCallback l : list) {
-                        try {
-                            l.onImageLoaded(url);
-                        } catch (Exception e) {
-                            Log.e(TAG, "image listener failed", e);
+                synchronized (_imageWaiters) {
+                    List<ImageLoadedCallback> list = _imageWaiters.get(url);
+                    if (list != null) {
+                        for (ImageLoadedCallback l : list) {
+                            try {
+                                l.onImageLoaded(url);
+                            } catch (Exception e) {
+                                Log.e(TAG, "image listener failed", e);
+                            }
                         }
                     }
+                    _imageWaiters.remove(url);
                 }
-                _imageWaiters.remove(url);
             }
         });
     }
