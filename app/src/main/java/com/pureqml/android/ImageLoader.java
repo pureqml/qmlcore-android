@@ -79,9 +79,8 @@ public final class ImageLoader {
                 Log.e(TAG, "image loading failed", ex);
             } finally {
                 synchronized (_cache) {
-                    _cache.remove(_url);
-                    _env.onImageLoaded(_url);
                     _cache.put(_url, _holder);
+                    _env.onImageLoaded(_url);
                 }
             }
         }
