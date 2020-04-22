@@ -1,13 +1,17 @@
 package com.pureqml.android.runtime;
 
+import android.animation.TimeInterpolator;
 import android.graphics.Paint;
 import android.graphics.Picture;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.Build;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.animation.DecelerateInterpolator;
 
 import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
@@ -47,6 +51,8 @@ public class Element extends BaseObject {
 
     private static final float  DetectionDistance = 5;
     private static final float  DetectionDistance2 = DetectionDistance * DetectionDistance;
+    private static final float  MinimumScrollVelocity = 500;
+    private static final float  DecelerateInterpolatorOrder = 3;
 
     private boolean             _enableScrollX;
     private boolean             _enableScrollY;
@@ -57,6 +63,13 @@ public class Element extends BaseObject {
     private Point               _scrollPos;
     private Point               _publicScrollPos; //bloody html, scroll is reported on parent element
     private int                 _eventId;
+
+    //inertial scrolling
+    private PointF              _scrollVelocity;
+    private TimeInterpolator    _scrollInterpolator;
+    private long                _scrollTimeBase;
+    private long                _scrollTimeLast;
+    private final static long   ScrollDuration = 3000;
 
     public Element(IExecutionEnvironment env) {
         super(env);
@@ -322,6 +335,55 @@ public class Element extends BaseObject {
     protected final void beginPaint() {
         _lastRect.setEmpty();
         _combinedRect.setEmpty();
+        if (_scrollVelocity != null) {
+            long now = SystemClock.elapsedRealtime();
+            float t = 1.0f * (now - _scrollTimeBase) / ScrollDuration;
+            float dt = (now - _scrollTimeLast) / 1000.0f;
+            _scrollTimeLast = now;
+
+            Log.v(TAG, "t: " + t + ", dt: " + dt);
+            if (t > 1.0f) {
+                t = 1.0f;
+            }
+
+            float vtdt = (1.0f - _scrollInterpolator.getInterpolation(t)) * dt;
+            _scrollPos.x += _scrollVelocity.x * vtdt;
+            _scrollPos.y += _scrollVelocity.y * vtdt;
+
+            Rect rect = getRect();
+            Rect parentRect = _parent.getRect();
+
+            int clientWidth = rect.width(), clientHeight = rect.height();
+            int w = parentRect.width(), h = parentRect.height();
+            if (_scrollPos.x + w > clientWidth) {
+                _scrollPos.x = clientWidth - w;
+                t = 1.0f; //finish
+            }
+            if (_scrollPos.y + h > clientHeight) {
+                _scrollPos.y = clientHeight - h;
+                t = 1.0f; //finish
+            }
+            if (_scrollPos.x < 0) {
+                _scrollPos.x = 0;
+                t = 1.0f; //finish
+            }
+            if (_scrollPos.y < 0) {
+                _scrollPos.y = 0;
+                t = 1.0f; //finish
+            }
+
+            if (t >= 1.0f) {
+                Log.v(TAG, "scroll finished, stopping");
+                _scrollVelocity = null;
+            }
+            _env.getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    emitScroll();
+                }
+            });
+            _parent.update();
+        }
     }
 
     protected final void endPaint() {
@@ -477,6 +539,7 @@ public class Element extends BaseObject {
                         _scrollOffset = new Point();
                     if (_parent._publicScrollPos == null)
                         _parent._publicScrollPos = new Point();
+                    _scrollVelocity = null;
                     _eventId = eventId;
                     _motionStartPos.x = (int) event.getX();
                     _motionStartPos.y = (int) event.getY();
@@ -491,6 +554,16 @@ public class Element extends BaseObject {
                 if (!handled && _eventId == eventId && (enableScrollX || enableScrollY)) {
                     int dx = (int) (event.getX() - _motionStartPos.x);
                     int dy = (int) (event.getY() - _motionStartPos.y);
+                    if (_scrollVelocity != null) {
+                        //pause scrolling surface
+                        if (_scrollVelocity.x != 0) {
+                            _useScrollX = true;
+                            handleMove = true;
+                        } else if (_scrollVelocity.y != 0) {
+                            _useScrollY = true;
+                            handleMove = true;
+                        }
+                    }
 
                     if (!_useScrollX && !_useScrollY) {
                         float distance = (float) Math.hypot((double) dx, (double) dy);
@@ -556,6 +629,21 @@ public class Element extends BaseObject {
                         _scrollPos.y += _scrollOffset.y;
                         Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
                         boolean noScroll = _scrollOffset.x == 0 && _scrollOffset.y == 0;
+
+                        if (!noScroll) {
+                            float delta = (event.getEventTime() - event.getDownTime()) / 1000.0f;
+                            PointF scrollVelocity = new PointF(_scrollOffset.x / delta, _scrollOffset.y / delta);
+                            if (scrollVelocity.length() >= MinimumScrollVelocity) {
+                                Log.v(TAG, "scroll velocity: " + scrollVelocity);
+                                if (_scrollInterpolator == null)
+                                    _scrollInterpolator = new DecelerateInterpolator(DecelerateInterpolatorOrder);
+
+                                _scrollTimeBase = _scrollTimeLast = SystemClock.elapsedRealtime();
+                                _scrollVelocity = scrollVelocity;
+                            } else
+                                Log.v(TAG, "ignoring scroll, less than limit");
+                        }
+
                         _scrollOffset = null;
 
                         if (noScroll)
