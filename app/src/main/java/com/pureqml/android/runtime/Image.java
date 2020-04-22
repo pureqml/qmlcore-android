@@ -162,7 +162,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     }
 
     public void load(String name, V8Function callback) {
-        if (name.indexOf("://") < 0)
+        if (!name.contains("://"))
             name = "file:///" + name;
         _url = null;
         try {
@@ -181,7 +181,6 @@ public final class Image extends Element implements ImageLoadedCallback {
         }
         //Log.v(TAG, "loading " + url);
         _image = _env.loadImage(_url, this);
-        _image.createLoader();
         _callback = callback;
     }
 
@@ -247,28 +246,35 @@ public final class Image extends Element implements ImageLoadedCallback {
 
     @Override
     public void onImageLoaded(URL url) {
-        if (url.equals(_url)) {
-            Bitmap bitmap = _image.getBitmap(0, 0);
-            V8Array args = new V8Array(_env.getRuntime());
-            try {
-                if (bitmap != null) {
-                    V8Object metrics = new V8Object(_env.getRuntime());
-                    metrics.add("width", bitmap.getWidth());
-                    metrics.add("height", bitmap.getHeight());
-                    args.push(metrics);
+        _env.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                Log.v(TAG, "on image loaded " + url + ", current url: " + _url);
+                if (!url.equals(_url))
+                    return;
 
-                    _env.invokeVoidCallback(_callback, null, args);
-                    metrics.close();
-                } else {
-                    args.push((Object)null);
-                    _env.invokeVoidCallback(_callback, null, args);
+                Bitmap bitmap = _image.getBitmap(0, 0);
+                Log.v(TAG, "image bitmap: " + _url + " -> " + bitmap);
+                V8Array args = new V8Array(_env.getRuntime());
+                try {
+                    if (bitmap != null) {
+                        V8Object metrics = new V8Object(_env.getRuntime());
+                        metrics.add("width", bitmap.getWidth());
+                        metrics.add("height", bitmap.getHeight());
+                        args.push(metrics);
+
+                        _env.invokeVoidCallback(_callback, null, args);
+                        metrics.close();
+                    } else {
+                        args.push((Object)null);
+                        _env.invokeVoidCallback(_callback, null, args);
+                    }
+                } finally {
+                    args.close();
+                    update();
                 }
-            } finally {
-                args.close();
-                update();
             }
-
-        }
+        });
     }
 
     @Override
@@ -280,7 +286,6 @@ public final class Image extends Element implements ImageLoadedCallback {
             Bitmap bitmap = _image.getBitmap(dst.width(), dst.height());
             if (bitmap != null) {
                 Paint paint = patchAlpha(_paint, 255, state.opacity);
-                //Log.i(TAG, "drawing image "  + src + " " + dst + " " + dst.width() + "x" + dst.height());
                 if (paint != null) {
                     boolean clip = _backgroundX.needClip(_backgroundY);
                     boolean doPaint = true;

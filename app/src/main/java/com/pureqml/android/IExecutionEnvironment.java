@@ -17,7 +17,7 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 
-public interface IExecutionEnvironment extends ImageLoadedCallback {
+public interface IExecutionEnvironment {
     Context getContext();
     ExecutorService getExecutor();
     ExecutorService getThreadPool();

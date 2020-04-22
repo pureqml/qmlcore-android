@@ -55,10 +55,7 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -82,8 +79,6 @@ public final class ExecutionEnvironment extends Service
     class WeakRefList<E> extends ArrayList<WeakReference<E>> {};
     //Element collection
     private SparseArray<BaseObject>     _objects = new SparseArray<BaseObject>(10000);
-    private HashMap<URL, List<ImageLoadedCallback>>
-                                        _imageWaiters = new HashMap<>();
     private WeakRefList<IResource>      _resources = new WeakRefList<IResource>();
     private Set<Element>                _updatedElements = new HashSet<Element>();
     private Rect                        _surfaceGeometry;
@@ -453,38 +448,7 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener) {
-        synchronized (_imageWaiters) {
-            List<ImageLoadedCallback> list = _imageWaiters.get(url);
-            if (list == null) {
-                list = new LinkedList<ImageLoadedCallback>();
-                _imageWaiters.put(url, list);
-            }
-            list.add(listener);
-        }
-        return _imageLoader.load(url, this);
-    }
-
-    @Override
-    public void onImageLoaded(final URL url) {
-        _executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                Log.v(TAG, "loaded image " + url);
-                synchronized (_imageWaiters) {
-                    List<ImageLoadedCallback> list = _imageWaiters.get(url);
-                    if (list != null) {
-                        for (ImageLoadedCallback l : list) {
-                            try {
-                                l.onImageLoaded(url);
-                            } catch (Exception e) {
-                                Log.e(TAG, "image listener failed", e);
-                            }
-                        }
-                    }
-                    _imageWaiters.remove(url);
-                }
-            }
-        });
+        return _imageLoader.load(url, listener);
     }
 
     protected void setSurfaceFrame(final Rect rect) {
