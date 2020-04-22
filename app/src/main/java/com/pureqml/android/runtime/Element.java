@@ -86,6 +86,7 @@ public class Element extends BaseObject {
         }
         Element parent = _parent;
         while(parent != null && !elementRect.isEmpty()) {
+            parent._cacheValid = false;
             if (parent._clip) {
                 Rect parentRect = parent.getScreenRect(); //fixme: this makes this loop O(N^2)
                 elementRect.intersect(parentRect);
