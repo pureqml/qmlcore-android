@@ -19,9 +19,9 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.TypeConverter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +47,7 @@ public class Element extends BaseObject {
     private boolean             _cacheValid = false;
     private Picture             _cachePicture = null;
 
-    protected LinkedList<Element> _children;
+    protected ArrayList<Element> _children;
 
     private static final float  DetectionDistance = 5;
     private static final float  DetectionDistance2 = DetectionDistance * DetectionDistance;
@@ -168,7 +168,7 @@ public class Element extends BaseObject {
             throw new AlreadyHasAParentException();
         el._parent = this;
         if (_children == null)
-            _children = new LinkedList<Element>();
+            _children = new ArrayList<>();
 
         _children.add(el);
         el.update();
@@ -376,12 +376,7 @@ public class Element extends BaseObject {
                 Log.v(TAG, "scroll finished, stopping");
                 _scrollVelocity = null;
             }
-            _env.getExecutor().submit(new Runnable() {
-                @Override
-                public void run() {
-                    emitScroll();
-                }
-            });
+            emitScroll();
             _parent.update();
         }
     }
@@ -397,12 +392,11 @@ public class Element extends BaseObject {
         return _rect.top + (_translate != null? _translate.y: 0);
     }
 
-    @SuppressWarnings("unchecked")
     public final void paintChildren(PaintState parent) {
         if (_children == null)
             return;
 
-        LinkedList<Element> children = _children;
+        ArrayList<Element> children = (ArrayList<Element>)_children.clone();
         int scrollX = -getScrollXImpl(), scrollY = -getScrollYImpl();
 
         for (Element child : children) {
