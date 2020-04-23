@@ -40,7 +40,6 @@ public final class Spinner extends Element {
 
     @Override
     public void paint(PaintState state) {
-        super.paint(state);
         beginPaint();
         paintChildren(state);
 
