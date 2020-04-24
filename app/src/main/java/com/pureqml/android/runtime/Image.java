@@ -246,6 +246,7 @@ public final class Image extends Element implements ImageLoadedCallback {
 
     @Override
     public void onImageLoaded(URL url) {
+        final Bitmap bitmap = _image.getBitmap(0, 0);
         _env.getExecutor().execute(new Runnable() {
             @Override
             public void run() {
@@ -253,7 +254,6 @@ public final class Image extends Element implements ImageLoadedCallback {
                 if (!url.equals(_url))
                     return;
 
-                Bitmap bitmap = _image.getBitmap(0, 0);
                 Log.v(TAG, "image bitmap: " + _url + " -> " + bitmap);
                 V8Array args = new V8Array(_env.getRuntime());
                 try {
