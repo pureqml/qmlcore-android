@@ -392,6 +392,7 @@ public class Element extends BaseObject {
         return _rect.top + (_translate != null? _translate.y: 0);
     }
 
+    @SuppressWarnings("unchecked")
     public final void paintChildren(PaintState parent) {
         if (_children == null)
             return;
