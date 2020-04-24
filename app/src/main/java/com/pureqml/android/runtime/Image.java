@@ -23,7 +23,6 @@ import java.net.URL;
 public final class Image extends Element implements ImageLoadedCallback {
     private final static String TAG = "rt.Image";
     URL                         _url;
-    ImageLoader.ImageResource   _image;
     V8Function                  _callback;
     Paint                       _paint;
 
@@ -180,7 +179,8 @@ public final class Image extends Element implements ImageLoadedCallback {
             return;
         }
         //Log.v(TAG, "loading " + url);
-        _image = _env.loadImage(_url, this);
+        ImageLoader loader = _env.getImageLoader();
+        loader.load(_url, this);
         _callback = callback;
     }
 
@@ -245,8 +245,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     }
 
     @Override
-    public void onImageLoaded(URL url) {
-        final Bitmap bitmap = _image.getBitmap(0, 0);
+    public void onImageLoaded(URL url, final Bitmap bitmap) {
         _env.getExecutor().execute(new Runnable() {
             @Override
             public void run() {
@@ -281,9 +280,9 @@ public final class Image extends Element implements ImageLoadedCallback {
     public void paint(PaintState state) {
         beginPaint();
 
-        if (_image != null) {
+        if (_url != null) {
             Rect dst = getDstRect(state);
-            Bitmap bitmap = _image.getBitmap(dst.width(), dst.height());
+            Bitmap bitmap = _env.getImageLoader().getBitmap(_url, dst.width(), dst.height());
             if (bitmap != null) {
                 Paint paint = patchAlpha(_paint, 255, state.opacity);
                 if (paint != null) {
@@ -305,7 +304,8 @@ public final class Image extends Element implements ImageLoadedCallback {
                     if (clip)
                         state.canvas.restore();
                 }
-            }
+            } else
+                Log.w(TAG, "null bitmap returned for " + _url);
         }
         paintChildren(state);
 

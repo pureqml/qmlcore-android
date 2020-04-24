@@ -38,7 +38,7 @@ public interface IExecutionEnvironment {
 
     //image loader api
     AssetManager getAssets();
-    ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener);
+    ImageLoader getImageLoader();
 
     void register(IResource res);
 

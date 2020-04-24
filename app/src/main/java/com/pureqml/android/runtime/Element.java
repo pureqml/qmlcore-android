@@ -45,6 +45,7 @@ public class Element extends BaseObject {
     protected int               _z;
     private boolean             _cache = false;
     private boolean             _cacheValid = false;
+    private boolean             _cacheDisabled = false;
     private Picture             _cachePicture = null;
 
     protected ArrayList<Element> _children;
@@ -336,6 +337,7 @@ public class Element extends BaseObject {
         _lastRect.setEmpty();
         _combinedRect.setEmpty();
         if (_scrollVelocity != null) {
+            _cacheDisabled = true;
             long now = SystemClock.elapsedRealtime();
             float t = 1.0f * (now - _scrollTimeBase) / ScrollDuration;
             float dt = (now - _scrollTimeLast) / 1000.0f;
@@ -375,10 +377,12 @@ public class Element extends BaseObject {
             if (t >= 1.0f) {
                 Log.v(TAG, "scroll finished, stopping");
                 _scrollVelocity = null;
+                _cacheDisabled = false;
             }
             emitScroll();
             _parent.update();
-        }
+        } else
+            _cacheDisabled = false;
     }
 
     protected final void endPaint() {
@@ -446,6 +450,8 @@ public class Element extends BaseObject {
                 parent.canvas.translate(parent.baseX + childX, parent.baseY + childY);
                 parent.canvas.drawPicture(child._cachePicture);
                 parent.canvas.restoreToCount(saveCount);
+                if (child._cacheDisabled)
+                    child._cacheValid = false;
             }
 
             childRect.offset(parent.baseX, parent.baseY);

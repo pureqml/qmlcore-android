@@ -447,8 +447,8 @@ public final class ExecutionEnvironment extends Service
     }
 
     @Override
-    public ImageLoader.ImageResource loadImage(URL url, ImageLoadedCallback listener) {
-        return _imageLoader.load(url, listener);
+    public ImageLoader getImageLoader() {
+        return _imageLoader;
     }
 
     protected void setSurfaceFrame(final Rect rect) {

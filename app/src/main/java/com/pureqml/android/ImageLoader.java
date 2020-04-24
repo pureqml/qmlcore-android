@@ -37,10 +37,9 @@ public final class ImageLoader {
         _threadPool = env.getThreadPool();
     }
 
-    public ImageResource load(URL url, ImageLoadedCallback callback) {
+    private ImageHolder getHolder(URL url) {
         synchronized (_cache) {
             ImageHolder holder = _cache.get(url);
-
             if (holder == null) {
                 String stringUrl = url.toString();
                 String svgFileFormat = "svg";
@@ -52,26 +51,18 @@ public final class ImageLoader {
                 _cache.put(url, holder);
                 _threadPool.execute(new ImageLoaderTask(url, holder));
             }
-            holder.notify(callback);
+            return holder;
         }
-
-        return new ImageResource(url);
     }
 
-    public class ImageResource {
-        private URL     _url;
+    public void load(URL url, ImageLoadedCallback callback) {
+        ImageHolder holder = getHolder(url);
+        holder.notify(callback);
+    }
 
-        ImageResource(URL url) {
-            _url = url;
-        }
-
-        @Nullable
-        public Bitmap getBitmap(int w, int h) {
-            synchronized (_cache) {
-                ImageHolder holder = _cache.get(_url);
-                return holder.getBitmap(w, h);
-            }
-        }
+    public Bitmap getBitmap(URL url, int w, int h) {
+        ImageHolder holder = getHolder(url);
+        return holder.getBitmap(w, h);
     }
 
     private class ImageLoaderTask implements Runnable {
@@ -102,6 +93,7 @@ public final class ImageLoader {
                 Log.e(TAG, "image loading failed", ex);
             } finally {
                 _holder.finish();
+                _cache.put(_url, _holder);
             }
             Log.i(TAG, "finished loading task on " + _url);
         }
@@ -123,7 +115,7 @@ public final class ImageLoader {
     {
         protected URL                       _url;
         private boolean                     _finished;
-        private List<ImageLoadedCallback> _callbacks;
+        private List<ImageLoadedCallback>   _callbacks;
 
         BaseImageHolder(URL url) {
             _url = url;
@@ -136,10 +128,21 @@ public final class ImageLoader {
         @Override
         public void notify(ImageLoadedCallback callback) {
             if (_finished) {
-                callback.onImageLoaded(_url);
+                callback.onImageLoaded(_url, getNotifyBitmap());
             } else {
                 _callbacks.add(callback);
             }
+        }
+
+        @Nullable
+        Bitmap getNotifyBitmap() {
+            Bitmap bitmap = null;
+            try {
+                bitmap = getBitmap(0, 0);
+            } catch(Exception ex) {
+                Log.e(TAG, "getBitmap", ex);
+            }
+            return bitmap;
         }
 
         @Override
@@ -151,7 +154,7 @@ public final class ImageLoader {
 
             for(ImageLoadedCallback callback : _callbacks) {
                 try {
-                    callback.onImageLoaded(_url);
+                    callback.onImageLoaded(_url, getNotifyBitmap());
                 } catch(Exception ex) {
                     Log.e(TAG, "onImageLoaded failed: ", ex);
                 }
