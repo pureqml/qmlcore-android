@@ -290,7 +290,7 @@ public final class Image extends Element implements ImageLoadedCallback {
                     boolean doPaint = true;
                     if (clip) {
                         state.canvas.save();
-                        if (!state.canvas.clipRect(this.getScreenRect()))
+                        if (!state.canvas.clipRect(dst))
                             doPaint = false;
                     }
 
