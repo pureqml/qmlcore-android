@@ -173,7 +173,7 @@ public final class HttpRequest {
             return;
 
         File httpCacheDir = new File(env.getContext().getCacheDir(), "http");
-        long httpCacheSize = 30 * 1024 * 1024;
+        long httpCacheSize = 200 * 1024 * 1024;
         try {
             Log.d(TAG, "installing cache at " + httpCacheDir + " for " + httpCacheSize + " bytes");
             HttpResponseCache.install(httpCacheDir, httpCacheSize);
