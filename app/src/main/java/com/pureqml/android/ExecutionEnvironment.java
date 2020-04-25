@@ -581,6 +581,10 @@ public final class ExecutionEnvironment extends Service
                 ExecutionEnvironment.this.paint(_surfaceHolder);
 
                 long paintTimestamp = SystemClock.currentThreadTimeMillis();
+                if (_elementUpdaters.isEmpty()) {
+                    _lastPaintTimestamp = paintTimestamp;
+                    return;
+                }
                 float dt = (paintTimestamp - _lastPaintTimestamp) / 1000.0f;
                 _lastPaintTimestamp = paintTimestamp;
 
@@ -590,6 +594,8 @@ public final class ExecutionEnvironment extends Service
                     if (!entry.getValue().tick(dt))
                         it.remove();
                 }
+                if (!_elementUpdaters.isEmpty())
+                    ExecutionEnvironment.this.paint(); //restart
             }
         });
     }
