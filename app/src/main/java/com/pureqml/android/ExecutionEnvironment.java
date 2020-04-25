@@ -15,6 +15,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
@@ -51,7 +52,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
@@ -73,6 +76,26 @@ public final class ExecutionEnvironment extends Service
             return ExecutionEnvironment.this;
         }
     }
+
+    private class ElementUpdater {
+        private Element element;
+        private float duration;
+
+        ElementUpdater(Element el, float seconds) {
+            element = el;
+            duration = seconds;
+        }
+
+        public boolean tick(float dt) {
+            duration -= dt;
+            Log.v(TAG, "tick " + dt + " of " + duration);
+            boolean running = duration > 0;
+            if (running)
+                element.animate();
+            return running;
+        }
+    }
+
     private final IBinder _binder = new LocalBinder();
     private V8 _v8;
 
@@ -81,6 +104,7 @@ public final class ExecutionEnvironment extends Service
     private SparseArray<BaseObject>     _objects = new SparseArray<BaseObject>(10000);
     private WeakRefList<IResource>      _resources = new WeakRefList<IResource>();
     private Set<Element>                _updatedElements = new HashSet<Element>();
+    private Map<Element, ElementUpdater>_elementUpdaters = new HashMap<Element, ElementUpdater>();
     private Rect                        _surfaceGeometry;
     private V8Object                    _rootObject;
     private Element                     _rootElement;
@@ -101,6 +125,7 @@ public final class ExecutionEnvironment extends Service
     private boolean                     _keepScreenOn;
     private boolean                     _fullScreen;
     private int                         _debugColorIndex;
+    private long                        _lastPaintTimestamp;
 
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
@@ -113,6 +138,7 @@ public final class ExecutionEnvironment extends Service
                 return null;
             }
         });
+        _lastPaintTimestamp = SystemClock.currentThreadTimeMillis();
     }
 
     @Override
@@ -476,6 +502,12 @@ public final class ExecutionEnvironment extends Service
         paint();
     }
 
+    @Override
+    public void animate(Element el, float seconds)
+    {
+        _elementUpdaters.put(el, new ElementUpdater(el, seconds));
+    }
+
     private int getDebugColorIndex() {
         int index = _debugColorIndex++ % 3;
         int debugAlpha = 0x40;
@@ -540,12 +572,24 @@ public final class ExecutionEnvironment extends Service
             if (_executor == null || _executor.isShutdown())
                 return;
             _paintScheduled = true;
+            Log.v(TAG, "paint scheduled");
         }
         _executor.submit(new Runnable() {
             @Override
             public void run() {
                 synchronized (this) { _paintScheduled = false; }
                 ExecutionEnvironment.this.paint(_surfaceHolder);
+
+                long paintTimestamp = SystemClock.currentThreadTimeMillis();
+                float dt = (paintTimestamp - _lastPaintTimestamp) / 1000.0f;
+                _lastPaintTimestamp = paintTimestamp;
+
+                Iterator<Map.Entry<Element, ElementUpdater>> it =_elementUpdaters.entrySet().iterator();
+                while(it.hasNext()) {
+                    Map.Entry<Element, ElementUpdater> entry = it.next();
+                    if (!entry.getValue().tick(dt))
+                        it.remove();
+                }
             }
         });
     }

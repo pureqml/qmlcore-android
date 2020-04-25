@@ -45,7 +45,6 @@ public class Element extends BaseObject {
     protected int               _z;
     private boolean             _cache = false;
     private boolean             _cacheValid = false;
-    private boolean             _cacheDisabled = false;
     private Picture             _cachePicture = null;
 
     protected ArrayList<Element> _children;
@@ -54,6 +53,7 @@ public class Element extends BaseObject {
     private static final float  DetectionDistance2 = DetectionDistance * DetectionDistance;
     private static final float  MinimumScrollVelocity = 500;
     private static final float  DecelerateInterpolatorOrder = 3;
+    private static final float  ScrollDuration = 3.0f;
 
     private boolean             _enableScrollX;
     private boolean             _enableScrollY;
@@ -70,10 +70,57 @@ public class Element extends BaseObject {
     private TimeInterpolator    _scrollInterpolator;
     private long                _scrollTimeBase;
     private long                _scrollTimeLast;
-    private final static long   ScrollDuration = 3000;
 
     public Element(IExecutionEnvironment env) {
         super(env);
+    }
+
+    public void animate() {
+        if (_scrollVelocity == null)
+            return;
+
+        Log.v(TAG, "animate, scroll velocity: " + _scrollVelocity);
+        long now = SystemClock.elapsedRealtime();
+        float t = (now - _scrollTimeBase) / 1000.0f / ScrollDuration;
+        float dt = (now - _scrollTimeLast) / 1000.0f;
+        _scrollTimeLast = now;
+
+        Log.v(TAG, "t: " + t + ", dt: " + dt);
+        if (t > 1.0f) {
+            t = 1.0f;
+        }
+
+        float vtdt = (1.0f - _scrollInterpolator.getInterpolation(t)) * dt;
+        _scrollPos.x += _scrollVelocity.x * vtdt;
+        _scrollPos.y += _scrollVelocity.y * vtdt;
+
+        Rect rect = getRect();
+        Rect parentRect = _parent.getRect();
+
+        int clientWidth = rect.width(), clientHeight = rect.height();
+        int w = parentRect.width(), h = parentRect.height();
+        if (_scrollPos.x + w > clientWidth) {
+            _scrollPos.x = clientWidth - w;
+            t = 1.0f; //finish
+        }
+        if (_scrollPos.y + h > clientHeight) {
+            _scrollPos.y = clientHeight - h;
+            t = 1.0f; //finish
+        }
+        if (_scrollPos.x < 0) {
+            _scrollPos.x = 0;
+            t = 1.0f; //finish
+        }
+        if (_scrollPos.y < 0) {
+            _scrollPos.y = 0;
+            t = 1.0f; //finish
+        }
+
+        if (t >= 1.0f) {
+            Log.v(TAG, "scroll finished, stopping");
+            _scrollVelocity = null;
+        }
+        emitScroll();
     }
 
     public Rect getRedrawRect(Rect clipRect) {
@@ -336,53 +383,6 @@ public class Element extends BaseObject {
     protected final void beginPaint() {
         _lastRect.setEmpty();
         _combinedRect.setEmpty();
-        if (_scrollVelocity != null) {
-            _cacheDisabled = true;
-            long now = SystemClock.elapsedRealtime();
-            float t = 1.0f * (now - _scrollTimeBase) / ScrollDuration;
-            float dt = (now - _scrollTimeLast) / 1000.0f;
-            _scrollTimeLast = now;
-
-            Log.v(TAG, "t: " + t + ", dt: " + dt);
-            if (t > 1.0f) {
-                t = 1.0f;
-            }
-
-            float vtdt = (1.0f - _scrollInterpolator.getInterpolation(t)) * dt;
-            _scrollPos.x += _scrollVelocity.x * vtdt;
-            _scrollPos.y += _scrollVelocity.y * vtdt;
-
-            Rect rect = getRect();
-            Rect parentRect = _parent.getRect();
-
-            int clientWidth = rect.width(), clientHeight = rect.height();
-            int w = parentRect.width(), h = parentRect.height();
-            if (_scrollPos.x + w > clientWidth) {
-                _scrollPos.x = clientWidth - w;
-                t = 1.0f; //finish
-            }
-            if (_scrollPos.y + h > clientHeight) {
-                _scrollPos.y = clientHeight - h;
-                t = 1.0f; //finish
-            }
-            if (_scrollPos.x < 0) {
-                _scrollPos.x = 0;
-                t = 1.0f; //finish
-            }
-            if (_scrollPos.y < 0) {
-                _scrollPos.y = 0;
-                t = 1.0f; //finish
-            }
-
-            if (t >= 1.0f) {
-                Log.v(TAG, "scroll finished, stopping");
-                _scrollVelocity = null;
-                _cacheDisabled = false;
-            }
-            emitScroll();
-            _parent.update();
-        } else
-            _cacheDisabled = false;
     }
 
     protected final void endPaint() {
@@ -450,8 +450,6 @@ public class Element extends BaseObject {
                 parent.canvas.translate(parent.baseX + childX, parent.baseY + childY);
                 parent.canvas.drawPicture(child._cachePicture);
                 parent.canvas.restoreToCount(saveCount);
-                if (child._cacheDisabled)
-                    child._cacheValid = false;
             }
 
             childRect.offset(parent.baseX, parent.baseY);
@@ -641,6 +639,7 @@ public class Element extends BaseObject {
 
                                 _scrollTimeBase = _scrollTimeLast = SystemClock.elapsedRealtime();
                                 _scrollVelocity = scrollVelocity;
+                                _env.animate(this, ScrollDuration);
                             } else
                                 Log.v(TAG, "ignoring scroll, less than limit");
                         }
