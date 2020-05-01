@@ -300,8 +300,10 @@ public final class ExecutionEnvironment extends Service
         Log.i(TAG, "starting execution environment...");
         _metrics = getBaseContext().getResources().getDisplayMetrics();
 
+        Log.i(TAG, "got display metrics " + _metrics + "...");
         _threadPool = Executors.newCachedThreadPool();
 
+        Log.i(TAG, "started cached thread pool, creating image loader...");
         _imageLoader = new ImageLoader(this);
 
         Log.v(TAG, "creating v8 runtime...");
