@@ -53,7 +53,7 @@ public final class Text extends Element {
                 break;
             case "font-size":
                 try {
-                    _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getDisplayMetrics()));
+                    _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getRenderer().getDisplayMetrics()));
                 } catch (Exception e) {
                     Log.w(TAG, "set font-size failed", e);
                 }

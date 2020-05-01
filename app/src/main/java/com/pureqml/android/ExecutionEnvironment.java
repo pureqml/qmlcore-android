@@ -114,7 +114,6 @@ public final class ExecutionEnvironment extends Service
     private ExecutorService             _threadPool;
     private ImageLoader                 _imageLoader;
     private IRenderer                   _renderer;
-    private DisplayMetrics              _metrics;
     private ViewGroup                   _rootView;
     private boolean                     _paintScheduled;
     private int                         _eventId;
@@ -128,8 +127,17 @@ public final class ExecutionEnvironment extends Service
     private long                        _lastPaintTimestamp;
 
     public ExecutionEnvironment() {
+        super();
+
         Log.i(TAG, "starting execution environment thread...");
         _executor = Executors.newSingleThreadExecutor();
+
+        Log.i(TAG, "creating thread pool...");
+        _threadPool = Executors.newCachedThreadPool();
+
+        Log.i(TAG, "started cached thread pool, creating image loader...");
+        _imageLoader = new ImageLoader(this);
+
         _executor.submit(new Runnable() {
             @Override
             public void run() {
@@ -160,14 +168,28 @@ public final class ExecutionEnvironment extends Service
 
     public Timer getTimer() { return _timers.getTimer(); }
 
-    synchronized void setRenderer(IRenderer renderer) {
+    @Override
+    public void setRenderer(IRenderer renderer) {
         Log.v(TAG, "setRenderer " + renderer);
-        _renderer = renderer;
+        String orientation;
+        boolean keepScreenOn;
+        synchronized (this) {
+            _renderer = renderer;
+            orientation = _orientation;
+            keepScreenOn = _keepScreenOn;
+        }
         if (renderer != null) {
             renderer.invalidateRect(null); //fullscreen update
-            if (_orientation != null)
-                _renderer.lockOrientation(_orientation);
-            _renderer.keepScreenOn(_keepScreenOn);
+            if (orientation != null)
+                renderer.lockOrientation(orientation);
+            renderer.keepScreenOn(keepScreenOn);
+        }
+    }
+
+    @Override
+    public IRenderer getRenderer() {
+        synchronized (this) {
+            return _renderer;
         }
     }
 
@@ -298,18 +320,13 @@ public final class ExecutionEnvironment extends Service
 
     private void start() {
         Log.i(TAG, "starting execution environment...");
-        _metrics = getBaseContext().getResources().getDisplayMetrics();
-
-        Log.i(TAG, "got display metrics " + _metrics + "...");
-        _threadPool = Executors.newCachedThreadPool();
-
-        Log.i(TAG, "started cached thread pool, creating image loader...");
-        _imageLoader = new ImageLoader(this);
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
+        Log.v(TAG, "registering runtime...");
         registerRuntime();
 
+        Log.v(TAG, "executing main script...");
         String script;
         final String assetName = "main.js";
         try {
@@ -419,11 +436,6 @@ public final class ExecutionEnvironment extends Service
     @Override
     public V8 getRuntime() {
         return _v8;
-    }
-
-    @Override
-    public DisplayMetrics getDisplayMetrics() {
-        return _metrics;
     }
 
     @Override

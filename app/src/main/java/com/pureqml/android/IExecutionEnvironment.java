@@ -2,7 +2,6 @@ package com.pureqml.android;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -13,7 +12,6 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Element;
 
-import java.net.URL;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 
@@ -23,9 +21,10 @@ public interface IExecutionEnvironment {
     ExecutorService getThreadPool();
     ViewGroup getRootView();
     Timer getTimer();
+    void setRenderer(IRenderer renderer);
+    IRenderer getRenderer();
 
     V8 getRuntime();
-    DisplayMetrics getDisplayMetrics();
 
     BaseObject getObjectById(int id);
     void putObject(int id, BaseObject element);

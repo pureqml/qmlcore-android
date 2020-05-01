@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -85,6 +86,13 @@ public final class MainActivity
 
                 final SurfaceView view = _mainView;
                 _uiRenderer = new IRenderer() {
+                    DisplayMetrics _metrics;
+
+                    @Override
+                    public DisplayMetrics getDisplayMetrics() {
+                        return MainActivity.this.getBaseContext().getResources().getDisplayMetrics();
+                    }
+
                     @Override
                     public void invalidateRect(Rect rect) {
                         if (rect != null) {
@@ -201,6 +209,7 @@ public final class MainActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 

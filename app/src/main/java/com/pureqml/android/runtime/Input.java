@@ -260,7 +260,7 @@ public final class Input extends Element {
             }
             case "font-size": {
                 try {
-                    final int fontSize = TypeConverter.toFontSize(value.toString(), _env.getDisplayMetrics());
+                    final int fontSize = TypeConverter.toFontSize(value.toString(), _env.getRenderer().getDisplayMetrics());
                     Log.v(TAG, "FONT SIZE " + fontSize);
                     viewHolder.getHandler().post(new Runnable() {
                         @Override
