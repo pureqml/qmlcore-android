@@ -130,12 +130,11 @@ public final class ExecutionEnvironment extends Service
     public ExecutionEnvironment() {
         Log.i(TAG, "starting execution environment thread...");
         _executor = Executors.newSingleThreadExecutor();
-        _executor.submit(new Callable<Void>() {
+        _executor.submit(new Runnable() {
             @Override
-            public Void call() throws Exception {
+            public void run() {
                 Looper.prepare();
                 ExecutionEnvironment.this.start();
-                return null;
             }
         });
         _lastPaintTimestamp = SystemClock.currentThreadTimeMillis();
