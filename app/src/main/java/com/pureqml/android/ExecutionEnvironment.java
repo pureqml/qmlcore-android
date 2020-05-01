@@ -347,6 +347,8 @@ public final class ExecutionEnvironment extends Service
         if (_surfaceGeometry != null) { //already signalled
             setup();
         }
+        Log.v(TAG, "finishing start, painting...");
+        paint();
     }
 
     private void setup() {
@@ -580,9 +582,7 @@ public final class ExecutionEnvironment extends Service
 
     public void paint() {
         synchronized (this) {
-            if (_paintScheduled)
-                return;
-            if (_executor == null || _executor.isShutdown())
+            if (_paintScheduled || _executor == null || _executor.isShutdown() || _rootElement == null)
                 return;
             _paintScheduled = true;
             Log.v(TAG, "paint scheduled");
