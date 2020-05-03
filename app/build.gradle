@@ -25,7 +25,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.eclipsesource.j2v8:j2v8:5.0.103@aar'
+    implementation 'com.eclipsesource.j2v8:j2v8:6.1.0@aar'
 
     implementation 'com.google.android.exoplayer:exoplayer-core:2.11.4'
     implementation 'com.google.android.exoplayer:exoplayer-dash:2.11.4'
