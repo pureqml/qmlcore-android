@@ -306,7 +306,7 @@ public final class Image extends Element implements ImageLoadedCallback {
                         state.canvas.restore();
                 }
             } else
-                Log.w(TAG, "null bitmap returned for " + _url);
+                Log.d(TAG, "null bitmap returned for " + _url);
         }
         paintChildren(state);
 
