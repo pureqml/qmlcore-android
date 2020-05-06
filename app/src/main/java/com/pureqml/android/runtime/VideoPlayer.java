@@ -11,6 +11,7 @@ import android.view.SurfaceView;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -95,6 +96,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
             return;
 
         Context context = _env.getContext();
+        DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
+                .setPrioritizeTimeOverSizeThresholds(true)
+                .createDefaultLoadControl();
+
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(context);
         trackSelector.setParameters(
                 trackSelector.buildUponParameters()
@@ -106,6 +111,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         player = new SimpleExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
+                .setLoadControl(loadControl)
                 .build();
 
         player.setVideoSurfaceView(view);
