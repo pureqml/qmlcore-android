@@ -261,7 +261,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                     DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS |
                     DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES,
                     true
-            ));
+            )).setAllowChunklessPreparation(true);
             source = factory.createMediaSource(Uri.parse(url));
         } else {
             ProgressiveMediaSource.Factory factory = new ProgressiveMediaSource.Factory(dataSourceFactory);
