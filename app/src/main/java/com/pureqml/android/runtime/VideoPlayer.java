@@ -345,7 +345,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
         {
             paused = false;
             VideoPlayer.this.emit(null, "pause", paused);
-            player.setPlayWhenReady(true);
+            if (player != null)
+                player.setPlayWhenReady(true);
         }
         else
             Log.i(TAG, "ignoring play on non-paused stream");
@@ -357,7 +358,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
         {
             paused = true;
             VideoPlayer.this.emit(null, "pause", paused);
-            player.setPlayWhenReady(false);
+            if (player != null)
+                player.setPlayWhenReady(false);
         }
         else
             Log.i(TAG, "ignoring pause on paused stream");
@@ -369,14 +371,17 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void seekTo(int pos) {
         Log.i(TAG, "Player.seekTo " + pos);
-        player.seekTo(pos);
+        //FIXME: save position
+        if (player != null)
+            player.seekTo(pos);
     }
 
     public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
         if (name.equals("autoplay")) {
             autoplay = TypeConverter.toBoolean(value);
-            player.setPlayWhenReady(autoplay);
+            if (player != null)
+                player.setPlayWhenReady(autoplay);
         } else
             Log.w(TAG, "ignoring option " + name);
     }
