@@ -79,7 +79,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 SimpleExoPlayer player = VideoPlayer.this.player;
                 if (player != null) {
                     double position = player.getCurrentPosition() / 1000.0;
-                    double duration = player.getCurrentPosition() / 1000.0;
+                    double duration = player.getDuration() / 1000.0;
                     if (duration > 0) {
                         Log.v(TAG, "emitting position " + position + " / " + duration);
                         VideoPlayer.this.emit(null, "timeupdate", position);
