@@ -10,6 +10,7 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.IRenderer;
 import com.pureqml.android.TypeConverter;
 
 import java.util.regex.Matcher;
@@ -53,7 +54,11 @@ public final class Text extends Element {
                 break;
             case "font-size":
                 try {
-                    _paint.setTextSize(TypeConverter.toFontSize((String)value, _env.getRenderer().getDisplayMetrics()));
+                    IRenderer renderer = _env.getRenderer();
+                    if (renderer != null)
+                        _paint.setTextSize(TypeConverter.toFontSize((String)value, renderer.getDisplayMetrics()));
+                    else
+                        Log.w(TAG, "no renderer, font-size ignored");
                 } catch (Exception e) {
                     Log.w(TAG, "set font-size failed", e);
                 }

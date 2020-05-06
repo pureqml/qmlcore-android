@@ -15,6 +15,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.IRenderer;
 import com.pureqml.android.TypeConverter;
 
 public final class Input extends Element {
@@ -260,14 +261,16 @@ public final class Input extends Element {
             }
             case "font-size": {
                 try {
-                    final int fontSize = TypeConverter.toFontSize(value.toString(), _env.getRenderer().getDisplayMetrics());
-                    Log.v(TAG, "FONT SIZE " + fontSize);
-                    viewHolder.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
-                        }
-                    });
+                    IRenderer renderer = _env.getRenderer();
+                    if (renderer != null) {
+                        final int fontSize = TypeConverter.toFontSize(value.toString(), renderer.getDisplayMetrics());
+                        viewHolder.getHandler().post(new Runnable() {
+                            @Override
+                            public void run() {
+                                view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
+                            }
+                        });
+                    }
                 } catch (Exception ex) {
                     Log.e(TAG, "invalid font-size: ", ex);
                 }
