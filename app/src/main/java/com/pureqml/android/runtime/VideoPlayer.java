@@ -18,6 +18,7 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
 import com.google.android.exoplayer2.source.BaseMediaSource;
+import com.google.android.exoplayer2.source.BehindLiveWindowException;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -92,6 +93,20 @@ public final class VideoPlayer extends BaseObject implements IResource {
         });
     }
 
+    private static boolean isBehindLiveWindow(ExoPlaybackException e) {
+        if (e.type != ExoPlaybackException.TYPE_SOURCE) {
+            return false;
+        }
+        Throwable cause = e.getSourceException();
+        while (cause != null) {
+            if (cause instanceof BehindLiveWindowException) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
     @Override
     public void acquireResource() {
         if (player != null)
@@ -157,6 +172,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
             public void onPlayerError(final ExoPlaybackException error) {
                 Log.d(TAG, "onPlayerError " + error);
                 emitError(error.toString());
+                if (isBehindLiveWindow(error)) {
+                    releaseResource();
+                    acquireResource();
+                }
             }
 
             @Override
