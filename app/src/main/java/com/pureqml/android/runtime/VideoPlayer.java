@@ -62,8 +62,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Context context = env.getContext();
         view = new SurfaceView(context);
         viewHolder = new ViewHolder<SurfaceView>(context, view);
-        this.acquireResource();
         _env.register(this);
+        _env.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                VideoPlayer.this.acquireResource();
+            }
+        });
     }
 
     private void emitError(final String error) {
@@ -173,8 +178,14 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 Log.d(TAG, "onPlayerError " + error);
                 emitError(error.toString());
                 if (isBehindLiveWindow(error)) {
-                    releaseResource();
-                    acquireResource();
+                    _env.getExecutor().submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i(TAG, "restarting player");
+                            releaseResource();
+                            acquireResource();
+                        }
+                    });
                 }
             }
 

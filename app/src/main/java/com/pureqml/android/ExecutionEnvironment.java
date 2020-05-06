@@ -683,7 +683,12 @@ public final class ExecutionEnvironment extends Service
                 IResource res = _resources.get(i).get();
                 if (res != null) {
                     try {
-                        res.acquireResource();
+                        _executor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                res.acquireResource();
+                            }
+                        });
                     } catch (Exception e) {
                         Log.e(TAG, "acquireResource", e);
                     } finally {
@@ -701,14 +706,19 @@ public final class ExecutionEnvironment extends Service
     @SuppressWarnings("unchecked")
     public void releaseResource() {
         Log.i(TAG, "releaseResources");
-        WeakRefList<IResource> resources;
+
         synchronized (_resources) {
             int i = 0, n = _resources.size();
             while (i < n) {
                 IResource res = _resources.get(i).get();
                 if (res != null) {
                     try {
-                        res.releaseResource();
+                        _executor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                res.releaseResource();
+                            }
+                        });
                     } catch (Exception e) {
                         Log.e(TAG, "releaseResource", e);
                     } finally {
