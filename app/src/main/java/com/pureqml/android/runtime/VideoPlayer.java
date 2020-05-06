@@ -177,6 +177,16 @@ public final class VideoPlayer extends BaseObject implements IResource {
                     }
                 });
             }
+
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                Log.v(TAG, "onIsPlayingChanged " + isPlaying);
+            }
+
+            @Override
+            public void onTimelineChanged(Timeline timeline, int reason) {
+                Log.d(TAG, "onTimelineChanged " + timeline + ", reason: " + reason);
+            }
         });
 
         if (rect != null)
@@ -290,7 +300,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
             }
         });
-        player.prepare(source);
+        player.prepare(source, true, true);
         Log.i(TAG, "Player.setSource exited");
     }
 
