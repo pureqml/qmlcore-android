@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
+import static com.google.android.exoplayer2.C.TIME_UNSET;
+
 
 public final class VideoPlayer extends BaseObject implements IResource {
     private static final String TAG = "VideoPlayer";
@@ -78,12 +80,12 @@ public final class VideoPlayer extends BaseObject implements IResource {
             public void run() {
                 SimpleExoPlayer player = VideoPlayer.this.player;
                 if (player != null) {
-                    double position = player.getCurrentPosition() / 1000.0;
-                    double duration = player.getDuration() / 1000.0;
-                    if (duration > 0) {
+                    long position = player.getCurrentPosition();
+                    long duration = player.getDuration();
+                    if (duration != TIME_UNSET) {
                         Log.v(TAG, "emitting position " + position + " / " + duration);
-                        VideoPlayer.this.emit(null, "timeupdate", position);
-                        VideoPlayer.this.emit(null, "durationchange", duration);
+                        VideoPlayer.this.emit(null, "timeupdate", position / 1000.0);
+                        VideoPlayer.this.emit(null, "durationchange", duration / 1000.0);
                     }
                 }
             }
@@ -181,11 +183,6 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 Log.v(TAG, "onIsPlayingChanged " + isPlaying);
-            }
-
-            @Override
-            public void onTimelineChanged(Timeline timeline, int reason) {
-                Log.d(TAG, "onTimelineChanged " + timeline + ", reason: " + reason);
             }
         });
 
