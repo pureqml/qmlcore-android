@@ -36,6 +36,7 @@ public final class Text extends Element {
     String              _text;
     TextLayout          _layout;
     Wrap                _wrap = Wrap.NoWrap;
+    boolean             _wrapAnywhere;
     HorizontalAlignment _halign = HorizontalAlignment.AlignLeft;
     VerticalAlignment   _valign = VerticalAlignment.AlignTop;
     int                 _cachedWidth = -1;
@@ -77,6 +78,10 @@ public final class Text extends Element {
                     _wrap = Wrap.Wrap;
                 else
                     Log.w(TAG, "unsupported white-space rule");
+                break;
+
+            case "word-break":
+                _wrapAnywhere = value.equals("break-all");
                 break;
 
             case "text-align":
