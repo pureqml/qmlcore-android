@@ -90,7 +90,7 @@ public final class HttpRequest {
                 }
 
                 text = dataOutputStream.toString("UTF-8");
-                Log.d(TAG, "response text: " + text);
+                //Log.d(TAG, "response text: " + text);
 
                 final int argCode = code;
                 final String argText = text;
