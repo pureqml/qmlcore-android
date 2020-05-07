@@ -88,8 +88,10 @@ public final class HttpRequest {
                 while ((length = inputStream.read(buffer)) != -1) {
                     dataOutputStream.write(buffer, 0, length);
                 }
+                Log.d(TAG, "finished reading response");
 
                 text = dataOutputStream.toString("UTF-8");
+                Log.d(TAG, "converted to text");
                 //Log.d(TAG, "response text: " + text);
 
                 final int argCode = code;
