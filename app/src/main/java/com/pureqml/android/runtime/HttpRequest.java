@@ -99,8 +99,14 @@ public final class HttpRequest {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        if (_callback != null)
-                            _callback.call(null, createEventArguments(argCode, argText));
+                        if (_callback != null && !_callback.isReleased()) {
+                            V8Array args = createEventArguments(argCode, argText);
+                            try {
+                                _callback.call(null, args);
+                            } finally {
+                                args.close();
+                            }
+                        }
                     }
                 });
             } catch (final Exception e) {
