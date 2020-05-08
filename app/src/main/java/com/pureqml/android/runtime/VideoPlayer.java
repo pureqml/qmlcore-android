@@ -67,12 +67,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         _env.register(this);
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                VideoPlayer.this.acquireResource();
-            }
-        });
+        acquireResource();
     }
 
     public void emit(String name, Object ... args) {
@@ -116,8 +111,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         return false;
     }
 
-    @Override
-    public void acquireResource() {
+    private void acquireResourceImpl() {
         if (player != null)
             return;
 
@@ -177,14 +171,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 Log.d(TAG, "onPlayerError " + error);
                 VideoPlayer.this.emit("error", error.toString());
                 if (isBehindLiveWindow(error)) {
-                    _env.getExecutor().submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.i(TAG, "restarting player");
-                            releaseResource();
-                            acquireResource();
-                        }
-                    });
+                    Log.i(TAG, "restarting player");
+                    releaseResource();
+                    acquireResource();
                 }
             }
 
@@ -226,8 +215,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         _env.getTimer().schedule(pollingTask, PollingInterval, PollingInterval);
     }
 
-    @Override
-    public void releaseResource() {
+    private void releaseResourceImpl() {
         if (pollingTask != null) {
             try { pollingTask.cancel(); } catch(Exception ex) { }
             pollingTask = null;
@@ -456,4 +444,23 @@ public final class VideoPlayer extends BaseObject implements IResource {
         viewHolder.update(_env.getRootView(), visible);
     }
 
+    @Override
+    public void acquireResource() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                VideoPlayer.this.acquireResourceImpl();
+            }
+        });
+    }
+
+    @Override
+    public void releaseResource() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                VideoPlayer.this.releaseResourceImpl();
+            }
+        });
+    }
 }

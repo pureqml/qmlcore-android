@@ -683,12 +683,7 @@ public final class ExecutionEnvironment extends Service
                 IResource res = _resources.get(i).get();
                 if (res != null) {
                     try {
-                        _executor.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                res.acquireResource();
-                            }
-                        });
+                        res.acquireResource();
                     } catch (Exception e) {
                         Log.e(TAG, "acquireResource", e);
                     } finally {
@@ -713,12 +708,7 @@ public final class ExecutionEnvironment extends Service
                 IResource res = _resources.get(i).get();
                 if (res != null) {
                     try {
-                        _executor.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                res.releaseResource();
-                            }
-                        });
+                        res.releaseResource();
                     } catch (Exception e) {
                         Log.e(TAG, "releaseResource", e);
                     } finally {
