@@ -124,6 +124,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Context context = _env.getContext();
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                 .setPrioritizeTimeOverSizeThresholds(true)
+                .setBufferDurationsMs(1000, 50000, 1000, 1000)
                 .createDefaultLoadControl();
 
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(context);
