@@ -48,6 +48,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private SimpleExoPlayer             player;
     private SurfaceView                 view;
     private ViewHolder<SurfaceView>     viewHolder;
+    private Handler                     handler;
 
     //this is persistent state
     private Rect                        rect;
@@ -62,8 +63,11 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Context context = env.getContext();
         view = new SurfaceView(context);
         viewHolder = new ViewHolder<SurfaceView>(context, view);
+        handler = viewHolder.getHandler();
+
         _env.register(this);
-        _env.getExecutor().execute(new Runnable() {
+
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 VideoPlayer.this.acquireResource();
@@ -71,28 +75,28 @@ public final class VideoPlayer extends BaseObject implements IResource {
         });
     }
 
-    private void emitError(final String error) {
+    public void emit(String name, Object ... args) {
         _env.getExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                VideoPlayer.this.emit(null, "error", error);
+                VideoPlayer.this.emit(null, name, args);
             }
         });
     }
 
     private void pollPosition() {
-        _env.getExecutor().execute(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 SimpleExoPlayer player = VideoPlayer.this.player;
-                if (player != null) {
-                    long position = player.getCurrentPosition();
-                    long duration = player.getDuration();
-                    if (duration != TIME_UNSET) {
-                        Log.v(TAG, "emitting position " + position + " / " + duration);
-                        VideoPlayer.this.emit(null, "timeupdate", position / 1000.0);
-                        VideoPlayer.this.emit(null, "durationchange", duration / 1000.0);
-                    }
+                if (player == null)
+                    return;
+                final long position = player.getCurrentPosition();
+                final long duration = player.getDuration();
+                if (duration != TIME_UNSET) {
+                    Log.v(TAG, "emitting position " + position + " / " + duration);
+                    VideoPlayer.this.emit("timeupdate",position / 1000.0);
+                    VideoPlayer.this.emit("durationchange", duration / 1000.0);
                 }
             }
         });
@@ -134,6 +138,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         player = new SimpleExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadControl)
+                .setLooper(context.getMainLooper())
                 .build();
 
         player.setVideoSurfaceView(view);
@@ -153,14 +158,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
                 Log.d(TAG, "onPlayerStateChanged " + playbackState);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        VideoPlayer.this.emit(null, "stateChanged", playbackState);
-                        if (playWhenReady && playbackState == Player.STATE_BUFFERING)
-                            VideoPlayer.this.emit(null, "stateChanged", Player.STATE_READY);
-                    }
-                });
+                VideoPlayer.this.emit("stateChanged", playbackState);
             }
 
             @Override
@@ -176,7 +174,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onPlayerError(final ExoPlaybackException error) {
                 Log.d(TAG, "onPlayerError " + error);
-                emitError(error.toString());
+                VideoPlayer.this.emit("error", error.toString());
                 if (isBehindLiveWindow(error)) {
                     _env.getExecutor().submit(new Runnable() {
                         @Override
@@ -202,12 +200,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onSeekProcessed() {
                 Log.d(TAG, "onSeekProcessed");
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        VideoPlayer.this.emit(null, "seeked");
-                    }
-                });
+                VideoPlayer.this.emit("seeked");
             }
 
             @Override
@@ -253,8 +246,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
     public void stop() {
         Log.i(TAG, "Player.stop");
         source = null;
-        if (player != null)
-            player.stop();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (player != null)
+                    player.stop();
+            }
+        });
     }
 
     public void setSource(String url) {
@@ -279,7 +277,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             source = factory.createMediaSource(Uri.parse(url));
         }
 
-        source.addEventListener(new Handler(_env.getContext().getMainLooper()), new MediaSourceEventListener() {
+        source.addEventListener(handler, new MediaSourceEventListener() {
 
             @Override
             public void onMediaPeriodCreated(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId) {
@@ -309,7 +307,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onLoadError(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
                 Log.w(TAG, "onLoadError");
-                VideoPlayer.this.emitError("Source load error: " + error.getLocalizedMessage());
+                VideoPlayer.this.emit("error", "Source load error: " + error.getLocalizedMessage());
             }
 
             @Override
@@ -327,8 +325,14 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
             }
         });
-        player.prepare(source, true, true);
-        Log.i(TAG, "Player.setSource exited");
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                player.prepare(source, true, true);
+                Log.i(TAG, "Player.setSource exited");
+            }
+        });
     }
 
     public void setLoop(boolean loop) {
@@ -341,49 +345,69 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void play() {
         Log.i(TAG, "Player.play");
-        if (paused)
-        {
-            paused = false;
-            VideoPlayer.this.emit(null, "pause", paused);
-            if (player != null)
-                player.setPlayWhenReady(true);
-        }
-        else
-            Log.i(TAG, "ignoring play on non-paused stream");
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (paused)
+                {
+                    paused = false;
+                    VideoPlayer.this.emit("pause", paused);
+                    if (player != null)
+                        player.setPlayWhenReady(true);
+                }
+                else
+                    Log.i(TAG, "ignoring play on non-paused stream");
+            }
+        });
     }
 
     public void pause() {
         Log.i(TAG, "Player.pause");
-        if (!paused)
-        {
-            paused = true;
-            VideoPlayer.this.emit(null, "pause", paused);
-            if (player != null)
-                player.setPlayWhenReady(false);
-        }
-        else
-            Log.i(TAG, "ignoring pause on paused stream");
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!paused)
+                {
+                    paused = true;
+                    VideoPlayer.this.emit("pause", paused);
+                    if (player != null)
+                        player.setPlayWhenReady(false);
+                }
+                else
+                    Log.i(TAG, "ignoring pause on paused stream");
+            }
+        });
     }
 
     public void seek(int pos) {
-        Log.i(TAG, "Player.seek " + pos);
+        Log.w(TAG, "Player.seek " + pos + " ignored");
     }
 
     public void seekTo(int pos) {
         Log.i(TAG, "Player.seekTo " + pos);
-        //FIXME: save position
-        if (player != null)
-            player.seekTo(pos);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                //FIXME: save position if resources reacquired
+                if (player != null)
+                    player.seekTo(pos * 1000L);
+            }
+        });
     }
 
     public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
-        if (name.equals("autoplay")) {
-            autoplay = TypeConverter.toBoolean(value);
-            if (player != null)
-                player.setPlayWhenReady(autoplay);
-        } else
-            Log.w(TAG, "ignoring option " + name);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (name.equals("autoplay")) {
+                    autoplay = TypeConverter.toBoolean(value);
+                    if (player != null)
+                        player.setPlayWhenReady(autoplay);
+                } else
+                    Log.w(TAG, "ignoring option " + name);
+            }
+        });
     }
 
     public Object getVideoTracks() {
