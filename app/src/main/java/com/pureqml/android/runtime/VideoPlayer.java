@@ -261,6 +261,11 @@ public final class VideoPlayer extends BaseObject implements IResource {
         if (player == null)
             return;
 
+        if (source == null || source.isEmpty()) {
+            stop();
+            return;
+        }
+
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
 
         BaseMediaSource source;
