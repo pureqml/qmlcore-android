@@ -17,8 +17,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
-import android.util.DisplayMetrics;
+import androidx.annotation.Nullable;
+
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
