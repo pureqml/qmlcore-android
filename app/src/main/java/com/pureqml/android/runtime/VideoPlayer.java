@@ -374,7 +374,15 @@ public final class VideoPlayer extends BaseObject implements IResource {
     }
 
     public void seek(int pos) {
-        Log.w(TAG, "Player.seek " + pos + " ignored");
+        Log.i(TAG, "Player.seek " + pos);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                //FIXME: save position if resources reacquired
+                if (player != null)
+                    player.seekTo(player.getCurrentPosition() + pos * 1000L);
+            }
+        });
     }
 
     public void seekTo(int pos) {
