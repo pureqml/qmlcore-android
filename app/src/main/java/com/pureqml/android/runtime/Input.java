@@ -250,7 +250,7 @@ public final class Input extends Element {
         switch(name)
         {
             case "color": {
-                final int color = TypeConverter.toColor(value.toString());
+                final int color = TypeConverter.toColor(value);
                 viewHolder.getHandler().post(new Runnable() {
                     @Override
                     public void run() {
@@ -279,7 +279,7 @@ public final class Input extends Element {
 
             case "background":
             case "background-color": {
-                final int color = TypeConverter.toColor(value.toString());
+                final int color = TypeConverter.toColor(value);
                 viewHolder.getHandler().post(new Runnable() {
                     @Override
                     public void run() {
@@ -289,7 +289,7 @@ public final class Input extends Element {
                 break;
             }
             case "-pure-placeholder-color":
-                final int color = TypeConverter.toColor(value.toString());
+                final int color = TypeConverter.toColor(value);
                 viewHolder.getHandler().post(new Runnable() {
                     @Override
                     public void run() {

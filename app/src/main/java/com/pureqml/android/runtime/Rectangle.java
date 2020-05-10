@@ -44,8 +44,8 @@ public final class Rectangle extends Element {
     @Override
     protected void setStyle(String name, Object value) {
         switch(name) {
-            case "background-color":    _color = toColor((String)value); _background.setAlpha(Color.alpha(_color)); _background.setColor(_color); break;
-            case "border-color":        getBorder().setColor(toColor((String)value)); break;
+            case "background-color":    _color = toColor(value); _background.setAlpha(Color.alpha(_color)); _background.setColor(_color); break;
+            case "border-color":        getBorder().setColor(toColor(value)); break;
             case "border-width":        getBorder().setStrokeWidth(toInteger(value)); break;
             case "border-radius":
                 try

@@ -51,7 +51,7 @@ public final class Text extends Element {
     protected void setStyle(String name, Object value) {
         switch(name) {
             case "color":
-                _paint.setColor(TypeConverter.toColor((String)value));
+                _paint.setColor(TypeConverter.toColor(value));
                 break;
             case "font-size":
                 try {

@@ -443,8 +443,6 @@ public final class ExecutionEnvironment extends Service
     @Override
     public BaseObject getObjectById(int id) {
         BaseObject object = _objects.get(id);
-        if (object == null)
-            throw new NullPointerException("object " + id + " was never registered or garbage collected");
         return object;
     }
 

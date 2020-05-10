@@ -49,8 +49,9 @@ public final class TypeConverter {
             throw new RuntimeException("value " + value + " could not be converted to int");
     }
 
-    public static final int toColor(String value) {
-        if (value.startsWith("#")) {
+    public static final int toColor(Object valueObject) {
+        if (valueObject instanceof String) {
+            String value = (String)valueObject;
             int r, g, b, a = 255;
             int length = value.length();
             switch(length)
@@ -77,17 +78,16 @@ public final class TypeConverter {
                         a = Short.parseShort(value.substring(7, 9), 16);
                     return Color.argb(a, r, g, b);
             }
-        } else if (value.startsWith("rgba(")) {
-            String [] components = value.substring(5, value.length() - 1).split(",");
-            short a = (short)(255 * Float.parseFloat(components[3]));
-            return Color.argb(
-                a,
-                Short.parseShort(components[0]),
-                Short.parseShort(components[1]),
-                Short.parseShort(components[2])
-            );
+        } else if (valueObject instanceof V8Object) {
+            V8Object colorObject = (V8Object)valueObject;
+            int r = colorObject.getInteger("r");
+            int g = colorObject.getInteger("g");
+            int b = colorObject.getInteger("b");
+            int a = colorObject.getInteger("a");
+            return Color.argb(a, r, g, b);
         }
-        Log.w(TAG, "invalid color specification: " + value);
+
+        Log.w(TAG, "invalid color specification: " + valueObject);
         return 0xffff00ff; //invalid color
     }
 
@@ -112,14 +112,12 @@ public final class TypeConverter {
                     value.close();
                     return null;
                 case V8Value.V8_OBJECT:
-                    if (type != V8Object.class && type != V8Function.class) {
-                        Object element = env.getObjectById(value.hashCode());
+                    Object element = env.getObjectById(value.hashCode());
+                    if (element != null) {
                         value.close();
                         return element;
-                    } else {
-                        value.close();
+                    } else
                         return object;
-                    }
                 default:
                     value.close();
                     throw new Error("can't convert value of type " + value.getClass());
