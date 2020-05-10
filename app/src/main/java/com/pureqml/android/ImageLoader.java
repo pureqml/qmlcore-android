@@ -113,7 +113,7 @@ public final class ImageLoader {
 
     private abstract class BaseImageHolder implements ImageHolder
     {
-        protected URL                       _url;
+        protected final URL                 _url;
         private boolean                     _finished;
         private List<ImageLoadedCallback>   _callbacks;
 
@@ -127,11 +127,15 @@ public final class ImageLoader {
 
         @Override
         public void notify(ImageLoadedCallback callback) {
-            if (_finished) {
-                callback.onImageLoaded(_url, getNotifyBitmap());
-            } else {
-                _callbacks.add(callback);
+            boolean finished;
+            synchronized (this) {
+                finished = _finished;
+                if (!finished) {
+                    _callbacks.add(callback);
+                }
             }
+            if (finished)
+                callback.onImageLoaded(_url, getNotifyBitmap());
         }
 
         @Nullable
@@ -147,9 +151,12 @@ public final class ImageLoader {
 
         @Override
         public void finish() {
-            if (_finished) {
-                Log.e(TAG, "double finish");
-                return;
+            synchronized (this) {
+                if (_finished) {
+                    Log.e(TAG, "double finish");
+                    return;
+                }
+                _finished = true;
             }
 
             for(ImageLoadedCallback callback : _callbacks) {
@@ -160,7 +167,6 @@ public final class ImageLoader {
                 }
             }
             _callbacks = null;
-            _finished = true;
         }
     }
 
@@ -169,7 +175,6 @@ public final class ImageLoader {
 
         ImageStaticHolder(URL url) {
             super(url);
-            _url = url;
         }
 
         @Override
