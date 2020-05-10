@@ -379,8 +379,11 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void run() {
                 //FIXME: save position if resources reacquired
+                long newPos = player.getCurrentPosition() + pos * 1000L;
+                VideoPlayer.this.emit("timeupdate", newPos / 1000.0);
+
                 if (player != null)
-                    player.seekTo(player.getCurrentPosition() + pos * 1000L);
+                    player.seekTo(newPos);
             }
         });
     }
@@ -391,6 +394,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void run() {
                 //FIXME: save position if resources reacquired
+                VideoPlayer.this.emit("timeupdate", pos);
+
                 if (player != null)
                     player.seekTo(pos * 1000L);
             }
