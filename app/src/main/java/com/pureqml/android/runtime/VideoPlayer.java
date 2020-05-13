@@ -16,6 +16,7 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
 import com.google.android.exoplayer2.source.BaseMediaSource;
 import com.google.android.exoplayer2.source.BehindLiveWindowException;
@@ -49,6 +50,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private SurfaceView                 view;
     private ViewHolder<SurfaceView>     viewHolder;
     private Handler                     handler;
+    private Timeline.Period             period;
 
     //this is persistent state
     private Rect                        rect;
@@ -64,6 +66,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         view = new SurfaceView(context);
         viewHolder = new ViewHolder<SurfaceView>(context, view);
         handler = viewHolder.getHandler();
+        period = new Timeline.Period();
 
         _env.register(this);
 
@@ -86,7 +89,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 SimpleExoPlayer player = VideoPlayer.this.player;
                 if (player == null)
                     return;
-                final long position = player.getCurrentPosition();
+
+                long position = player.getCurrentPosition();
+                Timeline currentTimeline = player.getCurrentTimeline();
+                if (!currentTimeline.isEmpty()) {
+                    position -= currentTimeline.getPeriod(player.getCurrentPeriodIndex(), period)
+                            .getPositionInWindowMs();
+                }
                 final long duration = player.getDuration();
                 if (duration != TIME_UNSET) {
                     Log.v(TAG, "emitting position " + position + " / " + duration);
