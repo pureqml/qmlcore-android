@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 

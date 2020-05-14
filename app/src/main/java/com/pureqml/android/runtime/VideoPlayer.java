@@ -3,13 +3,12 @@ package com.pureqml.android.runtime;
 import android.content.Context;
 import android.graphics.Rect;
 import android.net.Uri;
-import androidx.annotation.Nullable;
-
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.util.Log;
 import android.view.SurfaceView;
+
+import androidx.annotation.Nullable;
 
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
