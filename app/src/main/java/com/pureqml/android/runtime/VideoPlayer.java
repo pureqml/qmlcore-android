@@ -3,8 +3,11 @@ package com.pureqml.android.runtime;
 import android.content.Context;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.os.Handler;
 import androidx.annotation.Nullable;
+
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 import android.view.SurfaceView;
 
@@ -62,10 +65,15 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public VideoPlayer(IExecutionEnvironment env) {
         super(env);
+
+        HandlerThread thread = new HandlerThread(this.toString());
+        thread.start();
+        handler = new Handler(thread.getLooper());
+
         Context context = env.getContext();
         view = new SurfaceView(context);
-        viewHolder = new ViewHolder<SurfaceView>(context, view);
-        handler = viewHolder.getHandler();
+        viewHolder = new ViewHolder<>(context, view);
+
         period = new Timeline.Period();
 
         _env.register(this);
@@ -142,7 +150,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         player = new SimpleExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadControl)
-                .setLooper(context.getMainLooper())
+                .setLooper(handler.getLooper())
                 .build();
 
         player.setVideoSurfaceView(view);
