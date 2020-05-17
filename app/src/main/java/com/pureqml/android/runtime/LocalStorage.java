@@ -63,7 +63,7 @@ public final class LocalStorage extends BaseObject {
         }
     }
 
-    public void erase(String name, String value, V8Function error, V8Object origin) {
+    public void erase(String name, V8Function error, V8Object origin) {
         Log.i(TAG, "erasing value " + name);
         V8Array args = new V8Array(_env.getRuntime());
         Object ret = null;
