@@ -63,4 +63,22 @@ public final class LocalStorage extends BaseObject {
         }
     }
 
+    public void erase(String name, V8Function error, V8Object origin) {
+        Log.i(TAG, "erasing value " + name);
+        V8Array args = new V8Array(_env.getRuntime());
+        Object ret = null;
+        try {
+            _env.getContext().deleteFile(name + ".storage");
+            Log.i(TAG, "file deleted...");
+        } catch (Exception ex) {
+            Log.e(TAG, "can't delete file");
+            args.push(ex.toString());
+            ret = error.call(origin, args); //indicate error
+        } finally {
+            if (ret != null && ret instanceof Releasable)
+                ((Releasable)ret).release();
+            args.close();
+        }
+    }
+
 }
