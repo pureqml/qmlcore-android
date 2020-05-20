@@ -2,6 +2,7 @@ package com.pureqml.android.runtime;
 
 import android.animation.TimeInterpolator;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Picture;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -41,6 +42,7 @@ public class Element extends BaseObject {
     protected boolean           _visible            = true;
     protected boolean           _globallyVisible;
     private boolean             _clip;
+    protected int               _radius = 0;
     protected Element           _parent;
     protected int               _z;
     private boolean             _cache = false;
@@ -424,12 +426,23 @@ public class Element extends BaseObject {
                     state = new PaintState(parent, childX, childY, opacity);
                 }
 
-                boolean clip = child._clip && !cache; //fixme: disable clipping when caching (should be implicit)
+                final boolean clip = child._clip && !cache; //fixme: disable clipping when caching (should be implicit)
                 boolean paint = true;
+                int clipDepth;
+
                 if (clip) {
-                    state.canvas.save();
-                    if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
-                        paint = false;
+                    clipDepth = state.canvas.save();
+                    if (_radius > 0 && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        Path path = new Path();
+                        path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
+                        if (!state.canvas.clipPath(path))
+                            paint = false;
+                    } else {
+                        if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
+                            paint = false;
+                    }
+                } else {
+                    clipDepth = -1;
                 }
 
                 if (paint) {
@@ -437,7 +450,7 @@ public class Element extends BaseObject {
                 }
 
                 if (clip) {
-                    state.canvas.restore();
+                    state.canvas.restoreToCount(clipDepth);
                 }
                 if (cache) {
                     state.end();

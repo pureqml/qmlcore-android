@@ -23,7 +23,6 @@ public final class Rectangle extends Element {
     private final static String TAG = "rt.Rectangle";
     private Paint   _background;
     private Paint   _border;
-    int             _radius = 0;
     int             _color = 0;
     String          _gradientOrientation = null;
     int             _gradientColors[] = null;
