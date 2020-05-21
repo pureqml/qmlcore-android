@@ -11,12 +11,14 @@ public final class PaintState {
     public final int baseX;
     public final int baseY;
     public final float opacity;
+    public boolean roundClipWorkaround; //image round clipping works only with SRC_IN porter-duff function
 
     public PaintState(Canvas canvas) {
         this.picture = null;
         this.canvas = canvas;
         this.baseX = this.baseY = 0;
         this.opacity = 1.0f;
+        this.roundClipWorkaround = false;
     }
 
     public PaintState(PaintState parent, int x, int y, float opacity) {
@@ -25,6 +27,7 @@ public final class PaintState {
         this.baseX = parent.baseX + x;
         this.baseY = parent.baseY + y;
         this.opacity = opacity;
+        this.roundClipWorkaround = parent.roundClipWorkaround;
     }
 
     public PaintState(Picture picture, int w, int h, float opacity) {
@@ -33,6 +36,7 @@ public final class PaintState {
         this.baseX = 0;
         this.baseY = 0;
         this.opacity = opacity;
+        this.roundClipWorkaround = false;
     }
 
     public void end() {

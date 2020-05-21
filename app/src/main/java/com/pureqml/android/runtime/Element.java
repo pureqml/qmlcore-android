@@ -382,9 +382,16 @@ public class Element extends BaseObject {
             ((Releasable)arg0).release();
     }
 
-    protected final void beginPaint() {
+    private final boolean roundClippingNeeded() {
+        return _radius > 0 && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+    }
+
+    protected final void beginPaint(PaintState state) {
         _lastRect.setEmpty();
         _combinedRect.setEmpty();
+        if (roundClippingNeeded()) {
+            state.roundClipWorkaround = true;
+        }
     }
 
     protected final void endPaint() {
@@ -432,7 +439,7 @@ public class Element extends BaseObject {
 
                 if (clip) {
                     clipDepth = state.canvas.save();
-                    if (_radius > 0 && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if (roundClippingNeeded()) {
                         Path path = new Path();
                         path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
                         if (!state.canvas.clipPath(path))
@@ -477,7 +484,7 @@ public class Element extends BaseObject {
     }
 
     public void paint(PaintState state) {
-        beginPaint();
+        beginPaint(state);
         paintChildren(state);
         endPaint();
     }

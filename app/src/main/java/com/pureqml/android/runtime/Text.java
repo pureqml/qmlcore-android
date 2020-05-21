@@ -149,7 +149,7 @@ public final class Text extends Element {
 
     @Override
     public void paint(PaintState state) {
-        beginPaint();
+        beginPaint(state);
         if (_text != null) {
             Rect rect = getRect();
             float textSize = _paint.getTextSize();

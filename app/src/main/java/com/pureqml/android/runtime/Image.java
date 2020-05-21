@@ -278,12 +278,14 @@ public final class Image extends Element implements ImageLoadedCallback {
 
     @Override
     public void paint(PaintState state) {
-        beginPaint();
+        beginPaint(state);
 
         if (_url != null) {
             Rect dst = getDstRect(state);
             Bitmap bitmap = _env.getImageLoader().getBitmap(_url, dst.width(), dst.height());
             if (bitmap != null) {
+                _paint.setXfermode(new PorterDuffXfermode(state.roundClipWorkaround? PorterDuff.Mode.SRC_IN: PorterDuff.Mode.SRC_OVER));
+
                 Paint paint = patchAlpha(_paint, 255, state.opacity);
                 if (paint != null) {
                     boolean clip = _backgroundX.needClip(_backgroundY);

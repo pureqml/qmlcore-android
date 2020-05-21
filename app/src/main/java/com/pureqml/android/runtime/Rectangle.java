@@ -121,7 +121,7 @@ public final class Rectangle extends Element {
 
     @Override
     public void paint(PaintState state) {
-        beginPaint();
+        beginPaint(state);
 
         Canvas canvas = state.canvas;
         float opacity = state.opacity;

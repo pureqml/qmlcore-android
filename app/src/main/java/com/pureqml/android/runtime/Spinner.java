@@ -40,7 +40,7 @@ public final class Spinner extends Element {
 
     @Override
     public void paint(PaintState state) {
-        beginPaint();
+        beginPaint(state);
         paintChildren(state);
 
         Rect rect = getRect();

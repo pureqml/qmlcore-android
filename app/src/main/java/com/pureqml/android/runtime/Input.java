@@ -230,8 +230,7 @@ public final class Input extends Element {
 
     @Override
     public void paint(PaintState state) {
-        super.paint(state);
-        beginPaint();
+        beginPaint(state);
         paintChildren(state);
 
         Rect rect = getRect();
