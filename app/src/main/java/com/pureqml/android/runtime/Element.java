@@ -342,7 +342,7 @@ public class Element extends BaseObject {
             case "cursor":
             case "pointer-events":
             case "touch-action":
-                break; //ignoring
+                return; //ignoring
 
             case "will-change":
                 //Log.v(TAG, "will-change: " + value);
