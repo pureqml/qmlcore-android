@@ -438,10 +438,20 @@ public class Element extends BaseObject {
 
                 final boolean clip = child._clip && !cache; //fixme: disable clipping when caching (should be implicit)
                 boolean paint = true;
-                int clipDepth;
+                boolean saveCanvasState = clip || _scale != null;
+                int canvasRestorePoint;
+
+                if (saveCanvasState)
+                    canvasRestorePoint = state.canvas.save();
+                else
+                    canvasRestorePoint = -1;
+
+                if (_scale != null) {
+                    //Log.v(TAG, "adjusting scale to " + _scale);
+                    state.canvas.scale(_scale.x, _scale.y, state.baseX + childWidth / 2, state.baseY + childHeight / 2);
+                }
 
                 if (clip) {
-                    clipDepth = state.canvas.save();
                     if (roundClippingNeeded()) {
                         Path path = new Path();
                         path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
@@ -451,16 +461,14 @@ public class Element extends BaseObject {
                         if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
                             paint = false;
                     }
-                } else {
-                    clipDepth = -1;
                 }
 
                 if (paint) {
                     child.paint(state);
                 }
 
-                if (clip) {
-                    state.canvas.restoreToCount(clipDepth);
+                if (saveCanvasState) {
+                    state.canvas.restoreToCount(canvasRestorePoint);
                 }
                 if (cache) {
                     state.end();
