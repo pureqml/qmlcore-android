@@ -37,6 +37,7 @@ public class Element extends BaseObject {
     private Rect                _combinedRect       = new Rect();
     protected Rect              _lastRect           = new Rect();
     private Point               _translate;
+    private PointF              _scale;
 
     private   float             _opacity            = 1;
     protected boolean           _visible            = true;
@@ -277,37 +278,39 @@ public class Element extends BaseObject {
         }
     }
 
-    static private Pattern _transformPattern = Pattern.compile("(\\w+)\\s*\\(([-+\\d]+)\\s*(\\w*)\\s*\\)\\s*");
+    private void setTransform(Object object) {
+        if (!(object instanceof V8Object)) {
+            Log.w(TAG, "setTransform expects object");
+            return;
+        }
+        V8Object descriptor = ((V8Object) object).getObject("transforms");
+        for(String name : descriptor.getKeys()) {
+            V8Object value = descriptor.getObject(name);
+            double n = value.getDouble("value");
 
-    private void setTransform(String value) {
-        Matcher matcher = _transformPattern.matcher(value);
-        while(matcher.find()) {
-            try {
-                String unit = matcher.group(3);
-                String transform = matcher.group(1);
-                if (!unit.equals("px")) {
-                    Log.w(TAG, "unknown unit '" + unit + "' used for '" + transform + "', skipping");
-                    continue;
-                }
-
-                int n = Integer.parseInt(matcher.group(2));
-
-                switch (transform) {
-                    case "translateX":
-                        if (_translate == null)
-                            _translate = new Point();
-                        _translate.x = n;
-                        break;
-                    case "translateY":
-                        if (_translate == null)
-                            _translate = new Point();
-                        _translate.y = n;
-                        break;
-                    default:
-                        Log.w(TAG, "skipping transform " + transform);
-                }
-            } catch (Exception ex) {
-                Log.e(TAG, "transform parsing failed", ex);
+            switch (name) {
+                case "translateX":
+                    if (_translate == null)
+                        _translate = new Point();
+                    _translate.x = (int)n;
+                    break;
+                case "translateY":
+                    if (_translate == null)
+                        _translate = new Point();
+                    _translate.y = (int)n;
+                    break;
+                case "scaleX":
+                    if (_scale == null)
+                        _scale = new PointF();
+                    _scale.x = (float)n;
+                    break;
+                case "scaleY":
+                    if (_scale == null)
+                        _scale = new PointF();
+                    _scale.y = (float)n;
+                    break;
+                default:
+                    Log.w(TAG, "skipping transform " + name);
             }
         }
     }
@@ -321,7 +324,7 @@ public class Element extends BaseObject {
             case "opacity":     _opacity = TypeConverter.toFloat(value); break;
             case "z-index":     _z = TypeConverter.toInteger(value); if (this._parent != null) this._parent.sortChildren(); break;
             case "visibility":  _visible = value.equals("inherit") || value.equals("visible"); break;
-            case "transform": setTransform(value.toString()); break;
+            case "transform": setTransform(value); break;
             case "-pure-recursive-visibility": {
                 boolean globallyVisible = _globallyVisible;
                 boolean visible = TypeConverter.toBoolean(value);
