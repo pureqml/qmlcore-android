@@ -34,6 +34,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.IRenderer;
 import com.pureqml.android.IResource;
 import com.pureqml.android.TypeConverter;
 
@@ -463,6 +464,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Log.i(TAG, "Player.setRect " + rect);
         viewHolder.setRect(_env.getRootView(), rect);
         this.rect = rect;
+        Rect surfaceGeometry = _env.getSurfaceGeometry();
+        //if surface geometry defined and rectangle less than surface geometry, set Z on top
+        boolean onTop = surfaceGeometry != null && !rect.contains(surfaceGeometry);
+        view.setZOrderOnTop(onTop);
     }
 
     public void setVisibility(boolean visible) {

@@ -756,4 +756,7 @@ public final class ExecutionEnvironment extends Service
     SurfaceHolder getSurfaceHolder() {
         return _surfaceHolder;
     }
+
+    @Override
+    public Rect getSurfaceGeometry() { return _surfaceGeometry; }
 }

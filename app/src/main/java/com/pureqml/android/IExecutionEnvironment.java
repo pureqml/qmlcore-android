@@ -2,6 +2,7 @@ package com.pureqml.android;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -23,6 +24,7 @@ public interface IExecutionEnvironment {
     Timer getTimer();
     void setRenderer(IRenderer renderer);
     IRenderer getRenderer();
+    Rect getSurfaceGeometry();
 
     V8 getRuntime();
 
