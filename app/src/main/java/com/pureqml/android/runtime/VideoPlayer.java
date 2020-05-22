@@ -153,8 +153,6 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 .build();
 
         player.setVideoSurfaceView(view);
-
-        final ExecutorService executor = _env.getExecutor();
         player.addListener(new Player.EventListener() {
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
