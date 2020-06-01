@@ -99,6 +99,8 @@ public final class Rectangle extends Element {
             case "border-color":        getBorder().setColor(toColor(value)); break;
             case "border-width":        getBorder().setStrokeWidth(toInteger(value)); break;
             case "background-color":
+                if (value.equals("")) //fixme: reset something?
+                    break;
                 _color = toColor(value);
                 _background.setAlpha(Color.alpha(_color));
                 _background.setColor(_color);
