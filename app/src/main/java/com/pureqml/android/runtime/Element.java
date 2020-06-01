@@ -325,7 +325,7 @@ public class Element extends BaseObject {
                     _scale.y = (float)n;
                     break;
                 default:
-                    Log.w(TAG, "skipping transform " + name);
+                    Log.d(TAG, "skipping transform " + name);
             }
         }
     }
