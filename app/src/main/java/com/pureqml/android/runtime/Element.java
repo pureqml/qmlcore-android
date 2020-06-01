@@ -38,6 +38,7 @@ public class Element extends BaseObject {
     protected Rect              _lastRect           = new Rect();
     private Point               _translate;
     private PointF              _scale;
+    private float               _rotate             = 0;
 
     private   float             _opacity            = 1;
     protected boolean           _visible            = true;
@@ -324,6 +325,10 @@ public class Element extends BaseObject {
                         _scale = new PointF();
                     _scale.y = (float)n;
                     break;
+                case "rotate":
+                case "rotateZ":
+                    _rotate = (float)n;
+                    break;
                 default:
                     Log.d(TAG, "skipping transform " + name);
             }
@@ -453,7 +458,7 @@ public class Element extends BaseObject {
 
                 final boolean clip = child._clip && !cache; //fixme: disable clipping when caching (should be implicit)
                 boolean paint = true;
-                boolean saveCanvasState = clip || _scale != null;
+                boolean saveCanvasState = clip || _scale != null || _rotate != 0;
                 int canvasRestorePoint;
 
                 if (saveCanvasState)
@@ -464,6 +469,10 @@ public class Element extends BaseObject {
                 if (_scale != null) {
                     //Log.v(TAG, "adjusting scale to " + _scale);
                     state.canvas.scale(_scale.x, _scale.y, state.baseX + childWidth / 2, state.baseY + childHeight / 2);
+                }
+
+                if (_rotate != 0) {
+                    state.canvas.rotate(_rotate, state.baseX + childWidth / 2, state.baseY + childHeight / 2);
                 }
 
                 if (clip) {
