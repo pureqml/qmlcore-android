@@ -205,13 +205,13 @@ public class Element extends BaseObject {
         return _publicScrollPos != null? _publicScrollPos.y: 0;
     }
 
-    public void append(BaseObject child) throws AlreadyHasAParentException {
+    private Element ensureParentAndChildren(BaseObject child) throws AlreadyHasAParentException {
         if (child == null)
             throw new NullPointerException("appending null element");
 
         if (!(child instanceof Element)) {
             Log.i(TAG, "skipping append(), not an Element instance");
-            return;
+            return null;
         }
 
         Element el = (Element)child;
@@ -220,8 +220,23 @@ public class Element extends BaseObject {
         el._parent = this;
         if (_children == null)
             _children = new ArrayList<>();
+        return el;
+    }
 
+    public void append(BaseObject child) throws AlreadyHasAParentException {
+        Element el = ensureParentAndChildren(child);
+        if (el == null)
+            return;
         _children.add(el);
+        el.update();
+    }
+
+    public void prepend(BaseObject child) throws AlreadyHasAParentException {
+        Element el = ensureParentAndChildren(child);
+        if (el == null)
+            return;
+
+        _children.add(0, el);
         el.update();
     }
 
