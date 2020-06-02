@@ -45,6 +45,7 @@ public class Element extends BaseObject {
     protected boolean           _globallyVisible;
     private boolean             _clip;
     protected int               _radius = 0;
+    protected int               _innerBorder = 0;
     protected Element           _parent;
     protected int               _z;
     private boolean             _cache = false;

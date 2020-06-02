@@ -95,9 +95,19 @@ public final class Rectangle extends Element {
     @Override
     protected void setStyle(String name, Object value) {
         switch(name) {
-            case "background":          parseBackgroundDescription(value); break;
-            case "border-color":        getBorder().setColor(toColor(value)); break;
-            case "border-width":        getBorder().setStrokeWidth(toInteger(value)); break;
+            case "background":
+                parseBackgroundDescription(value);
+                break;
+
+            case "border-color":
+                getBorder().setColor(toColor(value));
+                break;
+
+            case "border-width":
+                _innerBorder = toInteger(value);
+                getBorder().setStrokeWidth(_innerBorder);
+                break;
+
             case "background-color":
                 if (value.equals("")) //fixme: reset something?
                     break;
@@ -116,7 +126,8 @@ public final class Rectangle extends Element {
                 break;
 
             default:
-                super.setStyle(name, value); return;
+                super.setStyle(name, value);
+                return;
         }
         update();
     }
