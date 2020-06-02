@@ -165,11 +165,13 @@ public final class Rectangle extends Element {
 
         if (_border != null) {
             Paint paint = patchAlpha(_border, Color.alpha(_color), opacity);
+            RectF borderRect = new RectF(rect);
+            borderRect.inset(_innerBorder / 2.0f, _innerBorder / 2.0f);
             if (paint != null) {
                 if (_radius > 0) {
-                    canvas.drawRoundRect(new RectF(rect), _radius, _radius, paint);
+                    canvas.drawRoundRect(borderRect, _radius, _radius, paint);
                 } else {
-                    canvas.drawRect(rect, paint);
+                    canvas.drawRect(borderRect, paint);
                 }
             }
         }

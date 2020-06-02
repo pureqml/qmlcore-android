@@ -443,7 +443,7 @@ public class Element extends BaseObject {
                 continue;
 
             Rect childRect = child.getRect();
-            int childX = scrollX + child.getBaseX(), childY = scrollY + child.getBaseY();
+            int childX = scrollX + child.getBaseX() + _innerBorder, childY = scrollY + child.getBaseY() + _innerBorder;
             int childWidth = childRect.width(), childHeight = childRect.height();
             boolean cache = child._cache;
 
