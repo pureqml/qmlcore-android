@@ -469,11 +469,11 @@ public class Element extends BaseObject {
 
                 if (_scale != null) {
                     //Log.v(TAG, "adjusting scale to " + _scale);
-                    state.canvas.scale(_scale.x, _scale.y, state.baseX + childWidth / 2, state.baseY + childHeight / 2);
+                    state.canvas.scale(_scale.x, _scale.y, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
                 }
 
                 if (_rotate != 0) {
-                    state.canvas.rotate(_rotate, state.baseX + childWidth / 2, state.baseY + childHeight / 2);
+                    state.canvas.rotate(_rotate, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
                 }
 
                 if (clip) {
