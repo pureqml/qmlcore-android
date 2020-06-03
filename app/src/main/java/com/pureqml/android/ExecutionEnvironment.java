@@ -79,17 +79,19 @@ public final class ExecutionEnvironment extends Service
 
     private class ElementUpdater {
         private Element element;
-        private float duration;
+        private long duration;
+        private long started;
 
         ElementUpdater(Element el, float seconds) {
             element = el;
-            duration = seconds;
+            duration = (long)(1000 * seconds);
+            started = SystemClock.currentThreadTimeMillis();
         }
 
-        public boolean tick(float dt) {
-            duration -= dt;
+        public boolean tick() {
+            long dt = SystemClock.currentThreadTimeMillis() - started;
             Log.v(TAG, "tick " + dt + " of " + duration);
-            boolean running = duration > 0;
+            boolean running = dt < duration;
             if (running)
                 element.animate();
             return running;
@@ -124,7 +126,6 @@ public final class ExecutionEnvironment extends Service
     private boolean                     _keepScreenOn;
     private boolean                     _fullScreen;
     private int                         _debugColorIndex;
-    private long                        _lastPaintTimestamp;
 
     public ExecutionEnvironment() {
         super();
@@ -145,7 +146,6 @@ public final class ExecutionEnvironment extends Service
                 ExecutionEnvironment.this.start();
             }
         });
-        _lastPaintTimestamp = SystemClock.currentThreadTimeMillis();
     }
 
     @Override
@@ -591,18 +591,13 @@ public final class ExecutionEnvironment extends Service
                 synchronized (this) { _paintScheduled = false; }
                 ExecutionEnvironment.this.paint(_surfaceHolder);
 
-                long paintTimestamp = SystemClock.currentThreadTimeMillis();
                 if (_elementUpdaters.isEmpty()) {
-                    _lastPaintTimestamp = paintTimestamp;
                     return;
                 }
-                float dt = (paintTimestamp - _lastPaintTimestamp) / 1000.0f;
-                _lastPaintTimestamp = paintTimestamp;
-
                 Iterator<Map.Entry<Element, ElementUpdater>> it =_elementUpdaters.entrySet().iterator();
                 while(it.hasNext()) {
                     Map.Entry<Element, ElementUpdater> entry = it.next();
-                    if (!entry.getValue().tick(dt))
+                    if (!entry.getValue().tick())
                         it.remove();
                 }
                 if (!_elementUpdaters.isEmpty())
