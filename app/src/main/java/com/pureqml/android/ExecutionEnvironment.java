@@ -516,10 +516,12 @@ public final class ExecutionEnvironment extends Service
     }
 
     @Override
-    public void animate(Element el, float seconds)
-    {
-        _elementUpdaters.put(el, new ElementUpdater(el, seconds));
-    }
+    public void startAnimation(Element el, float seconds)
+    { _elementUpdaters.put(el, new ElementUpdater(el, seconds)); }
+
+    @Override
+    public void stopAnimation(Element el)
+    { _elementUpdaters.remove(el); }
 
     private int getDebugColorIndex() {
         int index = _debugColorIndex++ % 3;

@@ -23,8 +23,6 @@ import com.pureqml.android.TypeConverter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Element extends BaseObject {
     public static final String TAG = "rt.Element";
@@ -105,24 +103,29 @@ public class Element extends BaseObject {
         int clientWidth = rect.width(), clientHeight = rect.height();
         int w = parentRect.width(), h = parentRect.height();
         if (_scrollPos.x + w > clientWidth) {
+            Log.v(TAG, "stopping scrolling, right edge reached");
             _scrollPos.x = clientWidth - w;
             t = 1.0f; //finish
         }
         if (_scrollPos.y + h > clientHeight) {
+            Log.v(TAG, "stopping scrolling, bottom edge reached");
             _scrollPos.y = clientHeight - h;
             t = 1.0f; //finish
         }
         if (_scrollPos.x < 0) {
+            Log.v(TAG, "stopping scrolling, left edge reached");
             _scrollPos.x = 0;
             t = 1.0f; //finish
         }
         if (_scrollPos.y < 0) {
+            Log.v(TAG, "stopping scrolling, top edge reached");
             _scrollPos.y = 0;
             t = 1.0f; //finish
         }
 
         if (t >= 1.0f) {
             Log.v(TAG, "scroll finished, stopping");
+            _env.stopAnimation(this);
             _scrollVelocity = null;
         }
         emitScroll();
@@ -695,7 +698,7 @@ public class Element extends BaseObject {
 
                                 _scrollTimeBase = _scrollTimeLast = SystemClock.elapsedRealtime();
                                 _scrollVelocity = scrollVelocity;
-                                _env.animate(this, ScrollDuration);
+                                _env.startAnimation(this, ScrollDuration);
                             } else
                                 Log.v(TAG, "ignoring scroll, less than limit");
                         }

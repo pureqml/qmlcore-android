@@ -36,7 +36,9 @@ public interface IExecutionEnvironment {
     Object invokeCallback(V8Function callback, V8Object receiver, V8Array arguments);
     void invokeVoidCallback(V8Function callback, V8Object receiver, V8Array arguments);
     void update(Element el);
-    void animate(Element el, float seconds);
+
+    void startAnimation(Element el, float seconds);
+    void stopAnimation(Element el);
 
     //image loader api
     AssetManager getAssets();
