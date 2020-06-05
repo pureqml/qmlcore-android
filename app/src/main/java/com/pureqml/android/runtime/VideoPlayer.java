@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.TextureView;
 
 import androidx.annotation.Nullable;
 
@@ -34,13 +35,11 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.pureqml.android.IExecutionEnvironment;
-import com.pureqml.android.IRenderer;
 import com.pureqml.android.IResource;
 import com.pureqml.android.TypeConverter;
 
 import java.io.IOException;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
 
 import static com.google.android.exoplayer2.C.TIME_UNSET;
 
@@ -50,8 +49,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private static int PollingInterval = 500; //ms
 
     private SimpleExoPlayer             player;
-    private SurfaceView                 view;
-    private ViewHolder<SurfaceView>     viewHolder;
+    private SurfaceView                 surfaceView;
+    private TextureView                 textureView;
+    private ViewHolder<?>               viewHolder;
     private Handler                     handler;
     private Timeline.Period             period;
 
@@ -64,6 +64,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private TimerTask                   pollingTask = null;
 
     public VideoPlayer(IExecutionEnvironment env) {
+        this(env, false);
+    }
+
+    public VideoPlayer(IExecutionEnvironment env, boolean useTextureView) {
         super(env);
 
         HandlerThread thread = new HandlerThread(this.toString());
@@ -71,8 +75,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
         handler = new Handler(thread.getLooper());
 
         Context context = env.getContext();
-        view = new SurfaceView(context);
-        viewHolder = new ViewHolder<>(context, view);
+        if (useTextureView) {
+            textureView = new TextureView(context);
+            viewHolder = new ViewHolder<TextureView>(context, textureView);
+        } else {
+            surfaceView = new SurfaceView(context);
+            viewHolder = new ViewHolder<SurfaceView>(context, surfaceView);
+        }
 
         period = new Timeline.Period();
 
@@ -153,7 +162,11 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 .setLooper(handler.getLooper())
                 .build();
 
-        player.setVideoSurfaceView(view);
+        if (surfaceView != null)
+            player.setVideoSurfaceView(surfaceView);
+        else
+            player.setVideoTextureView(textureView);
+
         player.addListener(new Player.EventListener() {
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
@@ -238,6 +251,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         if (player != null) {
             player.setVideoSurfaceView(null);
+            player.setVideoTextureView(null);
             player.release();
             player = null;
         }
@@ -467,7 +481,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Rect surfaceGeometry = _env.getSurfaceGeometry();
         //if surface geometry defined and rectangle less than surface geometry, set Z on top
         boolean onTop = surfaceGeometry != null && !rect.contains(surfaceGeometry);
-        view.setZOrderOnTop(onTop);
+        if (surfaceView != null)
+            surfaceView.setZOrderOnTop(onTop);
     }
 
     public void setVisibility(boolean visible) {
