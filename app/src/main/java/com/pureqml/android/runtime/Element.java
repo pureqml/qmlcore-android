@@ -102,22 +102,26 @@ public class Element extends BaseObject {
 
         int clientWidth = rect.width(), clientHeight = rect.height();
         int w = parentRect.width(), h = parentRect.height();
-        if (_scrollPos.x + w > clientWidth) {
+
+        boolean enableScrollX = scrollXEnabled() && clientWidth > w;
+        boolean enableScrollY = scrollYEnabled() && clientHeight > h;
+
+        if (enableScrollX && _scrollPos.x + w > clientWidth) {
             Log.v(TAG, "stopping scrolling, right edge reached");
             _scrollPos.x = clientWidth - w;
             t = 1.0f; //finish
         }
-        if (_scrollPos.y + h > clientHeight) {
+        if (enableScrollY && _scrollPos.y + h > clientHeight) {
             Log.v(TAG, "stopping scrolling, bottom edge reached");
             _scrollPos.y = clientHeight - h;
             t = 1.0f; //finish
         }
-        if (_scrollPos.x < 0) {
+        if (enableScrollX && _scrollPos.x < 0) {
             Log.v(TAG, "stopping scrolling, left edge reached");
             _scrollPos.x = 0;
             t = 1.0f; //finish
         }
-        if (_scrollPos.y < 0) {
+        if (enableScrollY && _scrollPos.y < 0) {
             Log.v(TAG, "stopping scrolling, top edge reached");
             _scrollPos.y = 0;
             t = 1.0f; //finish
