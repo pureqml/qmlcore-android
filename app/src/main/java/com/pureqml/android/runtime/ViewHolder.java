@@ -11,12 +11,10 @@ import android.widget.RelativeLayout;
 public final class ViewHolder<ViewType extends View> {
     private static final String TAG = "ViewHolder";
 
-    private Handler                 handler;
     private ViewType                view;
     RelativeLayout.LayoutParams     layoutParams;
 
     public ViewHolder(Context context, ViewType view) {
-        handler = new Handler(context.getMainLooper());
         this.view = view;
     }
 
@@ -32,8 +30,6 @@ public final class ViewHolder<ViewType extends View> {
         } else
             Log.w(TAG, "no root view...");
     }
-
-    public Handler getHandler() { return handler; }
 
     void setRect(final ViewGroup rootView, Rect rect) {
         if (rootView != null) {

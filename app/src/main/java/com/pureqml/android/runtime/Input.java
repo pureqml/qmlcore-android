@@ -94,7 +94,7 @@ public final class Input extends Element {
     }
 
     private void updateType() {
-        viewHolder.getHandler().post(new Runnable() {
+        view.post(new Runnable() {
             @Override
             public void run() {
                 if (Build.VERSION.SDK_INT >= 26) {
@@ -161,7 +161,7 @@ public final class Input extends Element {
         if (!getRect().contains(x, y))
             return false;
 
-        viewHolder.getHandler().post(new Runnable() {
+        view.post(new Runnable() {
             @Override
             public void run() {
                 view.onTouchEvent(event);
@@ -185,7 +185,7 @@ public final class Input extends Element {
     public void blur() {
         Log.i(TAG, "removing focus...");
         super.blur();
-        viewHolder.getHandler().post(new Runnable() {
+        view.post(new Runnable() {
             @Override
             public void run() {
 //                view.clearFocus(); //this will trigger refocus and infinite focus loop
@@ -199,7 +199,7 @@ public final class Input extends Element {
     public void focus() {
         Log.i(TAG, "focusing input...");
         super.focus();
-        viewHolder.getHandler().post(new Runnable() {
+        view.post(new Runnable() {
             @Override
             public void run() {
                 view.setCursorVisible(true);
@@ -250,7 +250,7 @@ public final class Input extends Element {
         {
             case "color": {
                 final int color = TypeConverter.toColor(value);
-                viewHolder.getHandler().post(new Runnable() {
+                view.post(new Runnable() {
                     @Override
                     public void run() {
                         view.setTextColor(color);
@@ -263,7 +263,7 @@ public final class Input extends Element {
                     IRenderer renderer = _env.getRenderer();
                     if (renderer != null) {
                         final int fontSize = TypeConverter.toFontSize(value.toString(), renderer.getDisplayMetrics());
-                        viewHolder.getHandler().post(new Runnable() {
+                        view.post(new Runnable() {
                             @Override
                             public void run() {
                                 view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
@@ -279,7 +279,7 @@ public final class Input extends Element {
             case "background":
             case "background-color": {
                 final int color = TypeConverter.toColor(value);
-                viewHolder.getHandler().post(new Runnable() {
+                view.post(new Runnable() {
                     @Override
                     public void run() {
                         view.setBackgroundColor(color);
@@ -289,7 +289,7 @@ public final class Input extends Element {
             }
             case "-pure-placeholder-color":
                 final int color = TypeConverter.toColor(value);
-                viewHolder.getHandler().post(new Runnable() {
+                view.post(new Runnable() {
                     @Override
                     public void run() {
                         view.setHintTextColor(color);
