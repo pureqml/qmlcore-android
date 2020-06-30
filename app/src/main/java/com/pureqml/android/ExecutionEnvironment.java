@@ -277,6 +277,14 @@ public final class ExecutionEnvironment extends Service
             }
         }, "httpRequest");
 
+        v8FD.registerJavaMethod(new JavaVoidCallback() {
+            @Override
+            public void invoke(V8Object v8Object, V8Array v8Array) {
+                Log.i(TAG, "closing App: " + v8Array);
+                System.exit(0);
+            }
+        }, "closeApp");
+
         V8Object objectProto    = Wrapper.generateClass(this, _v8, v8FD, "Object", BaseObject.class, new Class<?>[] { IExecutionEnvironment.class });
         V8Object elementProto   = Wrapper.generateClass(this, _v8, v8FD, "Element", Element.class, new Class<?>[] { IExecutionEnvironment.class });
         elementProto.setPrototype(objectProto);

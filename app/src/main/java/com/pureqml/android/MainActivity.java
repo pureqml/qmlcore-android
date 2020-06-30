@@ -252,6 +252,10 @@ public final class MainActivity
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (_executionEnvironment == null) {
+            return false;
+        }
+
         if (!_showSoftKeyboard && _executionEnvironment.isUiInputBlocked()) {
             Log.v(TAG, "ui input blocked");
             return super.dispatchKeyEvent(event);
