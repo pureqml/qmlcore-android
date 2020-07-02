@@ -51,7 +51,7 @@ public class BaseObject {
     }
 
     public void emit(V8Object target, String name, Object ... args) {
-        Log.i(TAG, "emitting " + name);
+        Log.v(TAG, "emitting " + name);
         if (_callbacks == null)
             return;
 
