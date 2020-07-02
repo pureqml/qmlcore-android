@@ -103,6 +103,8 @@ public final class HttpRequest {
                             V8Array args = createEventArguments(argCode, argText);
                             try {
                                 _callback.call(null, args);
+                            } catch(Exception ex) {
+                                Log.w(TAG, "callback failed", ex);
                             } finally {
                                 args.close();
                             }
