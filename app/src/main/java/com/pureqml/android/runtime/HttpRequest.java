@@ -169,7 +169,7 @@ public final class HttpRequest {
                     out.close();
                 }
                 Log.v(TAG, "starting request thread...");
-                _env.getThreadPool().submit(this);
+                _env.getThreadPool().execute(this);
             } catch (Exception e) {
                 Log.w(TAG, "connection failed", e);
                 emitError(e);

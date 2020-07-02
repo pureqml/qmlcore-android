@@ -139,7 +139,7 @@ public final class ExecutionEnvironment extends Service
         Log.i(TAG, "started cached thread pool, creating image loader...");
         _imageLoader = new ImageLoader(this);
 
-        _executor.submit(new Runnable() {
+        _executor.execute(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
@@ -405,7 +405,7 @@ public final class ExecutionEnvironment extends Service
                 _rootElement = null;
             }
 
-            _executor.submit(new Runnable() {
+            _executor.execute(new Runnable() {
                 @Override
                 public void run() {
                     if (_rootObject != null) {
@@ -595,7 +595,7 @@ public final class ExecutionEnvironment extends Service
             _paintScheduled = true;
             Log.v(TAG, "paint scheduled");
         }
-        _executor.submit(new Runnable() {
+        _executor.execute(new Runnable() {
             @Override
             public void run() {
                 synchronized (this) { _paintScheduled = false; }
