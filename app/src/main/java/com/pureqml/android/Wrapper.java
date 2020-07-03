@@ -7,6 +7,7 @@ import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.runtime.BaseObject;
 
 import java.lang.reflect.Constructor;
@@ -15,7 +16,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 final class Wrapper {
-    public final static String TAG = "ClassWrapper";
+    public static final String TAG = "ClassWrapper";
+    private static final String UNIQUE_ID_KEY = "__uniqueId";
 
     public static final class MethodWrapper implements JavaCallback {
         IExecutionEnvironment _env;
@@ -24,7 +26,7 @@ final class Wrapper {
 
         @Override
         public Object invoke(V8Object self, V8Array arguments) {
-            BaseObject element = _env.getObjectById(self.hashCode());
+            BaseObject element = _env.getObjectById(self.getInteger(UNIQUE_ID_KEY));
             int n = arguments.length();
             Class<?> argsType [] = _method.getParameterTypes();
             Object [] targetArguments = new Object[n];
@@ -51,7 +53,8 @@ final class Wrapper {
 
         @Override
         public Object invoke(V8Object self, V8Array arguments) {
-            BaseObject object = _env.getObjectById(self.hashCode());
+            int id = self.getInteger(UNIQUE_ID_KEY);
+            BaseObject object = _env.getObjectById(id);
             try {
                 return _method.invoke(object, arguments);
             } catch (IllegalAccessException e) {
@@ -103,8 +106,10 @@ final class Wrapper {
                 args[i] = TypeConverter.getValue(_env, ctorArgs[i], arguments.get(i - 1));
 
             try {
-                Object obj = _ctor.newInstance(args);
-                _env.putObject(self.hashCode(), (BaseObject) obj);
+                BaseObject obj = (BaseObject)_ctor.newInstance(args);
+                int id = obj.getObjectId();
+                self.add(UNIQUE_ID_KEY, id);
+                _env.putObject(id, obj);
             } catch (InstantiationException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
@@ -133,5 +138,9 @@ final class Wrapper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static int getObjectId(V8Object obj) {
+        return obj.contains(UNIQUE_ID_KEY)? obj.getInteger(UNIQUE_ID_KEY): 0;
     }
 }

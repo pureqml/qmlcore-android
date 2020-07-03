@@ -18,7 +18,6 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -103,7 +102,8 @@ public final class ExecutionEnvironment extends Service
 
     class WeakRefList<E> extends ArrayList<WeakReference<E>> {};
     //Element collection
-    private SparseArray<BaseObject>     _objects = new SparseArray<BaseObject>(10000);
+    private HashMap<Integer, BaseObject>_objects = new HashMap<Integer, BaseObject>(10000);
+    private int                         _nextObjectId = 1;
     private WeakRefList<IResource>      _resources = new WeakRefList<IResource>();
     private Set<Element>                _updatedElements = new HashSet<Element>();
     private Map<Element, ElementUpdater>_elementUpdaters = new HashMap<Element, ElementUpdater>();
@@ -350,7 +350,7 @@ public final class ExecutionEnvironment extends Service
 
         Log.v(TAG, "creating root element...");
         _rootObject = _v8.executeObjectScript("new fd.Element()");
-        _rootElement = (Element)getObjectById(_rootObject.hashCode());
+        _rootElement = (Element)getObjectById(Wrapper.getObjectId(_rootObject));
 
         if (_surfaceGeometry != null) { //already signalled
             setup();
@@ -396,8 +396,10 @@ public final class ExecutionEnvironment extends Service
             try { _rootObject.executeVoidFunction("discard", null); }
             catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
-            for(int i = 0, n = _objects.size(); i < n; ++i) {
-                _objects.valueAt(i).discard();
+            for(Map.Entry<Integer, BaseObject> pair : _objects.entrySet()) {
+                BaseObject o = pair.getValue();
+                if (o != null)
+                    o.discard();
             }
 
             if (_rootElement != null) {
@@ -449,15 +451,21 @@ public final class ExecutionEnvironment extends Service
     }
 
     @Override
+    public int nextObjectId() {
+        return _nextObjectId++;
+    }
+
+    @Override
     public BaseObject getObjectById(int id) {
-        BaseObject object = _objects.get(id);
-        return object;
+        return _objects.get(id);
     }
 
     @Override
     public void putObject(int id, BaseObject object) {
         if (object == null)
             throw new NullPointerException("putting null is not allowed");
+        if (id <= 0)
+            throw new RuntimeException("putObject: invalid object id");
         _objects.put(id, object);
     }
 

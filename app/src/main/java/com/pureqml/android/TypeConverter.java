@@ -111,7 +111,7 @@ public final class TypeConverter {
                     value.close();
                     return null;
                 case V8Value.V8_OBJECT:
-                    Object element = env.getObjectById(value.hashCode());
+                    Object element = env.getObjectById(Wrapper.getObjectId((V8Object)object));
                     if (element != null) {
                         value.close();
                         return element;

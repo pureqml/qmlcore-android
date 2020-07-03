@@ -17,11 +17,15 @@ public class BaseObject {
     private static final String TAG = "object";
 
     protected IExecutionEnvironment         _env;
+    private int                             _objectId;
     private Map<String, List<V8Function>>   _callbacks;
 
     public BaseObject(IExecutionEnvironment env) {
         _env = env;
+        _objectId = _env.nextObjectId();
     }
+
+    public int getObjectId() { return _objectId; }
 
     public void discard() {
         if (_callbacks != null) {
@@ -31,7 +35,7 @@ public class BaseObject {
             }
             _callbacks = null;
         }
-        _env.removeObject(this.hashCode());
+        _env.removeObject(this.getObjectId());
     }
 
     public void on(String name, V8Function callback) {

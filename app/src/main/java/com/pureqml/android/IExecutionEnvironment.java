@@ -28,6 +28,7 @@ public interface IExecutionEnvironment {
 
     V8 getRuntime();
 
+    int nextObjectId();
     BaseObject getObjectById(int id);
     void putObject(int id, BaseObject element);
     void removeObject(int id);
