@@ -262,11 +262,13 @@ public final class Image extends Element implements ImageLoadedCallback {
                         metrics.add("height", bitmap.getHeight());
                         args.push(metrics);
 
-                        _env.invokeVoidCallback(_callback, null, args);
+                        try { _env.invokeVoidCallback(_callback, null, args); }
+                        catch (Exception ex) { Log.w(TAG, "callback failed: ", ex); }
                         metrics.close();
                     } else {
                         args.push((Object)null);
-                        _env.invokeVoidCallback(_callback, null, args);
+                        try { _env.invokeVoidCallback(_callback, null, args); }
+                        catch (Exception ex) { Log.w(TAG, "callback failed: ", ex); }
                     }
                 } finally {
                     args.close();
