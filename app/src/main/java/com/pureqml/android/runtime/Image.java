@@ -41,7 +41,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     }
 
     private final class Background {
-        Mode        mode        = Mode.Percentage;
+        Mode        mode        = Mode.Absolute;
         Position    position    = Position.LeftOrTop;
         int         percentage  = 100;
         int         size        = 0;
