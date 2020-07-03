@@ -32,22 +32,23 @@ public final class ViewHolder<ViewType extends View> {
     }
 
     void setRect(final ViewGroup rootView, Rect rect) {
-        if (rootView != null) {
-            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(rect.width(), rect.height());
-            lp.leftMargin = rect.left;
-            lp.topMargin = rect.top;
-            Log.d(TAG, "layout params = " + lp.debug("RelativeLayout.LayoutParams"));
+        if (rootView == null)
+            return;
 
-            synchronized (this) {
-                if (!lp.equals(layoutParams)) {
-                    Log.i(TAG, "installing new layout params");
-                    layoutParams = lp;
-                } else
-                    lp = null;
-            }
-            if (lp != null)
-                update(rootView, true);
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(rect.width(), rect.height());
+        lp.leftMargin = rect.left;
+        lp.topMargin = rect.top;
+        Log.d(TAG, "layout params = " + lp.debug("RelativeLayout.LayoutParams"));
+
+        synchronized (this) {
+            if (!lp.equals(layoutParams)) {
+                Log.i(TAG, "installing new layout params");
+                layoutParams = lp;
+            } else
+                lp = null;
         }
+        if (lp != null)
+            update(rootView, true);
     }
 
     void update(final ViewGroup rootView, boolean visible) {
