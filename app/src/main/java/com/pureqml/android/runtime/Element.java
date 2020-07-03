@@ -379,7 +379,8 @@ public class Element extends BaseObject {
                 break;
 
             default:
-                Log.d(TAG, "ignoring setStyle " + name + ": " + value);
+                if (Log.isLoggable(TAG, Log.VERBOSE))
+                    Log.v(TAG, "ignoring setStyle " + name + ": " + value);
                 return;
         }
         update();
