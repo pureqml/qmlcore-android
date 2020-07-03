@@ -90,14 +90,14 @@ public final class TypeConverter {
         return 0xffff00ff; //invalid color
     }
 
-    public static final int toFontSize(String value, DisplayMetrics metrics) throws Exception {
+    public static final int toFontSize(String value, DisplayMetrics metrics) {
+        Integer intValue = Integer.valueOf(value.substring(0, value.length() - 2));
         if (value.endsWith("px")) {
-            return Integer.valueOf(value.substring(0, value.length() - 2));
+            return intValue;
         } else if (value.endsWith("pt")) {
-            int pt = Integer.valueOf(value.substring(0, value.length() - 2));
-            return (int)(pt / 72.0f * metrics.ydpi);
+            return (int)(intValue / 72.0f * metrics.ydpi);
         } else
-            throw new Exception("invalid unit in " + value);
+            throw new RuntimeException("invalid unit in " + value);
     }
 
     public static final Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {

@@ -390,7 +390,7 @@ public final class ExecutionEnvironment extends Service
     public void onDestroy() {
         Future<Void> future = _executor.submit(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() {
             _timers.discard();
 
             try { _rootObject.executeVoidFunction("discard", null); }
@@ -635,7 +635,7 @@ public final class ExecutionEnvironment extends Service
     public Future<Boolean> sendEvent(final String keyName, final KeyEvent event) {
         return _executor.submit(new Callable<Boolean>() {
             @Override
-            public Boolean call() throws Exception {
+            public Boolean call() {
                 try {
                     boolean r = _rootElement != null ? _rootElement.sendEvent(keyName, event) : false;
                     Log.v(TAG, "key processed = " + r);
@@ -661,7 +661,7 @@ public final class ExecutionEnvironment extends Service
         }
         return _executor.submit(new Callable<Boolean>() {
             @Override
-            public Boolean call() throws Exception {
+            public Boolean call() {
                 try {
                     Log.v(TAG,"touch coordinates " + event.getX() + ", " + event.getY() + ", id: " + eventId);
                     boolean r = _rootElement != null ? _rootElement.sendEvent(eventId, (int) event.getX(), (int) event.getY(), event) : false;

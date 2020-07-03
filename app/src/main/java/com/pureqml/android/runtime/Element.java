@@ -27,7 +27,7 @@ import java.util.Comparator;
 public class Element extends BaseObject {
     public static final String TAG = "rt.Element";
 
-    public static final class AlreadyHasAParentException extends Exception {
+    public static final class AlreadyHasAParentException extends RuntimeException {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     };
 
@@ -214,7 +214,7 @@ public class Element extends BaseObject {
         return _publicScrollPos != null? _publicScrollPos.y: 0;
     }
 
-    private Element ensureParentAndChildren(BaseObject child) throws AlreadyHasAParentException {
+    private Element ensureParentAndChildren(BaseObject child) {
         if (child == null)
             throw new NullPointerException("appending null element");
 
@@ -232,7 +232,7 @@ public class Element extends BaseObject {
         return el;
     }
 
-    public void append(BaseObject child) throws AlreadyHasAParentException {
+    public void append(BaseObject child) {
         Element el = ensureParentAndChildren(child);
         if (el == null)
             return;
@@ -240,7 +240,7 @@ public class Element extends BaseObject {
         el.update();
     }
 
-    public void prepend(BaseObject child) throws AlreadyHasAParentException {
+    public void prepend(BaseObject child) {
         Element el = ensureParentAndChildren(child);
         if (el == null)
             return;
@@ -394,7 +394,7 @@ public class Element extends BaseObject {
         }
     }
 
-    public void style(V8Array arguments) throws Exception {
+    public void style(V8Array arguments) {
         Object arg0 = arguments.get(0);
         if (arg0 instanceof V8Object) {
             V8Object styles = (V8Object) arg0;
@@ -553,7 +553,7 @@ public class Element extends BaseObject {
         update();
     }
 
-    public boolean sendEvent(int eventId, int x, int y, MotionEvent event) throws Exception {
+    public boolean sendEvent(int eventId, int x, int y, MotionEvent event) {
         if (!_globallyVisible)
             return false;
 
