@@ -38,7 +38,7 @@ public final class LocalStorage extends BaseObject {
             args.push(ex.toString());
             ret = error.call(origin, args); //indicate error
         } finally {
-            if (ret != null && ret instanceof Releasable)
+            if (ret instanceof Releasable)
                 ((Releasable)ret).release();
             args.close();
         }
@@ -57,7 +57,7 @@ public final class LocalStorage extends BaseObject {
             args.push(ex.toString());
             ret = error.call(origin, args); //indicate error
         } finally {
-            if (ret != null && ret instanceof Releasable)
+            if (ret instanceof Releasable)
                 ((Releasable)ret).release();
             args.close();
         }
@@ -75,7 +75,7 @@ public final class LocalStorage extends BaseObject {
             args.push(ex.toString());
             ret = error.call(origin, args); //indicate error
         } finally {
-            if (ret != null && ret instanceof Releasable)
+            if (ret instanceof Releasable)
                 ((Releasable)ret).release();
             args.close();
         }
