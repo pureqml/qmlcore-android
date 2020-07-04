@@ -1,5 +1,6 @@
 package com.pureqml.android;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.app.UiModeManager;
 import android.content.Context;
@@ -212,6 +213,7 @@ public final class ExecutionEnvironment extends Service
         _v8.add("fd", v8FD);
 
         v8FD.registerJavaMethod(new JavaCallback() {
+            @SuppressLint("HardwareIds")
             @Override
             public Object invoke(V8Object v8Object, V8Array v8Array) {
                 final int DeviceDesktop  = 0;
