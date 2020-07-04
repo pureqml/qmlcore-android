@@ -367,9 +367,9 @@ public final class ExecutionEnvironment extends Service
             _rootObject.add("top", 0);
             _rootObject.add("width", _surfaceGeometry.width());
             _rootObject.add("height", _surfaceGeometry.height());
-            _executor.execute(new Runnable() {
+            _executor.execute(new SafeRunnable() {
                 @Override
-                public void run() {
+                public void doRun() {
                     if (_rootElement != null)
                         _rootElement.emit(_rootObject, "resize", _surfaceGeometry.width(), _surfaceGeometry.height());
                 }
@@ -408,9 +408,9 @@ public final class ExecutionEnvironment extends Service
                 _rootElement = null;
             }
 
-            _executor.execute(new Runnable() {
+            _executor.execute(new SafeRunnable() {
                 @Override
-                public void run() {
+                public void doRun() {
                     if (_rootObject != null) {
                         _rootObject.close();
                         _rootObject = null;
@@ -508,9 +508,9 @@ public final class ExecutionEnvironment extends Service
     }
 
     protected void setSurfaceFrame(final Rect rect) {
-        _executor.execute(new Runnable() {
+        _executor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 _surfaceGeometry = rect;
                 Log.i(TAG, "new surface frame: " + _surfaceGeometry);
                 if (_rootElement != null) {
@@ -604,9 +604,9 @@ public final class ExecutionEnvironment extends Service
             _paintScheduled = true;
             Log.v(TAG, "paint scheduled");
         }
-        _executor.execute(new Runnable() {
+        _executor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 synchronized (this) { _paintScheduled = false; }
                 ExecutionEnvironment.this.paint(_surfaceHolder);
 
