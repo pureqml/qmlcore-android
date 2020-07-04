@@ -21,11 +21,11 @@ import com.pureqml.android.TypeConverter;
 public final class Input extends Element {
     public static final String TAG = "Input";
 
-    String                          value = new String();
-    String                          placeholder = new String();
-    String                          inputmode = new String();
-    String                          autocomplete = new String();
-    String                          type = new String("text");
+    String                          value = "";
+    String                          placeholder = "";
+    String                          inputmode = "";
+    String                          autocomplete = "";
+    String                          type = "text";
     final EditText                        view;
     final ViewHolder<EditText>            viewHolder;
 
