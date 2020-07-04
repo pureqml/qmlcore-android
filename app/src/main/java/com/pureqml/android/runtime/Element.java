@@ -190,9 +190,9 @@ public class Element extends BaseObject {
         return rect;
     }
 
-    final boolean scrollXEnabled()  { return _parent != null? _parent._enableScrollX: false; }
-    final boolean scrollYEnabled()  { return _parent != null? _parent._enableScrollY: false; }
-    final boolean scrollUsed()      { return _parent != null? _parent._useScrollX || _parent._useScrollY: false; }
+    final boolean scrollXEnabled()  { return _parent != null && _parent._enableScrollX; }
+    final boolean scrollYEnabled()  { return _parent != null && _parent._enableScrollY; }
+    final boolean scrollUsed()      { return _parent != null && (_parent._useScrollX || _parent._useScrollY); }
 
     final int getScrollXImpl() {
         int x = _scrollOffset != null? _scrollOffset.x: 0;

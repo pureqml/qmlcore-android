@@ -654,7 +654,7 @@ public final class ExecutionEnvironment extends Service
             @Override
             public Boolean call() {
                 try {
-                    boolean r = _rootElement != null ? _rootElement.sendEvent(keyName, event) : false;
+                    boolean r = _rootElement != null && _rootElement.sendEvent(keyName, event);
                     Log.v(TAG, "key processed = " + r);
                     return r;
                 } catch(Exception e) {
@@ -681,7 +681,7 @@ public final class ExecutionEnvironment extends Service
             public Boolean call() {
                 try {
                     Log.v(TAG,"touch coordinates " + event.getX() + ", " + event.getY() + ", id: " + eventId);
-                    boolean r = _rootElement != null ? _rootElement.sendEvent(eventId, (int) event.getX(), (int) event.getY(), event) : false;
+                    boolean r = _rootElement != null && _rootElement.sendEvent(eventId, (int) event.getX(), (int) event.getY(), event);
                     //Log.v(TAG, "click processed = " + r);
                     return r;
                 } catch(Exception e) {
