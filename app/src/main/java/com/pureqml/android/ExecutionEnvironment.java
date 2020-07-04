@@ -77,7 +77,7 @@ public final class ExecutionEnvironment extends Service
         }
     }
 
-    private class ElementUpdater {
+    private static class ElementUpdater {
         private final Element element;
         private final long duration;
         private final long started;
@@ -101,7 +101,7 @@ public final class ExecutionEnvironment extends Service
     private final IBinder _binder = new LocalBinder();
     private V8 _v8;
 
-    class WeakRefList<E> extends ArrayList<WeakReference<E>> {}
+    static class WeakRefList<E> extends ArrayList<WeakReference<E>> {}
 
     //Element collection
     private final HashMap<Integer, BaseObject>_objects = new HashMap<Integer, BaseObject>(10000);

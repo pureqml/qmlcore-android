@@ -11,7 +11,7 @@ public final class TextLayout {
     public int      width;
     public int      height;
 
-    public final class Stripe {
+    public static final class Stripe {
         public final int start;
         public final int end;
         public final int width;

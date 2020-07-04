@@ -112,7 +112,7 @@ public final class ImageLoader {
         void notify(ImageLoadedCallback callback);
     }
 
-    private abstract class BaseImageHolder implements ImageHolder
+    private abstract static class BaseImageHolder implements ImageHolder
     {
         protected final URL                 _url;
         private boolean                     _finished;
@@ -171,7 +171,7 @@ public final class ImageLoader {
         }
     }
 
-    private class ImageStaticHolder extends BaseImageHolder {
+    private static class ImageStaticHolder extends BaseImageHolder {
         Bitmap  _image = null;
 
         ImageStaticHolder(URL url) {
@@ -195,7 +195,7 @@ public final class ImageLoader {
         }
     }
 
-    private class ImageVectorHolder extends BaseImageHolder {
+    private static class ImageVectorHolder extends BaseImageHolder {
         Bitmap  _image;
         SVG     _svg;
         int     _lastWidth = 0, _lastHeight = 0;
