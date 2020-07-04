@@ -25,8 +25,8 @@ public final class Rectangle extends Element {
     private Paint   _border;
     int             _color = 0;
     String          _gradientOrientation = null;
-    int             _gradientColors[] = null;
-    float           _gradientPositions[] = null;
+    int[] _gradientColors = null;
+    float[] _gradientPositions = null;
 
     private void setupPaint(Paint paint) {
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));

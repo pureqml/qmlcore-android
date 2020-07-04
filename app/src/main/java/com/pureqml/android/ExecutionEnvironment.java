@@ -349,8 +349,7 @@ public final class ExecutionEnvironment extends Service
             return;
         }
         _v8.executeVoidScript(script, assetName, 0);
-        V8Object exports = _v8.getObject("module").getObject("exports");
-        _exports = exports;
+        _exports = _v8.getObject("module").getObject("exports");
 
         Log.v(TAG, "creating root element...");
         _rootObject = _v8.executeObjectScript("new fd.Element()");

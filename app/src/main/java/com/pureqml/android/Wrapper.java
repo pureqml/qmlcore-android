@@ -27,7 +27,7 @@ final class Wrapper {
         public Object invoke(V8Object self, V8Array arguments) {
             BaseObject element = _env.getObjectById(self.getInteger(UNIQUE_ID_KEY));
             int n = arguments.length();
-            Class<?> argsType [] = _method.getParameterTypes();
+            Class<?>[] argsType = _method.getParameterTypes();
             Object [] targetArguments = new Object[n];
             for(int i = 0; i < n; ++i) {
                 targetArguments[i] = TypeConverter.getValue(_env, argsType[i], arguments.get(i));
@@ -96,9 +96,9 @@ final class Wrapper {
 
         @Override
         public void invoke(V8Object self, V8Array arguments) {
-            Class<?> ctorArgs[] = _ctor.getParameterTypes();
+            Class<?>[] ctorArgs = _ctor.getParameterTypes();
             int n = ctorArgs.length;
-            Object args[] = new Object[n];
+            Object[] args = new Object[n];
             args[0] = _env;
 
             for(int i = 1; i < n; ++i)
@@ -119,7 +119,7 @@ final class Wrapper {
         }
     }
 
-    public static V8Object generateClass(IExecutionEnvironment env, V8 v8, V8Object namespace, String className, Class<?> cls, Class<?> ctorArgs[]) {
+    public static V8Object generateClass(IExecutionEnvironment env, V8 v8, V8Object namespace, String className, Class<?> cls, Class<?>[] ctorArgs) {
         try {
             Constructor<?> ctor = cls.getConstructor(ctorArgs);
             Log.i(TAG, "wrapping ctor of " + cls.getName());

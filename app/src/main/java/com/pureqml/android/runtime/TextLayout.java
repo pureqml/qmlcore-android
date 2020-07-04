@@ -42,7 +42,7 @@ public final class TextLayout {
 
     public void wrap(Paint paint, int begin, int end, int maxWidth) {
         while(begin < end) {
-            float measuredWidth[] = new float[1];
+            float[] measuredWidth = new float[1];
             int n = paint.breakText(text, begin, end, true, maxWidth, measuredWidth);
             add(begin, begin + n, (int)measuredWidth[0]);
             begin += n;
