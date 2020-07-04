@@ -104,9 +104,10 @@ public final class ExecutionEnvironment extends Service
     //Element collection
     private HashMap<Integer, BaseObject>_objects = new HashMap<Integer, BaseObject>(10000);
     private int                         _nextObjectId = 1;
-    private WeakRefList<IResource>      _resources = new WeakRefList<IResource>();
-    private Set<Element>                _updatedElements = new HashSet<Element>();
-    private Map<Element, ElementUpdater>_elementUpdaters = new HashMap<Element, ElementUpdater>();
+    private WeakRefList<IResource>      _resources = new WeakRefList<>();
+    private Set<Element>                _updatedElements = new HashSet<>();
+    private Map<Element, ElementUpdater>_elementUpdaters = new HashMap<>();
+    private Set<Element>                _elementUpdatersStop = new HashSet<>();
     private Rect                        _surfaceGeometry;
     private V8Object                    _rootObject;
     private Element                     _rootElement;
@@ -537,7 +538,7 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public void stopAnimation(Element el)
-    { _elementUpdaters.remove(el); }
+    { _elementUpdatersStop.add(el); }
 
     private int getDebugColorIndex() {
         int index = _debugColorIndex++ % 3;
@@ -618,6 +619,11 @@ public final class ExecutionEnvironment extends Service
                     if (!entry.getValue().tick())
                         it.remove();
                 }
+
+                for(Element el : _elementUpdatersStop) //avoid concurrent modification (element can call stopAnimation at any time
+                    _elementUpdaters.remove(el);
+                _elementUpdatersStop.clear();
+
                 if (!_elementUpdaters.isEmpty())
                     ExecutionEnvironment.this.paint(); //restart
             }
