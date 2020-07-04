@@ -20,4 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep public com.pureqml.android.runtime.*
+-keep com.pureqml.android.runtime.*
