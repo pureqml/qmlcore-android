@@ -26,6 +26,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.pureqml.android.runtime.Element;
@@ -211,7 +212,11 @@ public final class MainActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getSupportActionBar().hide();
+        {
+            ActionBar bar = getSupportActionBar();
+            if (bar != null)
+                bar.hide();
+        }
         setContentView(R.layout.activity_main);
 
         _imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
