@@ -7,7 +7,6 @@ import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
-import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.runtime.BaseObject;
 
 import java.lang.reflect.Constructor;
