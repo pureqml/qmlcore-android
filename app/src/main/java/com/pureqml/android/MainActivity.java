@@ -53,7 +53,7 @@ public final class MainActivity
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();
             _executionEnvironment.acquireResource();
             synchronized (MainActivity.this) {
-                ViewGroup rootView = (ViewGroup)findViewById(android.R.id.content);
+                ViewGroup rootView = findViewById(android.R.id.content);
                 rootView = (ViewGroup)rootView.getChildAt(0);
                 _executionEnvironment.setRootView(rootView);
                 _executionEnvironment.setSurfaceHolder(_mainView.getHolder());
@@ -216,7 +216,7 @@ public final class MainActivity
 
         _imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        _mainView = (SurfaceView) findViewById(R.id.contextView);
+        _mainView = findViewById(R.id.contextView);
 
         SurfaceHolder surfaceHolder = _mainView.getHolder();
         surfaceHolder.setFormat(PixelFormat.TRANSLUCENT);
