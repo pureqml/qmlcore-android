@@ -205,7 +205,7 @@ public final class MainActivity
             if (_executionEnvironment != null)
                 fullRedraw();
         }
-    };
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -387,7 +387,7 @@ public final class MainActivity
         super.onTrimMemory(level);
     }
 
-    static final String GetKeyName(int keyCode) {
+    static String GetKeyName(int keyCode) {
         String keyName = GetKeyNameImpl(keyCode);
         if (keyName == null)
             return null;
@@ -407,7 +407,7 @@ public final class MainActivity
         }
     }
 
-    static final String GetKeyNameImpl(int keyCode) {
+    static String GetKeyNameImpl(int keyCode) {
         switch(keyCode) {
            case KeyEvent.KEYCODE_UNKNOWN: return "Unknown";
             case KeyEvent.KEYCODE_SOFT_LEFT: return "SoftLeft";

@@ -11,7 +11,7 @@ import com.eclipsesource.v8.V8Value;
 public final class TypeConverter {
     private static final String TAG = "TypeConverter";
 
-    public static final boolean toBoolean(Object value) {
+    public static boolean toBoolean(Object value) {
         if (value instanceof Boolean)
             return (boolean)value;
         else if (value instanceof Integer)
@@ -26,7 +26,7 @@ public final class TypeConverter {
             throw new RuntimeException("value " + value + " could not be converted to boolean");
     }
 
-    public static final int toInteger(Object value) {
+    public static int toInteger(Object value) {
         if (value instanceof Integer)
             return (int)value;
         else if (value instanceof Float)
@@ -37,7 +37,7 @@ public final class TypeConverter {
             throw new RuntimeException("value " + value + " could not be converted to int");
     }
 
-    public static final float toFloat(Object value) {
+    public static float toFloat(Object value) {
         if (value instanceof Float)
             return (float)value;
         else if (value instanceof Integer)
@@ -48,7 +48,7 @@ public final class TypeConverter {
             throw new RuntimeException("value " + value + " could not be converted to int");
     }
 
-    public static final int toColor(Object valueObject) {
+    public static int toColor(Object valueObject) {
         if (valueObject instanceof String) {
             String value = (String)valueObject;
             int r, g, b, a = 255;
@@ -90,7 +90,7 @@ public final class TypeConverter {
         return 0xffff00ff; //invalid color
     }
 
-    public static final int toFontSize(String value, DisplayMetrics metrics) {
+    public static int toFontSize(String value, DisplayMetrics metrics) {
         Integer intValue = Integer.valueOf(value.substring(0, value.length() - 2));
         if (value.endsWith("px")) {
             return intValue;
@@ -100,7 +100,7 @@ public final class TypeConverter {
             throw new RuntimeException("invalid unit in " + value);
     }
 
-    public static final Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
+    public static Object getValue(IExecutionEnvironment env, Class<?> type, Object object) {
         if (type != null && object.getClass() == type) {
             return object;
         } else if (object instanceof V8Value) {

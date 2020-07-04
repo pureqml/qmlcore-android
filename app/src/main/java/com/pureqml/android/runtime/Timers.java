@@ -36,7 +36,7 @@ public final class Timers {
             _singleShot = singleShot;
         }
 
-        private final void releaseCallback() {
+        private void releaseCallback() {
             //Log.v(TAG, "Timer task " + _id + " released callback");
 
             if (_callback != null) {

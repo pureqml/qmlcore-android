@@ -26,8 +26,9 @@ public final class Image extends Element implements ImageLoadedCallback {
     V8Function                  _callback;
     Paint                       _paint;
 
-    private enum Position { LeftOrTop, Center, RightOrBottom };
-    private enum Mode { Percentage, Absolute, Cover, Contain };
+    private enum Position { LeftOrTop, Center, RightOrBottom }
+
+    private enum Mode { Percentage, Absolute, Cover, Contain }
 
     static int getPosition(Position position, int imageSize, int rectSize) {
         switch(position) {

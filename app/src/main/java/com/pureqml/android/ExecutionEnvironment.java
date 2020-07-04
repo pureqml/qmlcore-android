@@ -100,7 +100,8 @@ public final class ExecutionEnvironment extends Service
     private final IBinder _binder = new LocalBinder();
     private V8 _v8;
 
-    class WeakRefList<E> extends ArrayList<WeakReference<E>> {};
+    class WeakRefList<E> extends ArrayList<WeakReference<E>> {}
+
     //Element collection
     private HashMap<Integer, BaseObject>_objects = new HashMap<Integer, BaseObject>(10000);
     private int                         _nextObjectId = 1;
@@ -311,7 +312,7 @@ public final class ExecutionEnvironment extends Service
         v8Module.close();
     }
 
-    private static final String readScript(InputStream input) throws IOException {
+    private static String readScript(InputStream input) throws IOException {
             final int BufferSize = 128 * 1024;
 
             final byte[] buffer = new byte[BufferSize];

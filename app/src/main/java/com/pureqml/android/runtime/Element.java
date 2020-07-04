@@ -29,7 +29,7 @@ public class Element extends BaseObject {
 
     public static final class AlreadyHasAParentException extends RuntimeException {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
-    };
+    }
 
     private Rect                _rect               = new Rect();
     private Rect                _combinedRect       = new Rect();
@@ -414,7 +414,7 @@ public class Element extends BaseObject {
             ((Releasable)arg0).release();
     }
 
-    private final boolean roundClippingNeeded() {
+    private boolean roundClippingNeeded() {
         return _radius > 0 && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
@@ -548,7 +548,7 @@ public class Element extends BaseObject {
         return emitUntilTrue(null, "keydown", keyName);
     }
 
-    private final void emitScroll() {
+    private void emitScroll() {
         _parent._publicScrollPos.set(getScrollXImpl() - this.getBaseX() , getScrollYImpl() - this.getBaseY());
         _parent.emit(null, "scroll");
         update();
@@ -760,7 +760,7 @@ public class Element extends BaseObject {
         return rect;
     }
 
-    static final Paint patchAlpha(Paint paint, int alpha, float opacity) {
+    static Paint patchAlpha(Paint paint, int alpha, float opacity) {
         alpha = (int)(alpha * opacity);
         if (alpha <= 0)
             return null;

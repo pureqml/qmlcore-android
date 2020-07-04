@@ -21,15 +21,15 @@ public final class Text extends Element {
     enum Wrap {
         NoWrap,
         Wrap
-    };
+    }
 
     enum HorizontalAlignment {
         AlignLeft, AlignRight, AlignHCenter, AlignJustify
-    };
+    }
 
     enum VerticalAlignment {
         AlignTop, AlignBottom, AlignVCenter
-    };
+    }
 
     private final static String TAG = "rt.Text";
     Paint               _paint = new Paint(Paint.ANTI_ALIAS_FLAG);

@@ -45,7 +45,7 @@ public final class PaintState {
         }
     }
 
-    public final static boolean visible(float opacity) {
+    public static boolean visible(float opacity) {
         return opacity >= opacityThreshold;
     }
 }
