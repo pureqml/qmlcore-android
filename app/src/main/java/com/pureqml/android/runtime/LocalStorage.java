@@ -11,6 +11,7 @@ import com.pureqml.android.IExecutionEnvironment;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 
 public final class LocalStorage extends BaseObject {
     public static final String TAG = "localstorage";
@@ -30,7 +31,7 @@ public final class LocalStorage extends BaseObject {
             Log.d(TAG, "opened file " + name + " for reading...");
             byte[] data = new byte[MaxStorageSize];
             int r = file.read(data);
-            String stringData = new String(data, 0, r, "UTF-8");
+            String stringData = new String(data, 0, r, StandardCharsets.UTF_8);
             args.push(stringData);
             ret = callback.call(origin, args);
         } catch (Exception ex) {
@@ -51,7 +52,7 @@ public final class LocalStorage extends BaseObject {
         try {
             FileOutputStream file = _env.getContext().openFileOutput(name + ".storage", Context.MODE_PRIVATE);
             Log.i(TAG, "opened file for writing...");
-            file.write(value.getBytes("UTF-8"));
+            file.write(value.getBytes(StandardCharsets.UTF_8));
         } catch (Exception ex) {
             Log.e(TAG, "can't open file for writing");
             args.push(ex.toString());
