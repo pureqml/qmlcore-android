@@ -45,7 +45,7 @@ public final class Text extends Element {
         super(env);
     }
 
-    static private final Pattern textShadowPattern = Pattern.compile("(\\d+)px\\s*(\\d+)px\\s*(\\d+)px\\s*rgba\\(\\s*(\\d+)\\s*,(\\d+)\\s*,(\\d+)\\s*,([\\d\\.]+)\\s*\\)");
+    static private final Pattern textShadowPattern = Pattern.compile("(\\d+)px\\s*(\\d+)px\\s*(\\d+)px\\s*rgba\\(\\s*(\\d+)\\s*,(\\d+)\\s*,(\\d+)\\s*,([\\d.]+)\\s*\\)");
 
     @Override
     protected void setStyle(String name, Object value) {
