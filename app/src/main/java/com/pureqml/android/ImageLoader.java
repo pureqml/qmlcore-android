@@ -120,7 +120,7 @@ public final class ImageLoader {
 
         BaseImageHolder(URL url) {
             _url = url;
-            _callbacks = new LinkedList<ImageLoadedCallback>();
+            _callbacks = new LinkedList<>();
         }
 
         @Override

@@ -104,7 +104,7 @@ public final class ExecutionEnvironment extends Service
     static class WeakRefList<E> extends ArrayList<WeakReference<E>> {}
 
     //Element collection
-    private final HashMap<Integer, BaseObject>_objects = new HashMap<Integer, BaseObject>(10000);
+    private final HashMap<Integer, BaseObject>_objects = new HashMap<>(10000);
     private int                         _nextObjectId = 1;
     private final WeakRefList<IResource>      _resources = new WeakRefList<>();
     private final Set<Element>                _updatedElements = new HashSet<>();
@@ -741,7 +741,7 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public void register(IResource res) {
-        synchronized (this) { _resources.add(new WeakReference<IResource>(res)); }
+        synchronized (this) { _resources.add(new WeakReference<>(res)); }
     }
 
     @Override

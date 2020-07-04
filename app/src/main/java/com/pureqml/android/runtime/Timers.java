@@ -20,7 +20,7 @@ public final class Timers {
 
     final ExecutionEnvironment    _env;
     Timer                   _timer = new Timer();
-    final SparseArray<TimerTask>  _tasks = new SparseArray<TimerTask>();
+    final SparseArray<TimerTask>  _tasks = new SparseArray<>();
     int                     _nextId = 1;
 
     public Timer getTimer() { return _timer; }

@@ -31,7 +31,7 @@ public final class TextLayout {
 
     public TextLayout(String text) {
         this.text = text;
-        this.stripes = new LinkedList<Stripe>();
+        this.stripes = new LinkedList<>();
     }
 
     public void add(int start, int end, int width) {

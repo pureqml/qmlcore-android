@@ -77,10 +77,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Context context = env.getContext();
         if (useTextureView) {
             textureView = new TextureView(context);
-            viewHolder = new ViewHolder<TextureView>(context, textureView);
+            viewHolder = new ViewHolder<>(context, textureView);
         } else {
             surfaceView = new SurfaceView(context);
-            viewHolder = new ViewHolder<SurfaceView>(context, surfaceView);
+            viewHolder = new ViewHolder<>(context, surfaceView);
         }
 
         period = new Timeline.Period();

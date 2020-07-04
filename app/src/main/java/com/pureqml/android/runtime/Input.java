@@ -34,7 +34,7 @@ public final class Input extends Element {
 
         Context context = env.getContext();
         view = new EditText(context);
-        viewHolder = new ViewHolder<EditText>(context, view);
+        viewHolder = new ViewHolder<>(context, view);
 
         view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override

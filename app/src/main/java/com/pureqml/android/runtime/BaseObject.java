@@ -44,7 +44,7 @@ public class BaseObject {
             _callbacks = new HashMap<>();
         List<V8Function> callbacks = _callbacks.get(name);
         if (callbacks == null) {
-            callbacks = new LinkedList<V8Function>();
+            callbacks = new LinkedList<>();
             _callbacks.put(name, callbacks);
         }
         callbacks.add(callback);

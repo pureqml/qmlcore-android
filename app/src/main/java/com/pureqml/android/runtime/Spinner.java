@@ -19,7 +19,7 @@ public final class Spinner extends Element {
         Context context = env.getContext();
         view = new ProgressBar(context);
         view.setIndeterminate(true);
-        viewHolder = new ViewHolder<ProgressBar>(context, view);
+        viewHolder = new ViewHolder<>(context, view);
     }
 
     public void discard() {
