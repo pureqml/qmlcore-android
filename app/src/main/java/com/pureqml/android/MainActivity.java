@@ -316,7 +316,7 @@ public final class MainActivity
         try {
             result = _executionEnvironment.getExecutor().submit(new Callable<Boolean>() {
                 @Override
-                public Boolean call() throws Exception {
+                public Boolean call() {
                     Log.d(TAG, "back pressed, calling Context.processKey");
                     Element context = _executionEnvironment.getRootElement();
                     return context.emitUntilTrue(null, "keydown", "Back");
