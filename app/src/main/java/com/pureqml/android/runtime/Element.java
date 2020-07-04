@@ -631,19 +631,20 @@ public class Element extends BaseObject {
                     if (!_useScrollX && !_useScrollY) {
                         float distance = (float) Math.hypot(dx, dy);
                         if (distance >= DetectionDistance2) {
+                            boolean horizontal = Math.abs(dx) > Math.abs(dy);
                             if (enableScrollX && enableScrollY) {
-                                if (Math.abs(dx) > Math.abs(dy))
+                                if (horizontal)
                                     _useScrollX = true;
                                 else
                                     _useScrollY = true;
                                 handleMove = true;
                             } else if (enableScrollX) {
-                                if (Math.abs(dx) > Math.abs(dy)) {
+                                if (horizontal) {
                                     _useScrollX = true;
                                     handleMove = true;
                                 }
                             } else if (enableScrollY) {
-                                if (Math.abs(dy) > Math.abs(dx)) {
+                                if (!horizontal) {
                                     _useScrollY = true;
                                     handleMove = true;
                                 }
