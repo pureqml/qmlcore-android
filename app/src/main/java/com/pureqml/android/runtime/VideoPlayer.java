@@ -245,7 +245,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     private void releaseResourceImpl() {
         if (pollingTask != null) {
-            try { pollingTask.cancel(); } catch(Exception ex) { }
+            try { pollingTask.cancel(); }
+            catch(Exception ex) { Log.w(TAG, "polling task cancel failed", ex); }
             pollingTask = null;
         }
 
