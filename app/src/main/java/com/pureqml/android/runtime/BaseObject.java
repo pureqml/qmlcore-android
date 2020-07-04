@@ -64,8 +64,8 @@ public class BaseObject {
             return;
 
         V8Array v8args = new V8Array(_env.getRuntime());
-        for (int i = 0; i < args.length; ++i) {
-            v8args.push(args[i]);
+        for (Object arg : args) {
+            v8args.push(arg);
         }
         for(V8Function callback : callbacks) {
             try {
@@ -89,8 +89,8 @@ public class BaseObject {
             return false;
 
         V8Array v8args = new V8Array(_env.getRuntime());
-        for (int i = 0; i < args.length; ++i) {
-            v8args.push(args[i]);
+        for (Object arg : args) {
+            v8args.push(arg);
         }
         boolean result = false;
         for(V8Function callback : callbacks) {

@@ -223,8 +223,8 @@ public final class Image extends Element implements ImageLoadedCallback {
                         break;
                     default:
                         String[] size = value.toString().split(regexWS);
-                        for (int i = 0; i < size.length; ++i) {
-                            switch(size[i]) {
+                        for (String s : size) {
+                            switch (s) {
                                 case "repeat-x":
                                     _backgroundX.repeat = true;
                                     break;
@@ -232,7 +232,7 @@ public final class Image extends Element implements ImageLoadedCallback {
                                     _backgroundY.repeat = true;
                                     break;
                                 default:
-                                    Log.w(TAG, "Unhandled background-repeat value " + size[i]);
+                                    Log.w(TAG, "Unhandled background-repeat value " + s);
                             }
                         }
                 }
