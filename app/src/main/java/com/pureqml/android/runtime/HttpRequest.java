@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
 public final class HttpRequest {
@@ -52,7 +51,7 @@ public final class HttpRequest {
                 if (value instanceof V8Value && ((V8Value) value).isUndefined()) {
                     return;
                 }
-                _body = value.toString().getBytes(StandardCharsets.UTF_8);
+                _body = value.toString().getBytes("UTF-8");
                 if (_body.length > 0)
                     _connection.setDoOutput(true);
             } else if (key.equals("done")) {
