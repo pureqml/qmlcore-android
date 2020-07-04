@@ -227,7 +227,9 @@ public final class MainActivity
         _mainView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                Log.i(TAG, "motion " + event.toString());
+                if (Log.isLoggable(TAG, Log.VERBOSE)) {
+                    Log.v(TAG, "motion " + event.toString());
+                }
                 if (_executionEnvironment == null)
                     return false;
                 try {

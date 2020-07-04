@@ -13,6 +13,9 @@ public final class Console {
     public static class LogMethod implements JavaVoidCallback {
         @Override
         public void invoke(final V8Object receiver, final V8Array parameters) {
+            if (!Log.isLoggable(TAG, Log.INFO))
+                return;
+
             StringBuilder b = new StringBuilder();
             for(int i = 0; i < parameters.length(); ++i) {
                 Object value = parameters.get(i);
