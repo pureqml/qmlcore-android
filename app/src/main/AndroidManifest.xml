@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.pureqml.android">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -26,7 +27,9 @@
         android:usesCleartextTraffic="true"
         android:largeHeap="true"
         android:hardwareAccelerated="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:fullBackupContent="@xml/backup_descriptor"
+        tools:ignore="UnusedAttribute">
 
         <activity android:name=".MainActivity" android:configChanges="orientation|screenSize" android:theme="@style/AppTheme.NoTitleBar">
             <intent-filter>
