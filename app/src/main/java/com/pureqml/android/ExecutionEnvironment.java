@@ -690,7 +690,6 @@ public final class ExecutionEnvironment extends Service
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void acquireResource() {
         Log.i(TAG, "acquireResources");
 
@@ -715,7 +714,6 @@ public final class ExecutionEnvironment extends Service
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void releaseResource() {
         Log.i(TAG, "releaseResources");
 
