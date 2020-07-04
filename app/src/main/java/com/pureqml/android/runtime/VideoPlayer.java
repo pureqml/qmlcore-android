@@ -46,14 +46,14 @@ import static com.google.android.exoplayer2.C.TIME_UNSET;
 
 public final class VideoPlayer extends BaseObject implements IResource {
     private static final String TAG = "VideoPlayer";
-    private static int PollingInterval = 500; //ms
+    private static final int PollingInterval = 500; //ms
 
     private SimpleExoPlayer             player;
     private SurfaceView                 surfaceView;
     private TextureView                 textureView;
-    private ViewHolder<?>               viewHolder;
-    private Handler                     handler;
-    private Timeline.Period             period;
+    private final ViewHolder<?>               viewHolder;
+    private final Handler                     handler;
+    private final Timeline.Period             period;
 
     //this is persistent state
     private Rect                        rect;

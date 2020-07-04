@@ -23,10 +23,10 @@ public final class ImageLoader {
     public static final String TAG = "ImageLoader";
     public static final int CacheSize = 64 * 1024 * 1024;
 
-    private IExecutionEnvironment   _env;
-    private ExecutorService         _threadPool;
+    private final IExecutionEnvironment   _env;
+    private final ExecutorService         _threadPool;
 
-    private LruCache<URL, ImageHolder> _cache = new LruCache<URL, ImageHolder>(CacheSize) {
+    private final LruCache<URL, ImageHolder> _cache = new LruCache<URL, ImageHolder>(CacheSize) {
         @Override
         protected int sizeOf(URL key, ImageHolder value) {
             return value.byteCount();
@@ -67,8 +67,8 @@ public final class ImageLoader {
     }
 
     private class ImageLoaderTask implements Runnable {
-        URL             _url;
-        ImageHolder     _holder; //fixme: make me weak
+        final URL             _url;
+        final ImageHolder     _holder; //fixme: make me weak
 
         public ImageLoaderTask(URL url, ImageHolder holder) {
             _url = url;

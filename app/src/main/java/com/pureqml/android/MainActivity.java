@@ -47,7 +47,7 @@ public final class MainActivity
     boolean                         _showSoftKeyboard;
     InputMethodManager              _imm;
 
-    private ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
+    private final ServiceConnection _executionEnvironmentConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             Log.i(TAG, "connected to execution service...");
             _executionEnvironment = ((ExecutionEnvironment.LocalBinder) service).getService();

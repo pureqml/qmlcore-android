@@ -31,9 +31,9 @@ public class Element extends BaseObject {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     }
 
-    private Rect                _rect               = new Rect();
-    private Rect                _combinedRect       = new Rect();
-    protected Rect              _lastRect           = new Rect();
+    private final Rect                _rect               = new Rect();
+    private final Rect                _combinedRect       = new Rect();
+    protected final Rect              _lastRect           = new Rect();
     private Point               _translate;
     private PointF              _scale;
     private float               _rotate             = 0;

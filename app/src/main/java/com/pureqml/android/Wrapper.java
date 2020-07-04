@@ -19,7 +19,7 @@ final class Wrapper {
     private static final String UNIQUE_ID_KEY = "__uniqueId";
 
     public static final class MethodWrapper implements JavaCallback {
-        IExecutionEnvironment _env;
+        final IExecutionEnvironment _env;
         private final Method _method;
         public MethodWrapper(IExecutionEnvironment env, Method method) { _env = env; _method = method; }
 
@@ -45,7 +45,7 @@ final class Wrapper {
     }
 
     public static final class SimpleMethodWrapper implements JavaCallback {
-        IExecutionEnvironment _env;
+        final IExecutionEnvironment _env;
         private final Method _method;
 
         public SimpleMethodWrapper(IExecutionEnvironment env, Method method) { _env = env; _method = method; }
@@ -86,8 +86,8 @@ final class Wrapper {
     }
 
     private static final class ConstructorWrapper implements JavaVoidCallback {
-        IExecutionEnvironment   _env;
-        Constructor<?>          _ctor;
+        final IExecutionEnvironment   _env;
+        final Constructor<?>          _ctor;
 
         public ConstructorWrapper(IExecutionEnvironment env, Constructor<?> ctor) {
             _env = env;

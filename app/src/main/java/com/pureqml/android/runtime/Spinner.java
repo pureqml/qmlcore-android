@@ -10,8 +10,8 @@ import com.pureqml.android.IExecutionEnvironment;
 public final class Spinner extends Element {
     public static final String TAG = "Input";
 
-    ProgressBar                     view;
-    ViewHolder<ProgressBar>         viewHolder;
+    final ProgressBar                     view;
+    final ViewHolder<ProgressBar>         viewHolder;
 
     public Spinner(IExecutionEnvironment env) {
         super(env);

@@ -26,8 +26,8 @@ public final class Input extends Element {
     String                          inputmode = new String();
     String                          autocomplete = new String();
     String                          type = new String("text");
-    EditText                        view;
-    ViewHolder<EditText>            viewHolder;
+    final EditText                        view;
+    final ViewHolder<EditText>            viewHolder;
 
     public Input(IExecutionEnvironment env) {
         super(env);

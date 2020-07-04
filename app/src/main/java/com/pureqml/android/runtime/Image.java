@@ -24,7 +24,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     private final static String TAG = "rt.Image";
     URL                         _url;
     V8Function                  _callback;
-    Paint                       _paint;
+    final Paint                       _paint;
 
     private enum Position { LeftOrTop, Center, RightOrBottom }
 
@@ -152,8 +152,8 @@ public final class Image extends Element implements ImageLoadedCallback {
             //Log.v(TAG, "merge out " + mode + " " + dst + " ← " + src);
         }
     }
-    Background                  _backgroundX = new Background();
-    Background                  _backgroundY = new Background();
+    final Background                  _backgroundX = new Background();
+    final Background                  _backgroundY = new Background();
 
     public Image(IExecutionEnvironment env) {
         super(env);

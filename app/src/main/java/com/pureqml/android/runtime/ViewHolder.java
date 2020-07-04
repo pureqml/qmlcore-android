@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 public final class ViewHolder<ViewType extends View> {
     private static final String TAG = "ViewHolder";
 
-    private ViewType                view;
+    private final ViewType                view;
     RelativeLayout.LayoutParams     layoutParams;
 
     public ViewHolder(Context context, ViewType view) {

@@ -25,7 +25,7 @@ public final class HttpRequest {
 
     static class Request implements Runnable {
         private static final String TAG = "HttpRequest";
-        IExecutionEnvironment   _env;
+        final IExecutionEnvironment   _env;
         URL                     _url;
         HttpURLConnection       _connection;
         byte []                 _body;

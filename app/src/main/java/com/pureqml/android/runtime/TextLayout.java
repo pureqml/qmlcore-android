@@ -6,15 +6,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 public final class TextLayout {
-    public String   text;
+    public final String   text;
 
     public int      width;
     public int      height;
 
     public final class Stripe {
-        public int start;
-        public int end;
-        public int width;
+        public final int start;
+        public final int end;
+        public final int width;
 
         public Stripe(int start, int end, int width) {
             this.start = start;
@@ -27,7 +27,7 @@ public final class TextLayout {
         }
     }
 
-    public List<Stripe> stripes;
+    public final List<Stripe> stripes;
 
     public TextLayout(String text) {
         this.text = text;

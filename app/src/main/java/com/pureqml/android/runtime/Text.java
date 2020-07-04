@@ -32,7 +32,7 @@ public final class Text extends Element {
     }
 
     private final static String TAG = "rt.Text";
-    Paint               _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    final Paint               _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     String              _text;
     TextLayout          _layout;
     Wrap                _wrap = Wrap.NoWrap;
@@ -45,7 +45,7 @@ public final class Text extends Element {
         super(env);
     }
 
-    static private Pattern textShadowPattern = Pattern.compile("(\\d+)px\\s*(\\d+)px\\s*(\\d+)px\\s*rgba\\(\\s*(\\d+)\\s*,(\\d+)\\s*,(\\d+)\\s*,([\\d\\.]+)\\s*\\)");
+    static private final Pattern textShadowPattern = Pattern.compile("(\\d+)px\\s*(\\d+)px\\s*(\\d+)px\\s*rgba\\(\\s*(\\d+)\\s*,(\\d+)\\s*,(\\d+)\\s*,([\\d\\.]+)\\s*\\)");
 
     @Override
     protected void setStyle(String name, Object value) {
@@ -225,7 +225,7 @@ public final class Text extends Element {
         update();
     }
 
-    static private Pattern newLinePattern = Pattern.compile("<br.*?>");
+    static private final Pattern newLinePattern = Pattern.compile("<br.*?>");
 
     private String preprocess(String text) {
         return text.replaceAll("\\s+", " ");

@@ -21,7 +21,7 @@ import static com.pureqml.android.TypeConverter.toInteger;
 
 public final class Rectangle extends Element {
     private final static String TAG = "rt.Rectangle";
-    private Paint   _background;
+    private final Paint   _background;
     private Paint   _border;
     int             _color = 0;
     String          _gradientOrientation = null;

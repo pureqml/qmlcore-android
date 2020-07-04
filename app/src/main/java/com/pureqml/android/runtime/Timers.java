@@ -18,17 +18,17 @@ import java.util.concurrent.ExecutorService;
 public final class Timers {
     public static final String TAG = "Timers";
 
-    ExecutionEnvironment    _env;
+    final ExecutionEnvironment    _env;
     Timer                   _timer = new Timer();
-    SparseArray<TimerTask>  _tasks = new SparseArray<TimerTask>();
+    final SparseArray<TimerTask>  _tasks = new SparseArray<TimerTask>();
     int                     _nextId = 1;
 
     public Timer getTimer() { return _timer; }
 
     class Task extends TimerTask {
-        int         _id;
+        final int         _id;
         V8Object    _callback;
-        boolean     _singleShot;
+        final boolean     _singleShot;
 
         Task(int id, V8Object callback, boolean singleShot) {
             _id = id;

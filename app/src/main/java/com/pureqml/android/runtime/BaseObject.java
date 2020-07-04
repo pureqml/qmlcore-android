@@ -16,8 +16,8 @@ import java.util.Map;
 public class BaseObject {
     private static final String TAG = "object";
 
-    protected IExecutionEnvironment         _env;
-    private int                             _objectId;
+    protected final IExecutionEnvironment         _env;
+    private final int                             _objectId;
     private Map<String, List<V8Function>>   _callbacks;
 
     public BaseObject(IExecutionEnvironment env) {

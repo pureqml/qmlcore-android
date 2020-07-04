@@ -77,9 +77,9 @@ public final class ExecutionEnvironment extends Service
     }
 
     private class ElementUpdater {
-        private Element element;
-        private long duration;
-        private long started;
+        private final Element element;
+        private final long duration;
+        private final long started;
 
         ElementUpdater(Element el, float seconds) {
             element = el;
@@ -103,20 +103,20 @@ public final class ExecutionEnvironment extends Service
     class WeakRefList<E> extends ArrayList<WeakReference<E>> {}
 
     //Element collection
-    private HashMap<Integer, BaseObject>_objects = new HashMap<Integer, BaseObject>(10000);
+    private final HashMap<Integer, BaseObject>_objects = new HashMap<Integer, BaseObject>(10000);
     private int                         _nextObjectId = 1;
-    private WeakRefList<IResource>      _resources = new WeakRefList<>();
-    private Set<Element>                _updatedElements = new HashSet<>();
-    private Map<Element, ElementUpdater>_elementUpdaters = new HashMap<>();
-    private Set<Element>                _elementUpdatersStop = new HashSet<>();
+    private final WeakRefList<IResource>      _resources = new WeakRefList<>();
+    private final Set<Element>                _updatedElements = new HashSet<>();
+    private final Map<Element, ElementUpdater>_elementUpdaters = new HashMap<>();
+    private final Set<Element>                _elementUpdatersStop = new HashSet<>();
     private Rect                        _surfaceGeometry;
     private V8Object                    _rootObject;
     private Element                     _rootElement;
     private V8Object                    _exports;
     private ExecutorService             _executor;
     private Timers                      _timers;
-    private ExecutorService             _threadPool;
-    private ImageLoader                 _imageLoader;
+    private final ExecutorService             _threadPool;
+    private final ImageLoader                 _imageLoader;
     private IRenderer                   _renderer;
     private ViewGroup                   _rootView;
     private boolean                     _paintScheduled;
