@@ -291,7 +291,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         if (url.contains(".m3u8")) { //FIXME: add proper content type here
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
             factory.setExtractorFactory(new DefaultHlsExtractorFactory(
-                    DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS |
+                    // DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS |
                     DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES,
                     true
             )).setAllowChunklessPreparation(true);
