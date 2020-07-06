@@ -65,7 +65,7 @@ public class Element extends BaseObject {
     private Point               _scrollOffset;
     private Point               _motionStartPos;
     private Point               _scrollPos;
-    private Point               _publicScrollPos; //bloody html, scroll is reported on parent element
+    private Element             _scrollingElement; //bloody html, scroll is reported on parent element
     private int                 _eventId;
 
     //inertial scrolling
@@ -194,6 +194,40 @@ public class Element extends BaseObject {
     final boolean scrollYEnabled()  { return _parent != null && _parent._enableScrollY; }
     final boolean scrollUsed()      { return _parent != null && (_parent._useScrollX || _parent._useScrollY); }
 
+    public final int getScrollX() {
+        return findScrollingElement()? _scrollingElement.getScrollXImpl() - _scrollingElement.getBaseX(): 0;
+    }
+
+    public final int getScrollY() {
+        return findScrollingElement()? _scrollingElement.getScrollYImpl() - _scrollingElement.getBaseY(): 0;
+    }
+
+    private final boolean findScrollingElement() {
+        if (_scrollingElement != null)
+            return true;
+
+        if (!_enableScrollX && !_enableScrollY)
+            return false;
+
+        Log.v(TAG, "trying to find scrollable surface...");
+        Rect parentRect = getRect();
+        int w = parentRect.width(), h = parentRect.height();
+        for (Element el : _children) {
+            Rect rect = el.getRect();
+            int clientWidth = rect.width(), clientHeight = rect.height();
+
+            boolean enableScrollX = _enableScrollX && clientWidth > w;
+            boolean enableScrollY = _enableScrollY && clientHeight > h;
+            if (enableScrollX || enableScrollY) {
+                _scrollingElement = el;
+                Log.v(TAG, "found child " + clientWidth + "x" + clientHeight);
+                break;
+            }
+        }
+
+        return _scrollingElement != null;
+    }
+
     final int getScrollXImpl() {
         int x = _scrollOffset != null? _scrollOffset.x: 0;
         x += _scrollPos != null? _scrollPos.x: 0;
@@ -204,14 +238,6 @@ public class Element extends BaseObject {
         int y = _scrollOffset != null? _scrollOffset.y: 0;
         y += _scrollPos != null? _scrollPos.y: 0;
         return y;
-    }
-
-    public final int getScrollX() {
-        return _publicScrollPos != null? _publicScrollPos.x: 0;
-    }
-
-    public final int getScrollY() {
-        return _publicScrollPos != null? _publicScrollPos.y: 0;
     }
 
     private Element ensureParentAndChildren(BaseObject child) {
@@ -549,7 +575,7 @@ public class Element extends BaseObject {
     }
 
     private void emitScroll() {
-        _parent._publicScrollPos.set(getScrollXImpl() - this.getBaseX() , getScrollYImpl() - this.getBaseY());
+        _parent._scrollingElement = this;
         _parent.emit(null, "scroll");
         update();
     }
@@ -600,8 +626,6 @@ public class Element extends BaseObject {
                         _scrollPos = new Point();
                     if (_scrollOffset == null)
                         _scrollOffset = new Point();
-                    if (_parent._publicScrollPos == null)
-                        _parent._publicScrollPos = new Point();
                     _scrollVelocity = null;
                     _eventId = eventId;
                     _motionStartPos.x = (int) event.getX();
