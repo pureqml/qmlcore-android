@@ -445,16 +445,22 @@ public final class VideoPlayer extends BaseObject implements IResource {
                             player.setPlayWhenReady(autoplay);
                         break;
                     case "detectAccessUnits":
-                        if (TypeConverter.toBoolean(value))
-                            hlsExtractorFlags |= DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS;
-                        else
-                            hlsExtractorFlags &= ~ DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS;
+                        setHlsExtractorFlag(DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS, TypeConverter.toBoolean(value));
                         break;
                     case "allowNonIdrKeyframes":
-                        if (TypeConverter.toBoolean(value))
-                            hlsExtractorFlags |= DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES;
-                        else
-                            hlsExtractorFlags &= ~ DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES;
+                        setHlsExtractorFlag(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES, TypeConverter.toBoolean(value));
+                        break;
+                    case "enableHdmvDtsAudioStreams":
+                        setHlsExtractorFlag(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS, TypeConverter.toBoolean(value));
+                        break;
+                    case "ignoreAacStream":
+                        setHlsExtractorFlag(DefaultTsPayloadReaderFactory.FLAG_IGNORE_AAC_STREAM, TypeConverter.toBoolean(value));
+                        break;
+                    case "ignoreH264Stream":
+                        setHlsExtractorFlag(DefaultTsPayloadReaderFactory.FLAG_IGNORE_H264_STREAM, TypeConverter.toBoolean(value));
+                        break;
+                    case "ignoreSpliceInfoStream":
+                        setHlsExtractorFlag(DefaultTsPayloadReaderFactory.FLAG_IGNORE_SPLICE_INFO_STREAM, TypeConverter.toBoolean(value));
                         break;
                     case "exposeCea608WhenMissingDeclarations":
                         exposeCea608WhenMissingDeclarations = TypeConverter.toBoolean(value);
@@ -493,6 +499,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void setRect(int l, int t, int r, int b) {
         setRect(new Rect(l, t, r, b));
+    }
+
+    public void setHlsExtractorFlag(int flag, boolean flagSwitcher) {
+        hlsExtractorFlags = flagSwitcher ? hlsExtractorFlags | flag : hlsExtractorFlags &~ flag;
     }
 
     private void setRect(Rect rect) {
