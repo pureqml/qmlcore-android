@@ -446,13 +446,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
                         break;
                     case "detectAccessUnits":
                         if (TypeConverter.toBoolean(value))
-                            hlsExtractorFlags |=  DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS;
+                            hlsExtractorFlags |= DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS;
                         else
                             hlsExtractorFlags &= ~ DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS;
                         break;
                     case "allowNonIdrKeyframes":
                         if (TypeConverter.toBoolean(value))
-                            hlsExtractorFlags |=  DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES;
+                            hlsExtractorFlags |= DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES;
                         else
                             hlsExtractorFlags &= ~ DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES;
                         break;
