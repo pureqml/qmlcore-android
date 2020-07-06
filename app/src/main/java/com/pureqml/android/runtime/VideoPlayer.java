@@ -63,11 +63,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private boolean                     paused = false;
     private TimerTask                   pollingTask = null;
 
-
     //exoplayer flags
     private int                     detectAccessUnits = 0;
     private int                     allowNonIdrKeyframes = 0;
-    private boolean                     exposeCea608WhenMissingDeclarations = true;
+    private boolean                 exposeCea608WhenMissingDeclarations = true;
 
     public VideoPlayer(IExecutionEnvironment env) {
         this(env, false);
@@ -298,7 +297,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
             factory.setExtractorFactory(new DefaultHlsExtractorFactory(
                     (DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS & detectAccessUnits) |
-                            (DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES & allowNonIdrKeyframes),
+                    (DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES & allowNonIdrKeyframes),
                     exposeCea608WhenMissingDeclarations
             )).setAllowChunklessPreparation(true);
             source = factory.createMediaSource(Uri.parse(url));
