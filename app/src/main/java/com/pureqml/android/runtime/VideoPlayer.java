@@ -64,8 +64,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private TimerTask                   pollingTask = null;
 
     //exoplayer flags
-    private int                     detectAccessUnits = 0;
-    private int                     allowNonIdrKeyframes = 0;
+    private int                     hlsExtractorFlags = 0;
     private boolean                 exposeCea608WhenMissingDeclarations = true;
 
     public VideoPlayer(IExecutionEnvironment env) {
@@ -295,11 +294,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
         BaseMediaSource source;
         if (url.contains(".m3u8")) { //FIXME: add proper content type here
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
-            factory.setExtractorFactory(new DefaultHlsExtractorFactory(
-                    (DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS & detectAccessUnits) |
-                    (DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES & allowNonIdrKeyframes),
-                    exposeCea608WhenMissingDeclarations
-            )).setAllowChunklessPreparation(true);
+            factory.setExtractorFactory(new DefaultHlsExtractorFactory(hlsExtractorFlags, exposeCea608WhenMissingDeclarations))
+                    .setAllowChunklessPreparation(true);
             source = factory.createMediaSource(Uri.parse(url));
         } else {
             ProgressiveMediaSource.Factory factory = new ProgressiveMediaSource.Factory(dataSourceFactory);
@@ -443,18 +439,24 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void run() {
                 switch (name) {
-                    case ("autoplay"):
+                    case "autoplay":
                         autoplay = TypeConverter.toBoolean(value);
                         if (player != null)
                             player.setPlayWhenReady(autoplay);
                         break;
-                    case ("detectAccessUnits"):
-                        detectAccessUnits = TypeConverter.toInteger(value);
+                    case "detectAccessUnits":
+                        if (TypeConverter.toBoolean(value))
+                            hlsExtractorFlags |=  DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS;
+                        else
+                            hlsExtractorFlags ^=  DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS;
                         break;
-                    case ("allowNonIdrKeyframes"):
-                        allowNonIdrKeyframes = TypeConverter.toInteger(value);
+                    case "allowNonIdrKeyframes":
+                        if (TypeConverter.toBoolean(value))
+                            hlsExtractorFlags |=  DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES;
+                        else
+                            hlsExtractorFlags ^=  DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES;
                         break;
-                    case("exposeCea608WhenMissingDeclarations"):
+                    case "exposeCea608WhenMissingDeclarations":
                         exposeCea608WhenMissingDeclarations = TypeConverter.toBoolean(value);
                         break;
                     default:
