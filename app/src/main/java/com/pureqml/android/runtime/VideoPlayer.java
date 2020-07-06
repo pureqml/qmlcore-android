@@ -63,6 +63,12 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private boolean                     paused = false;
     private TimerTask                   pollingTask = null;
 
+
+    //exoplayer flags
+    private int                     detectAccessUnits = 0;
+    private int                     allowNonIdrKeyframes = 0;
+    private boolean                     exposeCea608WhenMissingDeclarations = true;
+
     public VideoPlayer(IExecutionEnvironment env) {
         this(env, false);
     }
@@ -291,9 +297,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
         if (url.contains(".m3u8")) { //FIXME: add proper content type here
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
             factory.setExtractorFactory(new DefaultHlsExtractorFactory(
-                    // DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS |
-                    DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES,
-                    true
+                    (DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS & detectAccessUnits) |
+                            (DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES & allowNonIdrKeyframes),
+                    exposeCea608WhenMissingDeclarations
             )).setAllowChunklessPreparation(true);
             source = factory.createMediaSource(Uri.parse(url));
         } else {
@@ -437,12 +443,25 @@ public final class VideoPlayer extends BaseObject implements IResource {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                if (name.equals("autoplay")) {
-                    autoplay = TypeConverter.toBoolean(value);
-                    if (player != null)
-                        player.setPlayWhenReady(autoplay);
-                } else
-                    Log.w(TAG, "ignoring option " + name);
+                switch (name) {
+                    case ("autoplay"):
+                        autoplay = TypeConverter.toBoolean(value);
+                        if (player != null)
+                            player.setPlayWhenReady(autoplay);
+                        break;
+                    case ("detectAccessUnits"):
+                        detectAccessUnits = TypeConverter.toInteger(value);
+                        break;
+                    case ("allowNonIdrKeyframes"):
+                        allowNonIdrKeyframes = TypeConverter.toInteger(value);
+                        break;
+                    case("exposeCea608WhenMissingDeclarations"):
+                        exposeCea608WhenMissingDeclarations = TypeConverter.toBoolean(value);
+                        break;
+                    default:
+                        Log.w(TAG, "ignoring option " + name);
+                        break;
+                }
             }
         });
     }
