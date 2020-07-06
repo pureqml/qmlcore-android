@@ -202,6 +202,32 @@ public class Element extends BaseObject {
         return findScrollingElement()? _scrollingElement.getScrollYImpl() - _scrollingElement.getBaseY(): 0;
     }
 
+    public final void setScrollX(int x) {
+        Log.d(TAG, "setting scrollX to " + x);
+        if (!findScrollingElement())
+            return;
+        if (_scrollingElement._scrollPos == null)
+            _scrollingElement._scrollPos = new Point();
+        int dx = x - getScrollX();
+        if (dx == 0)
+            return;
+        _scrollingElement._scrollPos.x += dx;
+        _scrollingElement.emitScroll();
+    }
+
+    public final void setScrollY(int y) {
+        Log.d(TAG, "setting scrollY to " + y);
+        if (!findScrollingElement())
+            return;
+        if (_scrollingElement._scrollPos == null)
+            _scrollingElement._scrollPos = new Point();
+        int dy = y - getScrollY();
+        if (dy == 0)
+            return;
+        _scrollingElement._scrollPos.y += dy;
+        _scrollingElement.emitScroll();
+    }
+
     private final boolean findScrollingElement() {
         if (_scrollingElement != null)
             return true;
