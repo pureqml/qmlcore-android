@@ -41,7 +41,7 @@ public final class ViewHolder<ViewType extends View> {
 
         synchronized (this) {
             if (!lp.equals(layoutParams)) {
-                Log.i(TAG, "installing new layout params");
+                Log.v(TAG, "installing new layout params");
                 layoutParams = lp;
             } else
                 lp = null;
