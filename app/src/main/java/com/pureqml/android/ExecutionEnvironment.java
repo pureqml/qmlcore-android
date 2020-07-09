@@ -5,6 +5,7 @@ import android.app.Service;
 import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -226,6 +227,7 @@ public final class ExecutionEnvironment extends Service
                 info.add("modelName", Build.MODEL);
                 info.add("firmware", Build.VERSION.RELEASE);
                 info.add("runtime", "native");
+
                 try {
                     UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
                     switch (uiModeManager.getCurrentModeType()) {
@@ -234,8 +236,15 @@ public final class ExecutionEnvironment extends Service
                             info.add("device", DeviceTV);
                             break;
                         default:
-                            Log.i(TAG, "Running on mobile device");
-                            info.add("device", DeviceMobile);
+                            PackageManager pm = getContext().getPackageManager();
+                            if (pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) &&
+                                pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+                                Log.i(TAG, "Running on mobile device");
+                                info.add("device", DeviceMobile);
+                            } else {
+                                Log.i(TAG, "Running on TV device");
+                                info.add("device", DeviceTV);
+                            }
                             break;
                     }
                 } catch(Exception ex) {
