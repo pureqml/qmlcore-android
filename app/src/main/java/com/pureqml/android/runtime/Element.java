@@ -618,7 +618,7 @@ public class Element extends BaseObject {
         x += getScrollXImpl();
         y += getScrollYImpl();
 
-        if (_children != null) {
+        if (_children != null && (!_useScrollX && !_useScrollY)) {
             for (int i = _children.size() - 1; i >= 0; --i) {
                 Element child = _children.get(i);
                 int offsetX = x - getBaseX();
