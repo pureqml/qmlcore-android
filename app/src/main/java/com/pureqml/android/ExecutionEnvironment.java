@@ -294,7 +294,8 @@ public final class ExecutionEnvironment extends Service
             @Override
             public void invoke(V8Object v8Object, V8Array v8Array) {
                 Log.i(TAG, "closing App: " + v8Array);
-                System.exit(0);
+                if (_renderer != null)
+                    _renderer.closeApp();
             }
         }, "closeApp");
 

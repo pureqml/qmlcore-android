@@ -167,6 +167,11 @@ public final class MainActivity
                                 break;
                         }
                     }
+
+                    @Override
+                    public void closeApp() {
+                        finish();
+                    }
                 };
                 if (_executionEnvironment != null)
                     _executionEnvironment.setRenderer(_uiRenderer);

@@ -9,4 +9,5 @@ public interface IRenderer {
     void keepScreenOn(boolean enable);
     void setFullScreen(boolean enable);
     void lockOrientation(String orientation);
+    void closeApp();
 }
