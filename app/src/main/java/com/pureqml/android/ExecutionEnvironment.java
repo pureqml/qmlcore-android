@@ -117,8 +117,8 @@ public final class ExecutionEnvironment extends Service
     private V8Object                    _exports;
     private ExecutorService             _executor;
     private Timers                      _timers;
-    private final ExecutorService             _threadPool;
-    private final ImageLoader                 _imageLoader;
+    private final ExecutorService       _threadPool;
+    private final ImageLoader           _imageLoader;
     private IRenderer                   _renderer;
     private ViewGroup                   _rootView;
     private boolean                     _paintScheduled;
