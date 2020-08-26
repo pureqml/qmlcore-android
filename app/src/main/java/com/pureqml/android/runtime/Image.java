@@ -19,6 +19,7 @@ import com.pureqml.android.TypeConverter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.Executor;
 
 public final class Image extends Element implements ImageLoadedCallback {
     private final static String TAG = "rt.Image";
@@ -247,7 +248,12 @@ public final class Image extends Element implements ImageLoadedCallback {
 
     @Override
     public void onImageLoaded(URL url, final Bitmap bitmap) {
-        _env.getExecutor().execute(new Runnable() {
+        Executor executor = _env.getExecutor();
+        if (executor == null) {
+            Log.d(TAG, "skipping callback, executor is dead");
+            return;
+        }
+        executor.execute(new Runnable() {
             @Override
             public void run() {
                 Log.v(TAG, "on image loaded " + url + ", current url: " + _url);
