@@ -73,6 +73,13 @@ public final class HttpRequest {
             }
 
             try {
+                _connection.setDoInput(true);
+                if (_body != null && _connection.getDoOutput()) {
+                    OutputStream out = _connection.getOutputStream();
+                    out.write(_body);
+                    out.close();
+                }
+
                 code = _connection.getResponseCode();
                 Log.d(TAG, "response code: " + code);
 
@@ -156,18 +163,12 @@ public final class HttpRequest {
                 Log.d(TAG, "url: " + _url);
 
                 _connection = (HttpURLConnection) _url.openConnection();
-                _connection.setDoInput(true);
 
                 for (String key : request.getKeys()) {
                     Object value = request.get(key);
                     setProperty(key, value);
                 }
 
-                if (_body != null && _connection.getDoOutput()) {
-                    OutputStream out = _connection.getOutputStream();
-                    out.write(_body);
-                    out.close();
-                }
                 Log.v(TAG, "starting request thread...");
                 _env.getThreadPool().execute(this);
             } catch (Exception e) {
