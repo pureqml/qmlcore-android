@@ -21,7 +21,6 @@ public interface IExecutionEnvironment {
     ExecutorService getExecutor();
     ExecutorService getThreadPool();
     ViewGroup getRootView();
-    Timer getTimer();
     void setRenderer(IRenderer renderer);
     IRenderer getRenderer();
     Rect getSurfaceGeometry();

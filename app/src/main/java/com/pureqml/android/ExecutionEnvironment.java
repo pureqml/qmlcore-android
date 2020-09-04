@@ -61,6 +61,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
+import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -169,8 +170,6 @@ public final class ExecutionEnvironment extends Service
     public Context getContext() {
         return super.getBaseContext();
     }
-
-    public Timer getTimer() { return _timers.getTimer(); }
 
     @Override
     public void setRenderer(IRenderer renderer) {
@@ -409,8 +408,8 @@ public final class ExecutionEnvironment extends Service
             try { _rootObject.executeVoidFunction("discard", null); }
             catch(Exception e) { Log.e(TAG, "discard failed", e); }
 
-            for(Map.Entry<Integer, BaseObject> pair : _objects.entrySet()) {
-                BaseObject o = pair.getValue();
+            Vector<BaseObject> objects = new Vector<>(_objects.values());
+            for(BaseObject o : objects) {
                 if (o != null)
                     o.discard();
             }
@@ -432,8 +431,8 @@ public final class ExecutionEnvironment extends Service
                         _exports = null;
                     }
 
-                    _v8.close();
                     _objects.clear();
+                    try { _v8.close(); } catch (Exception ex) { Log.w(TAG, "v8 shutdown", ex); }
                 }
             });
             return null;

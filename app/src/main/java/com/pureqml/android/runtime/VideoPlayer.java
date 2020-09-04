@@ -36,6 +36,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
+import com.pureqml.android.SafeRunnable;
 import com.pureqml.android.TypeConverter;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private boolean                     playerVisible = true;
     private boolean                     autoplay = false;
     private boolean                     paused = false;
-    private TimerTask                   pollingTask = null;
+    private Runnable                    pollingTask = null;
 
     //exoplayer flags
     private int                     hlsExtractorFlags = 0;
@@ -238,22 +239,20 @@ public final class VideoPlayer extends BaseObject implements IResource {
         if (source != null)
             setSource(source);
 
-        pollingTask = new TimerTask() {
+        pollingTask = new SafeRunnable() {
             @Override
-            public void run() {
+            protected void doRun() {
                 VideoPlayer.this.pollPosition();
+                if (pollingTask != null) {
+                    handler.postDelayed(pollingTask, PollingInterval);
+                }
             }
         };
-        _env.getTimer().schedule(pollingTask, PollingInterval, PollingInterval);
+        handler.postDelayed(pollingTask, PollingInterval);
     }
 
     private void releaseResourceImpl() {
-        if (pollingTask != null) {
-            try { pollingTask.cancel(); }
-            catch(Exception ex) { Log.w(TAG, "polling task cancel failed", ex); }
-            pollingTask = null;
-        }
-
+        pollingTask = null;
         if (player != null) {
             player.setVideoSurfaceView(null);
             player.setVideoTextureView(null);

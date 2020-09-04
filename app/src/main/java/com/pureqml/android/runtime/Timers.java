@@ -1,5 +1,7 @@
 package com.pureqml.android.runtime;
 
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -10,29 +12,23 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.ExecutionEnvironment;
+import com.pureqml.android.SafeRunnable;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
 public final class Timers {
     public static final String TAG = "Timers";
 
-    final ExecutionEnvironment    _env;
-    Timer                   _timer = new Timer();
-    final SparseArray<TimerTask>  _tasks = new SparseArray<>();
-    int                     _nextId = 1;
+    class Task extends SafeRunnable {
+        final int           _id;
+        V8Object            _callback;
+        final int           _timeout;
+        final boolean       _singleShot;
 
-    public Timer getTimer() { return _timer; }
-
-    class Task extends TimerTask {
-        final int         _id;
-        V8Object    _callback;
-        final boolean     _singleShot;
-
-        Task(int id, V8Object callback, boolean singleShot) {
+        Task(int id, V8Object callback, int timeout, boolean singleShot) {
             _id = id;
             _callback = callback.twin();
+            _timeout = timeout;
             _singleShot = singleShot;
         }
 
@@ -49,57 +45,86 @@ public final class Timers {
         protected void finalize() throws Throwable {
             //Log.v(TAG, "Timer task " + _id + " finalized");
             ExecutorService executor = _env.getExecutor();
-            if (executor != null) {
+            if (executor != null && _callback != null) {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         releaseCallback();
                     }
                 });
-            } else
+            } else if (_callback != null)
                 Log.w(TAG, "no executor, callback won't be recycled");
             super.finalize();
         }
 
         @Override
-        public void run() {
-            _env.getExecutor().execute(new Runnable() {
+        public void doRun() {
+            ExecutorService executor = _env.getExecutor();
+            if (executor == null)
+                return;
+
+            executor.execute(new SafeRunnable() {
                 @Override
-                public void run() {
+                public void doRun() {
                     //Log.v(TAG, "Timer task " + _id + " fired");
-                    V8Function func = (V8Function)_callback;
-                    if (func != null)
-                        _env.invokeCallback(func, null, null);
-                    if (_singleShot)
-                        cancel();
+                    try {
+                        V8Function func = (V8Function) _callback;
+                        if (func != null)
+                            _env.invokeCallback(func, null, null);
+
+                    } finally {
+                        if (_singleShot)
+                            cancel();
+                    }
                 }
             });
+
+            Handler handler = _handler;
+            if (!_singleShot) {
+                if (handler != null) {
+                    handler.postDelayed(this, _timeout);
+                } else
+                    Log.i(TAG, "stopping periodic task, null handler");
+            }
         }
 
-        @Override
-        public boolean cancel() {
+        public void cancel() {
             //Log.v(TAG, "Timer task " + _id + " has been cancelled: ");
             _tasks.remove(_id);
             releaseCallback();
-            return super.cancel();
         }
     }
 
+
+
+    final ExecutionEnvironment      _env;
+    HandlerThread                   _handlerThread;
+    Handler                         _handler;
+    final SparseArray<Task>         _tasks = new SparseArray<>();
+    int                             _nextId = 1;
+
     public Timers(ExecutionEnvironment env) {
         _env = env;
+        Log.i(TAG, "starting timer thread...");
+        _handlerThread = new HandlerThread("TimerThread");
+        _handlerThread.start();
+        _handler = new Handler(_handlerThread.getLooper());
+
+        Log.i(TAG, "registering API functions...");
         V8 v8 = env.getRuntime();
         v8.registerJavaMethod(new JavaCallback() {
             @Override
             public Object invoke(V8Object v8Object, V8Array arguments) {
-                if (_timer == null) {
+                Handler handler = _handler;
+                if (handler == null) {
                     Log.w(TAG, "skipping setTimeout, timer is dead");
                     return -1;
                 }
                 int timeout = arguments.getInteger(1);
                 int id = _nextId++;
-                TimerTask task = new Task(id, arguments.getObject(0), true);
+                Task task = new Task(id, arguments.getObject(0), timeout,true);
                 _tasks.put(id, task);
-                _timer.schedule(task, timeout);
+                handler.postDelayed(task, timeout);
                 arguments.close();
                 return id;
             }
@@ -107,15 +132,16 @@ public final class Timers {
         v8.registerJavaMethod(new JavaCallback() {
             @Override
             public Object invoke(V8Object v8Object, V8Array arguments) {
-                if (_timer == null) {
+                Handler handler = _handler;
+                if (handler == null) {
                     Log.w(TAG, "skipping setInterval, timer is dead");
                     return -1;
                 }
                 int period = arguments.getInteger(1);
                 int id = _nextId++;
-                TimerTask task = new Task(id, arguments.getObject(0), false);
+                Task task = new Task(id, arguments.getObject(0), period,false);
                 _tasks.put(id, task);
-                _timer.schedule(task, period, period);
+                handler.postDelayed(task, period);
                 arguments.close();
                 return id;
             }
@@ -125,7 +151,7 @@ public final class Timers {
             public void invoke(V8Object v8Object, V8Array arguments) {
                 int id = arguments.getInteger(0);
                 //callback will leak here, fixme
-                TimerTask task = _tasks.get(id);
+                Task task = _tasks.get(id);
                 if (task != null) {
                     task.cancel();
                     _tasks.remove(id);
@@ -139,16 +165,14 @@ public final class Timers {
     }
 
     public void discard() {
-        Timer timer = _timer;
-        _timer = null; //block all new tasks
-        timer.cancel();
-
         for(int i = 0, n = _tasks.size(); i < n; ++i) {
-            TimerTask task = _tasks.valueAt(i);
+            Task task = _tasks.valueAt(i);
             if (task != null)
                 task.cancel();
         }
         _tasks.clear();
-        timer.purge();
+        _handlerThread.quit();
+        _handlerThread = null;
+        _handler = null;
     }
 }
