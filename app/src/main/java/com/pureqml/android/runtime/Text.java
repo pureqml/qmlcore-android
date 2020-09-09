@@ -47,6 +47,8 @@ public final class Text extends Element {
 
     static private final Pattern textShadowPattern = Pattern.compile("(\\d+)px\\s*(\\d+)px\\s*(\\d+)px\\s*rgba\\(\\s*(\\d+)\\s*,(\\d+)\\s*,(\\d+)\\s*,([\\d.]+)\\s*\\)");
 
+    private void resetLayout() { _layout = null; }
+
     @Override
     protected void setStyle(String name, Object value) {
         switch(name) {
@@ -73,9 +75,9 @@ public final class Text extends Element {
 
             case "white-space":
                 if (value.equals("pre") || value.equals("nowrap"))
-                    _wrap = Wrap.NoWrap;
+                    setWrap(Wrap.NoWrap);
                 else if (value.equals("pre-wrap") || value.equals("normal"))
-                    _wrap = Wrap.Wrap;
+                    setWrap(Wrap.Wrap);
                 else
                     Log.w(TAG, "unsupported white-space rule");
                 break;
@@ -220,7 +222,7 @@ public final class Text extends Element {
             return;
 
         _text = text;
-        _layout = null;
+        resetLayout();
         //enableCache(text != null && text.length() != 0);
         update();
     }
@@ -240,8 +242,13 @@ public final class Text extends Element {
         }
     }
 
-    public void layoutText(V8Function callback) {
-//        Log.v(TAG, "layout text: " + _text);
+    private void setWrap(Wrap wrap) {
+        _wrap = wrap;
+        if (wrap == Wrap.Wrap)
+            layoutText();
+    }
+
+    private void layoutText() {
         _layout = new TextLayout(preprocess(_text));
         Rect rect = getRect();
 
@@ -254,6 +261,11 @@ public final class Text extends Element {
         layoutLine(begin, _layout.text.length(), rect.width());
 
         _layout.height = (int) (_layout.stripes.size() * _paint.getTextSize());
+    }
+
+    public void layoutText(V8Function callback) {
+//        Log.v(TAG, "layout text: " + _text);
+        layoutText();
 
         V8Object metrics = new V8Object(_env.getRuntime());
         metrics.add("width", _layout.width);
