@@ -222,7 +222,7 @@ public final class Text extends Element {
             return;
 
         _text = text;
-        resetLayout();
+        updateLayout();
         //enableCache(text != null && text.length() != 0);
         update();
     }
@@ -244,8 +244,14 @@ public final class Text extends Element {
 
     private void setWrap(Wrap wrap) {
         _wrap = wrap;
-        if (wrap == Wrap.Wrap)
+        updateLayout();
+    }
+
+    private void updateLayout() {
+        if (_wrap == Wrap.Wrap)
             layoutText();
+        else
+            resetLayout();
     }
 
     private void layoutText() {
