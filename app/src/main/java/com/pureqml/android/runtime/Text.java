@@ -255,6 +255,9 @@ public final class Text extends Element {
     }
 
     private void layoutText() {
+        if (_text == null)
+            return;
+
         _layout = new TextLayout(preprocess(_text));
         Rect rect = getRect();
 
