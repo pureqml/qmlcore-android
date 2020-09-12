@@ -198,7 +198,6 @@ public final class ImageLoader {
     private static class ImageVectorHolder extends BaseImageHolder {
         Bitmap  _image;
         SVG     _svg;
-        int     _lastWidth = 0, _lastHeight = 0;
 
         ImageVectorHolder(URL url) {
             super(url);
@@ -217,23 +216,21 @@ public final class ImageLoader {
         @Override
         public Bitmap getBitmap(int w, int h) {
             synchronized (this) {
-                if (w == 0 || h == 0 || _svg == null) {
+                if (_svg == null)
                     return null;
-                }
 
-                if (_image != null && w == _lastWidth && h == _lastHeight) {
+                if (_image != null)
                     return _image;
-                }
             }
 
-            PictureDrawable pd = new PictureDrawable(_svg.renderToPicture(w, h));
-            Bitmap bitmap = Bitmap.createBitmap(pd.getIntrinsicWidth(), pd.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            int documentWidth = (int)Math.ceil(_svg.getDocumentWidth());
+            int documentHeight = (int)Math.ceil(_svg.getDocumentHeight());
+            PictureDrawable pd = new PictureDrawable(_svg.renderToPicture(documentWidth, documentHeight));
+            Bitmap bitmap = Bitmap.createBitmap(documentWidth, documentHeight, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
-            canvas.drawPicture(pd.getPicture());
+            _svg.renderToCanvas(canvas);
             synchronized (this) {
                 _image = bitmap;
-                _lastWidth = w;
-                _lastHeight = h;
                 return _image;
             }
         }
