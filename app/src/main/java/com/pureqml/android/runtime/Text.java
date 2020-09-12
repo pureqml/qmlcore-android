@@ -32,7 +32,7 @@ public final class Text extends Element {
     }
 
     private final static String TAG = "rt.Text";
-    final Paint               _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    final Paint         _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     String              _text;
     TextLayout          _layout;
     Wrap                _wrap = Wrap.NoWrap;
