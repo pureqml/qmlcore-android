@@ -527,31 +527,36 @@ public class Element extends BaseObject {
                 else
                     canvasRestorePoint = -1;
 
-                if (_scale != null) {
-                    //Log.v(TAG, "adjusting scale to " + _scale);
-                    state.canvas.scale(_scale.x, _scale.y, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
-                }
+                try {
 
-                if (_rotate != 0) {
-                    state.canvas.rotate(_rotate, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
-                }
-
-                if (clip) {
-                    if (roundClippingNeeded()) {
-                        Path path = new Path();
-                        path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
-                        if (!state.canvas.clipPath(path))
-                            paint = false;
-                    } else {
-                        if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
-                            paint = false;
+                    if (_scale != null) {
+                        //Log.v(TAG, "adjusting scale to " + _scale);
+                        state.canvas.scale(_scale.x, _scale.y, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
                     }
-                }
 
-                if (paint) {
-                    child.paint(state);
-                }
+                    if (_rotate != 0) {
+                        state.canvas.rotate(_rotate, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
+                    }
 
+                    if (clip) {
+                        if (roundClippingNeeded()) {
+                            Path path = new Path();
+                            path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
+                            if (!state.canvas.clipPath(path))
+                                paint = false;
+                        } else {
+                            if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
+                                paint = false;
+                        }
+                    }
+
+                    if (paint) {
+                        child.paint(state);
+                    }
+
+                } catch (Exception ex) {
+                    Log.w(TAG, "paint", ex);
+                }
                 if (saveCanvasState) {
                     state.canvas.restoreToCount(canvasRestorePoint);
                 }

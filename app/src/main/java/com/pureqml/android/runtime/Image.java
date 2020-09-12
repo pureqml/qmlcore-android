@@ -291,7 +291,14 @@ public final class Image extends Element implements ImageLoadedCallback {
 
         if (_url != null) {
             Rect dst = getDstRect(state);
-            Bitmap bitmap = _env.getImageLoader().getBitmap(_url, dst.width(), dst.height());
+            Bitmap bitmap = null;
+
+            try {
+                bitmap = _env.getImageLoader().getBitmap(_url, dst.width(), dst.height());
+            } catch(Exception ex) {
+                Log.w(TAG, "image loading failed", ex);
+            }
+
             if (bitmap != null) {
                 _paint.setXfermode(new PorterDuffXfermode(state.roundClipWorkaround? PorterDuff.Mode.SRC_IN: PorterDuff.Mode.SRC_OVER));
 
