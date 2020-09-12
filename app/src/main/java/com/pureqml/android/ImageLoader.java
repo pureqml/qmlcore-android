@@ -38,14 +38,14 @@ public final class ImageLoader {
         _threadPool = env.getThreadPool();
     }
 
-    private ImageHolder getHolder(URL url, int hintWidth, int hintHeight) {
+    private ImageHolder getHolder(URL url) {
         synchronized (_cache) {
             ImageHolder holder = _cache.get(url);
             if (holder == null) {
                 String stringUrl = url.toString();
                 String svgFileFormat = "svg";
                 if (stringUrl.contains(".") && svgFileFormat.equalsIgnoreCase(stringUrl.substring(stringUrl.lastIndexOf(".") + 1))) {
-                    holder = new ImageVectorHolder(url, hintWidth, hintHeight);
+                    holder = new ImageVectorHolder(url);
                 } else {
                     holder = new ImageStaticHolder(url);
                 }
@@ -56,13 +56,13 @@ public final class ImageLoader {
         }
     }
 
-    public void load(URL url, ImageLoadedCallback callback, int hintWidth, int hintHeight) {
-        ImageHolder holder = getHolder(url, hintWidth, hintHeight);
+    public void load(URL url, ImageLoadedCallback callback) {
+        ImageHolder holder = getHolder(url);
         holder.notify(callback);
     }
 
     public Bitmap getBitmap(URL url, int w, int h) {
-        ImageHolder holder = getHolder(url, w, h);
+        ImageHolder holder = getHolder(url);
         return holder.getBitmap(w, h);
     }
 
@@ -198,15 +198,10 @@ public final class ImageLoader {
     private static class ImageVectorHolder extends BaseImageHolder {
         Bitmap  _image;
         SVG     _svg;
-        int     _lastWidth;
-        int     _lastHeight;
-        static final int DEFAULT_WIDTH  = 128;
-        static final int DEFAULT_HEIGHT = 128;
+        int     _lastWidth = 0, _lastHeight = 0;
 
-        ImageVectorHolder(URL url, int hintWidth, int hintHeight) {
+        ImageVectorHolder(URL url) {
             super(url);
-            _lastWidth = hintWidth > 0? hintWidth : DEFAULT_WIDTH;
-            _lastHeight = hintHeight > 0? hintHeight: DEFAULT_HEIGHT;
         }
 
         @Override
@@ -222,13 +217,8 @@ public final class ImageLoader {
         @Override
         public Bitmap getBitmap(int w, int h) {
             synchronized (this) {
-                if (_svg == null) {
+                if (w == 0 || h == 0 || _svg == null) {
                     return null;
-                }
-
-                if (w == 0 && h == 0) { //"notify" bitmap
-                    w = _lastWidth;
-                    h = _lastHeight;
                 }
 
                 if (_image != null && w == _lastWidth && h == _lastHeight) {

@@ -182,8 +182,7 @@ public final class Image extends Element implements ImageLoadedCallback {
         }
         //Log.v(TAG, "loading " + url);
         ImageLoader loader = _env.getImageLoader();
-        Rect rect = getRect();
-        loader.load(_url, this, rect.width(), rect.height());
+        loader.load(_url, this);
         _callback = callback;
     }
 
