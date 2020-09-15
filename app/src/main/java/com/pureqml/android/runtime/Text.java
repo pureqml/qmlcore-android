@@ -153,6 +153,9 @@ public final class Text extends Element {
     public void paint(PaintState state) {
         beginPaint(state);
         if (_text != null) {
+            if (_layout == null && _wrap == Wrap.Wrap) {
+                layoutText();
+            }
             Rect rect = getRect();
             float textSize = _paint.getTextSize();
             float lineHeight = textSize; //fixme: support proper line height/baseline
@@ -222,7 +225,7 @@ public final class Text extends Element {
             return;
 
         _text = text;
-        updateLayout();
+        resetLayout();
         //enableCache(text != null && text.length() != 0);
         update();
     }
@@ -244,14 +247,7 @@ public final class Text extends Element {
 
     private void setWrap(Wrap wrap) {
         _wrap = wrap;
-        updateLayout();
-    }
-
-    private void updateLayout() {
-        if (_wrap == Wrap.Wrap)
-            layoutText();
-        else
-            resetLayout();
+        resetLayout();
     }
 
     private void layoutText() {
