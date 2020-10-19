@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
-import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -167,8 +166,6 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 .setLoadControl(loadControl)
                 .setLooper(handler.getLooper())
                 .build();
-
-        player.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
 
         if (surfaceView != null)
             player.setVideoSurfaceView(surfaceView);
