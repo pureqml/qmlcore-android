@@ -653,7 +653,14 @@ public class Element extends BaseObject {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                if (rect.contains(x, y) && (enableScrollX || enableScrollY || hasCallbackFor(EVENT_CLICK))) {
+                if (rect.contains(x, y) && (
+                         enableScrollX ||
+                         enableScrollY ||
+                         hasCallbackFor(EVENT_CLICK) ||
+                         hasCallbackFor(EVENT_MOUSEDOWN) ||
+                         hasCallbackFor(EVENT_MOUSEUP) ||
+                         hasCallbackFor(EVENT_MOUSEMOVE)
+                )) {
                     if (_motionStartPos == null)
                         _motionStartPos = new Point(); //FIXME: optimise me? (unwrap to 2 int members)
                     if (_scrollPos == null)
@@ -665,6 +672,8 @@ public class Element extends BaseObject {
                     _motionStartPos.x = (int) event.getX();
                     _motionStartPos.y = (int) event.getY();
                     _useScrollX = _useScrollY = false;
+                    if (hasCallbackFor(EVENT_MOUSEDOWN))
+                        emitMouseEvent(EVENT_MOUSEDOWN, x - rect.left, y - rect.top);
                     return true;
                 } else
                     return handled;
@@ -672,117 +681,125 @@ public class Element extends BaseObject {
 
             case MotionEvent.ACTION_MOVE: {
                 boolean handleMove = false;
-                if (!handled && _eventId == eventId && (enableScrollX || enableScrollY)) {
+                if (!handled && _eventId == eventId) {
                     int dx = (int) (event.getX() - _motionStartPos.x);
                     int dy = (int) (event.getY() - _motionStartPos.y);
-                    if (_scrollVelocity != null) {
-                        //pause scrolling surface
-                        if (_scrollVelocity.x != 0) {
-                            _useScrollX = true;
-                            handleMove = true;
-                        } else if (_scrollVelocity.y != 0) {
-                            _useScrollY = true;
-                            handleMove = true;
-                        }
-                    }
-
-                    if (!_useScrollX && !_useScrollY) {
-                        float distance = (float) Math.hypot(dx, dy);
-                        if (distance >= DetectionDistance2) {
-                            boolean horizontal = Math.abs(dx) > Math.abs(dy);
-                            if (enableScrollX && enableScrollY) {
-                                if (horizontal)
-                                    _useScrollX = true;
-                                else
-                                    _useScrollY = true;
+                    if (enableScrollX || enableScrollY) {
+                        if (_scrollVelocity != null) {
+                            //pause scrolling surface
+                            if (_scrollVelocity.x != 0) {
+                                _useScrollX = true;
                                 handleMove = true;
-                            } else if (enableScrollX) {
-                                if (horizontal) {
-                                    _useScrollX = true;
-                                    handleMove = true;
-                                }
-                            } else if (enableScrollY) {
-                                if (!horizontal) {
-                                    _useScrollY = true;
-                                    handleMove = true;
-                                }
-                             }
+                            } else if (_scrollVelocity.y != 0) {
+                                _useScrollY = true;
+                                handleMove = true;
+                            }
                         }
+
+                        if (!_useScrollX && !_useScrollY) {
+                            float distance = (float) Math.hypot(dx, dy);
+                            if (distance >= DetectionDistance2) {
+                                boolean horizontal = Math.abs(dx) > Math.abs(dy);
+                                if (enableScrollX && enableScrollY) {
+                                    if (horizontal)
+                                        _useScrollX = true;
+                                    else
+                                        _useScrollY = true;
+                                    handleMove = true;
+                                } else if (enableScrollX) {
+                                    if (horizontal) {
+                                        _useScrollX = true;
+                                        handleMove = true;
+                                    }
+                                } else if (enableScrollY) {
+                                    if (!horizontal) {
+                                        _useScrollY = true;
+                                        handleMove = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (_useScrollX) {
+                            _scrollOffset.x = -dx;
+
+                            if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
+                                _scrollOffset.x = clientWidth - w - _scrollPos.x;
+
+                            if (_scrollPos.x + _scrollOffset.x < 0)
+                                _scrollOffset.x = -_scrollPos.x;
+
+                            Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
+                            handleMove = true;
+                        }
+
+                        if (_useScrollY) {
+                            _scrollOffset.y = -dy;
+
+                            if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
+                                _scrollOffset.y = clientHeight - h - _scrollPos.y;
+
+                            if (_scrollPos.y + _scrollOffset.y < 0)
+                                _scrollOffset.y = -_scrollPos.y;
+
+                            Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
+                            handleMove = true;
+                        }
+                        if (handleMove) {
+                            emitScroll();
+                        }
+                        return handleMove;
+                    } else if (hasCallbackFor(EVENT_MOUSEMOVE)) {
+                        emitMouseEvent(EVENT_MOUSEMOVE, x - rect.left, y - rect.top);
+                        return true;
                     }
-
-                    if (_useScrollX) {
-                        _scrollOffset.x = -dx;
-
-                        if (_scrollPos.x + _scrollOffset.x + w > clientWidth)
-                            _scrollOffset.x = clientWidth - w - _scrollPos.x;
-
-                        if (_scrollPos.x + _scrollOffset.x < 0)
-                            _scrollOffset.x = -_scrollPos.x;
-
-                        Log.v(TAG, "adjusting scrollX to " + (_scrollPos.x + _scrollOffset.x));
-                        handleMove = true;
-                    }
-
-                    if (_useScrollY) {
-                        _scrollOffset.y = -dy;
-
-                        if (_scrollPos.y + _scrollOffset.y + h > clientHeight)
-                            _scrollOffset.y = clientHeight - h - _scrollPos.y;
-
-                        if (_scrollPos.y + _scrollOffset.y < 0)
-                            _scrollOffset.y = -_scrollPos.y;
-
-                        Log.v(TAG, "adjusting scrollY to " + (_scrollPos.y + _scrollOffset.y));
-                        handleMove = true;
-                    }
-                    if (handleMove)
-                        emitScroll();
-                    return handleMove;
                 } else
                     return handled;
             }
             case MotionEvent.ACTION_UP: {
-                if (_eventId == eventId) {
-                    boolean scrollUsed = scrollUsed();
-                    Log.v(TAG, "handled by parent " + handled + ", parent scroll: " + scrollUsed);
-                    if (_useScrollX || _useScrollY) {
-                        _useScrollX = _useScrollY = false;
-                        _scrollPos.x += _scrollOffset.x;
-                        _scrollPos.y += _scrollOffset.y;
-                        Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
-                        boolean noScroll = _scrollOffset.x == 0 && _scrollOffset.y == 0;
+                if (_eventId != eventId)
+                    return false;
 
-                        if (!noScroll) {
-                            float delta = (event.getEventTime() - event.getDownTime()) / 1000.0f;
-                            PointF scrollVelocity = new PointF(_scrollOffset.x / delta, _scrollOffset.y / delta);
-                            if (scrollVelocity.length() >= MinimumScrollVelocity) {
-                                Log.v(TAG, "scroll velocity: " + scrollVelocity);
-                                if (_scrollInterpolator == null)
-                                    _scrollInterpolator = new DecelerateInterpolator(DecelerateInterpolatorOrder);
+                boolean scrollUsed = scrollUsed();
+                Log.v(TAG, "handled by parent " + handled + ", parent scroll: " + scrollUsed);
+                if (_useScrollX || _useScrollY) {
+                    _useScrollX = _useScrollY = false;
+                    _scrollPos.x += _scrollOffset.x;
+                    _scrollPos.y += _scrollOffset.y;
+                    Log.d(TAG, "scrolling finished at " + _scrollOffset + ", final position: " + _scrollPos);
+                    boolean noScroll = _scrollOffset.x == 0 && _scrollOffset.y == 0;
 
-                                _scrollTimeBase = _scrollTimeLast = SystemClock.elapsedRealtime();
-                                _scrollVelocity = scrollVelocity;
-                                _env.startAnimation(this, ScrollDuration);
-                            } else
-                                Log.v(TAG, "ignoring scroll, less than limit");
-                        }
+                    if (!noScroll) {
+                        float delta = (event.getEventTime() - event.getDownTime()) / 1000.0f;
+                        PointF scrollVelocity = new PointF(_scrollOffset.x / delta, _scrollOffset.y / delta);
+                        if (scrollVelocity.length() >= MinimumScrollVelocity) {
+                            Log.v(TAG, "scroll velocity: " + scrollVelocity);
+                            if (_scrollInterpolator == null)
+                                _scrollInterpolator = new DecelerateInterpolator(DecelerateInterpolatorOrder);
 
-                        _scrollOffset = null;
+                            _scrollTimeBase = _scrollTimeLast = SystemClock.elapsedRealtime();
+                            _scrollVelocity = scrollVelocity;
+                            _env.startAnimation(this, ScrollDuration);
+                        } else
+                            Log.v(TAG, "ignoring scroll, less than limit");
+                    }
 
-                        if (noScroll)
-                            return false;
-                        emitScroll();
+                    _scrollOffset = null;
+
+                    if (noScroll)
+                        return false;
+                    emitScroll();
+                    return true;
+                } else if (handled) {
+                    Log.v(TAG, "handled by parent");
+                    return true;
+                } else if (!scrollUsed && rect.contains(x, y)) {
+                    if (hasCallbackFor(EVENT_MOUSEUP)) {
+                        emitMouseEvent(EVENT_MOUSEUP, x - rect.left, y - rect.top);
                         return true;
-                    } else if (handled) {
-                        Log.v(TAG, "handled by parent");
-                        return true;
-                    } else if (!scrollUsed && rect.contains(x, y) && hasCallbackFor(EVENT_CLICK)) {
-                        Log.d(TAG, "emitting click: position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
-                        V8Object mouseEvent = new V8Object(_env.getRuntime());
-                        mouseEvent.add("offsetX", x - rect.left);
-                        mouseEvent.add("offsetY", y - rect.top);
-                        emit(null, EVENT_CLICK, mouseEvent);
-                        mouseEvent.close();
+                    }
+                    if (hasCallbackFor(EVENT_CLICK)) {
+                        emitMouseEvent(EVENT_CLICK, x - rect.left, y - rect.top);
                         return true;
                     }
                 }
@@ -791,6 +808,15 @@ public class Element extends BaseObject {
             default:
                 return false;
         }
+    }
+
+    protected void emitMouseEvent(final String name, int x, int y) {
+        Log.d(TAG, "emitting " + name + ", position: " + x + ", " + y);
+        V8Object mouseEvent = new V8Object(_env.getRuntime());
+        mouseEvent.add("offsetX", x);
+        mouseEvent.add("offsetY", y);
+        emit(null, name, mouseEvent);
+        mouseEvent.close();
     }
 
     public void setAttribute(String name, String value) {
