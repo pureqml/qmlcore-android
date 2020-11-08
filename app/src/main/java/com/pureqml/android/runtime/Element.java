@@ -673,7 +673,7 @@ public class Element extends BaseObject {
                     _motionStartPos.y = (int) event.getY();
                     _useScrollX = _useScrollY = false;
                     if (hasCallbackFor(EVENT_MOUSEDOWN))
-                        emitMouseEvent(EVENT_MOUSEDOWN, x - rect.left, y - rect.top);
+                        emitMouseEvent(EVENT_MOUSEDOWN, x, y, x - rect.left, y - rect.top);
                     return true;
                 } else
                     return handled;
@@ -750,7 +750,7 @@ public class Element extends BaseObject {
                         }
                         return handleMove;
                     } else if (hasCallbackFor(EVENT_MOUSEMOVE)) {
-                        emitMouseEvent(EVENT_MOUSEMOVE, x - rect.left, y - rect.top);
+                        emitMouseEvent(EVENT_MOUSEMOVE, x, y, x - rect.left, y - rect.top);
                         return true;
                     }
                 } else
@@ -795,11 +795,11 @@ public class Element extends BaseObject {
                     return true;
                 } else if (!scrollUsed && rect.contains(x, y)) {
                     if (hasCallbackFor(EVENT_MOUSEUP)) {
-                        emitMouseEvent(EVENT_MOUSEUP, x - rect.left, y - rect.top);
+                        emitMouseEvent(EVENT_MOUSEUP, x, y, x - rect.left, y - rect.top);
                         return true;
                     }
                     if (hasCallbackFor(EVENT_CLICK)) {
-                        emitMouseEvent(EVENT_CLICK, x - rect.left, y - rect.top);
+                        emitMouseEvent(EVENT_CLICK, x, y, x - rect.left, y - rect.top);
                         return true;
                     }
                 }
@@ -810,11 +810,13 @@ public class Element extends BaseObject {
         }
     }
 
-    protected void emitMouseEvent(final String name, int x, int y) {
-        Log.d(TAG, "emitting " + name + ", position: " + x + ", " + y);
+    protected void emitMouseEvent(final String name, int x, int y, int relX, int relY) {
+        Log.d(TAG, "emitting " + name + ", position: " + relX + ", " + relY);
         V8Object mouseEvent = new V8Object(_env.getRuntime());
-        mouseEvent.add("offsetX", x);
-        mouseEvent.add("offsetY", y);
+        mouseEvent.add("clientX", x);
+        mouseEvent.add("clientY", y);
+        mouseEvent.add("offsetX", relX);
+        mouseEvent.add("offsetY", relY);
         emit(null, name, mouseEvent);
         mouseEvent.close();
     }
