@@ -54,6 +54,17 @@ public class BaseObject {
         return _callbacks != null && _callbacks.get(name) != null;
     }
 
+    public boolean removeListener(String name, V8Function callback) {
+        if (_callbacks == null)
+            return false;
+
+        List<V8Function> callbacks = _callbacks.get(name);
+        if (callbacks == null)
+            return false;
+
+        return callbacks.remove(callback);
+    }
+
     public void emit(V8Object target, String name, Object ... args) {
         Log.v(TAG, "emitting " + name);
         if (_callbacks == null)
