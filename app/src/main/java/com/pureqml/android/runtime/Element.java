@@ -31,6 +31,11 @@ public class Element extends BaseObject {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     }
 
+    static final String EVENT_CLICK = "click";
+    static final String EVENT_MOUSEUP = "mouseup";
+    static final String EVENT_MOUSEDOWN = "mousedown";
+    static final String EVENT_MOUSEMOVE = "mousemove";
+
     private final Rect          _rect               = new Rect();
     private final Rect          _combinedRect       = new Rect();
     protected final Rect        _lastRect           = new Rect();
@@ -641,8 +646,6 @@ public class Element extends BaseObject {
         if (_parent == null)
             return handled;
 
-        final String click = "click";
-
         Rect parentRect = _parent.getRect();
         int w = parentRect.width(), h = parentRect.height();
         boolean enableScrollX = scrollXEnabled() && clientWidth > w;
@@ -650,7 +653,7 @@ public class Element extends BaseObject {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                if (rect.contains(x, y) && (enableScrollX || enableScrollY || hasCallbackFor(click))) {
+                if (rect.contains(x, y) && (enableScrollX || enableScrollY || hasCallbackFor(EVENT_CLICK))) {
                     if (_motionStartPos == null)
                         _motionStartPos = new Point(); //FIXME: optimise me? (unwrap to 2 int members)
                     if (_scrollPos == null)
@@ -773,12 +776,12 @@ public class Element extends BaseObject {
                     } else if (handled) {
                         Log.v(TAG, "handled by parent");
                         return true;
-                    } else if (!scrollUsed && rect.contains(x, y) && hasCallbackFor(click)) {
+                    } else if (!scrollUsed && rect.contains(x, y) && hasCallbackFor(EVENT_CLICK)) {
                         Log.d(TAG, "emitting click: position " + x + ", " + y + " " + rect + ", in " + rect.contains(x, y) + ", scrollable: " + (_enableScrollX || _enableScrollY));
                         V8Object mouseEvent = new V8Object(_env.getRuntime());
                         mouseEvent.add("offsetX", x - rect.left);
                         mouseEvent.add("offsetY", y - rect.top);
-                        emit(null, click, mouseEvent);
+                        emit(null, EVENT_CLICK, mouseEvent);
                         mouseEvent.close();
                         return true;
                     }
