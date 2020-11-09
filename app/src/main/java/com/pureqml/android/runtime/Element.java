@@ -753,8 +753,8 @@ public class Element extends BaseObject {
                         emitMouseEvent(EVENT_MOUSEMOVE, x, y, x - rect.left, y - rect.top);
                         return true;
                     }
-                } else
-                    return handled;
+                }
+                return handled;
             }
             case MotionEvent.ACTION_UP: {
                 if (_eventId != eventId)
