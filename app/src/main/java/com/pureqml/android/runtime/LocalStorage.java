@@ -14,7 +14,7 @@ import java.io.FileOutputStream;
 
 public final class LocalStorage extends BaseObject {
     public static final String TAG = "localstorage";
-    final int MaxStorageSize = 128 * 1024;
+    final int MaxStorageSize = 128 * 128 * 1024;
 
     public LocalStorage(IExecutionEnvironment env) {
         super(env);
