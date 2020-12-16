@@ -9,12 +9,13 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 public final class LocalStorage extends BaseObject {
-    public static final String TAG = "localstorage";
-    final int MaxStorageSize = 128 * 1024;
+    private static final String TAG = "localstorage";
+    private final int BufferSize = 128 * 1024;
 
     public LocalStorage(IExecutionEnvironment env) {
         super(env);
@@ -28,10 +29,13 @@ public final class LocalStorage extends BaseObject {
         try {
             FileInputStream file = _env.getContext().openFileInput(name + ".storage");
             Log.d(TAG, "opened file " + name + " for reading...");
-            byte[] data = new byte[MaxStorageSize];
-            int r = file.read(data);
-            String stringData = new String(data, 0, r, "UTF-8");
-            args.push(stringData);
+            ByteArrayOutputStream data = new ByteArrayOutputStream();
+            byte[] buffer = new byte[BufferSize];
+            int r;
+            while ((r = file.read(buffer)) != -1) {
+                data.write(buffer, 0, r);
+            }
+            args.push(data.toString("UTF-8"));
             ret = callback.call(origin, args);
         } catch (Exception ex) {
             Log.w(TAG, "can't open file " + name + " for reading");
