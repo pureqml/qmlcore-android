@@ -15,6 +15,7 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.ImageLoadedCallback;
 import com.pureqml.android.ImageLoader;
+import com.pureqml.android.SafeRunnable;
 import com.pureqml.android.TypeConverter;
 
 import java.net.MalformedURLException;
@@ -253,9 +254,9 @@ public final class Image extends Element implements ImageLoadedCallback {
             Log.d(TAG, "skipping callback, executor is dead");
             return;
         }
-        executor.execute(new Runnable() {
+        executor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 Log.v(TAG, "on image loaded " + url + ", current url: " + _url);
                 if (!url.equals(_url))
                     return;

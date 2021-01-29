@@ -9,6 +9,7 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.SafeRunnable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,7 +24,7 @@ public final class HttpRequest {
     private static final String TAG = "HttpRequestDispatcher";
     private static boolean cacheInstalled;
 
-    static class Request implements Runnable {
+    static class Request extends SafeRunnable {
         private static final String TAG = "HttpRequest";
         final IExecutionEnvironment   _env;
         URL                     _url;
@@ -63,7 +64,7 @@ public final class HttpRequest {
         }
 
         @Override
-        public void run() {
+        public void doRun() {
             int code = 0;
             String text;
             ExecutorService executor = _env.getExecutor();
@@ -103,9 +104,9 @@ public final class HttpRequest {
 
                 final int argCode = code;
                 final String argText = text;
-                executor.execute(new Runnable() {
+                executor.execute(new SafeRunnable() {
                     @Override
-                    public void run() {
+                    public void doRun() {
                         if (_callback != null && !_callback.isReleased()) {
                             V8Array args = createEventArguments(argCode, argText);
                             try {
@@ -120,9 +121,9 @@ public final class HttpRequest {
                 });
             } catch (final Exception e) {
                 Log.w(TAG, "http connection failed", e);
-                executor.execute(new Runnable() {
+                executor.execute(new SafeRunnable() {
                     @Override
-                    public void run() {
+                    public void doRun() {
                         emitError(e);
                     }
                 });

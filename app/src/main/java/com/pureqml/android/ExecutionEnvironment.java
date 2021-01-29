@@ -144,9 +144,9 @@ public final class ExecutionEnvironment extends Service
         Log.i(TAG, "started cached thread pool, creating image loader...");
         _imageLoader = new ImageLoader(this);
 
-        _executor.execute(new Runnable() {
+        _executor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 Looper.prepare();
                 ExecutionEnvironment.this.start();
             }

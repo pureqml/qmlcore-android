@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.pureqml.android.SafeRunnable;
+
 public final class ViewHolder<ViewType extends View> {
     private static final String TAG = "ViewHolder";
 
@@ -19,9 +21,9 @@ public final class ViewHolder<ViewType extends View> {
 
     public void discard(final ViewGroup rootView) {
         if (rootView != null) {
-            rootView.post(new Runnable() {
+            rootView.post(new SafeRunnable() {
                 @Override
-                public void run() {
+                public void doRun() {
                     view.setVisibility(View.GONE);
                     rootView.removeView(view);
                 }
@@ -58,9 +60,9 @@ public final class ViewHolder<ViewType extends View> {
         }
 
         if (visible) {
-            rootView.post(new Runnable() {
+            rootView.post(new SafeRunnable() {
                 @Override
-                public void run() {
+                public void doRun() {
                     if (view.getParent() == null) {
                         Log.d(TAG, "adding view to layout...");
                         view.setVisibility(View.VISIBLE);
@@ -74,9 +76,9 @@ public final class ViewHolder<ViewType extends View> {
                     }
                 }});
         } else {
-            rootView.post(new Runnable() {
+            rootView.post(new SafeRunnable() {
                 @Override
-                public void run() {
+                public void doRun() {
                     if (view.getParent() != null) {
                         Log.d(TAG, "removing view from layout...");
                         view.setVisibility(View.GONE);

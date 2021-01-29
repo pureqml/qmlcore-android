@@ -66,7 +66,7 @@ public final class ImageLoader {
         return holder.getBitmap(w, h);
     }
 
-    private class ImageLoaderTask implements Runnable {
+    private class ImageLoaderTask extends SafeRunnable {
         final URL             _url;
         final ImageHolder     _holder; //fixme: make me weak
 
@@ -76,7 +76,7 @@ public final class ImageLoader {
         }
 
         @Override
-        public void run() {
+        public void doRun() {
             Log.i(TAG, "starting loading task on " + _url);
             try {
                 InputStream rawStream = null;

@@ -96,18 +96,18 @@ public final class VideoPlayer extends BaseObject implements IResource {
     }
 
     public void emit(String name, Object ... args) {
-        _env.getExecutor().execute(new Runnable() {
+        _env.getExecutor().execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 VideoPlayer.this.emit(null, name, args);
             }
         });
     }
 
     private void pollPosition() {
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 SimpleExoPlayer player = VideoPlayer.this.player;
                 if (player == null)
                     return;
@@ -268,9 +268,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
     public void stop() {
         Log.i(TAG, "Player.stop");
         source = null;
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 if (player != null)
                     player.stop();
             }
@@ -350,9 +350,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
         });
 
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 player.prepare(source, true, true);
                 Log.i(TAG, "Player.setSource exited");
             }
@@ -369,9 +369,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void play() {
         Log.i(TAG, "Player.play");
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 if (paused)
                 {
                     paused = false;
@@ -387,9 +387,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void pause() {
         Log.i(TAG, "Player.pause");
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 if (!paused)
                 {
                     paused = true;
@@ -405,9 +405,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void seek(int pos) {
         Log.i(TAG, "Player.seek " + pos);
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 //FIXME: save position if resources reacquired
                 long newPos = player.getCurrentPosition() + pos * 1000L;
                 VideoPlayer.this.emit("timeupdate", newPos / 1000.0);
@@ -420,9 +420,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void seekTo(int pos) {
         Log.i(TAG, "Player.seekTo " + pos);
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 //FIXME: save position if resources reacquired
                 VideoPlayer.this.emit("timeupdate", pos);
 
@@ -434,9 +434,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 switch (name) {
                     case "autoplay":
                         autoplay = TypeConverter.toBoolean(value);
@@ -523,9 +523,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     @Override
     public void acquireResource() {
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 VideoPlayer.this.acquireResourceImpl();
             }
         });
@@ -533,9 +533,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     @Override
     public void releaseResource() {
-        handler.post(new Runnable() {
+        handler.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 VideoPlayer.this.releaseResourceImpl();
             }
         });

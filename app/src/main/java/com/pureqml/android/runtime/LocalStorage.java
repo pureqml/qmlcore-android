@@ -8,6 +8,7 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
+import com.pureqml.android.SafeRunnable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -30,9 +31,9 @@ public final class LocalStorage extends BaseObject {
     }
 
     private void notify(V8Function callback, V8Object origin, String data) {
-        _scriptThread.submit(new Runnable() {
+        _scriptThread.submit(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 V8Array args = new V8Array(_env.getRuntime());
                 Object ret = null;
                 try {
@@ -73,9 +74,9 @@ public final class LocalStorage extends BaseObject {
 
     public void get(String name, V8Function callback, V8Function error, V8Object origin) {
         Log.i(TAG, "getting value " + name);
-        _threadPool.submit(new Runnable() {
+        _threadPool.submit(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 getAsync(name, callback, error, origin);
             }
         });
@@ -96,9 +97,9 @@ public final class LocalStorage extends BaseObject {
 
     public void set(String name, String value, V8Function error, V8Object origin) {
         Log.i(TAG, "setting value " + name);
-        _threadPool.submit(new Runnable() {
+        _threadPool.submit(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 setAsync(name, value, error, origin);
             }
         });
@@ -117,9 +118,9 @@ public final class LocalStorage extends BaseObject {
 
     public void erase(String name, V8Function error, V8Object origin) {
         Log.i(TAG, "erasing value " + name);
-        _threadPool.submit(new Runnable() {
+        _threadPool.submit(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 eraseAsync(name, error, origin);
             }
         });

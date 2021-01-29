@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IRenderer;
+import com.pureqml.android.SafeRunnable;
 import com.pureqml.android.TypeConverter;
 
 public final class Input extends Element {
@@ -39,9 +40,9 @@ public final class Input extends Element {
         view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(final View v, final boolean hasFocus) {
-                _env.getExecutor().execute(new Runnable() {
+                _env.getExecutor().execute(new SafeRunnable() {
                     @Override
-                    public void run() {
+                    public void doRun() {
                         if (v == view) {
                             Log.i(TAG, "on focus changed: " + hasFocus + " " + v.isFocused());
                             Input.this.emitFocusEvent(hasFocus);
@@ -80,9 +81,9 @@ public final class Input extends Element {
 
     private void setValue(String value) {
         this.value = value;
-        _env.getExecutor().execute(new Runnable() {
+        _env.getExecutor().execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 Input.this.emit(null, "input");
             }
         });
@@ -94,9 +95,9 @@ public final class Input extends Element {
     }
 
     private void updateType() {
-        view.post(new Runnable() {
+        view.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 if (Build.VERSION.SDK_INT >= 26) {
                     if (autocomplete.equals("username"))
                         view.setAutofillHints(View.AUTOFILL_HINT_USERNAME);
@@ -161,9 +162,9 @@ public final class Input extends Element {
         if (!getRect().contains(x, y))
             return false;
 
-        view.post(new Runnable() {
+        view.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 view.onTouchEvent(event);
             }
         });
@@ -185,9 +186,9 @@ public final class Input extends Element {
     public void blur() {
         Log.i(TAG, "removing focus...");
         super.blur();
-        view.post(new Runnable() {
+        view.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
 //                view.clearFocus(); //this will trigger refocus and infinite focus loop
                 view.setCursorVisible(false);
             }
@@ -199,9 +200,9 @@ public final class Input extends Element {
     public void focus() {
         Log.i(TAG, "focusing input...");
         super.focus();
-        view.post(new Runnable() {
+        view.post(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 view.setCursorVisible(true);
                 if (!view.requestFocus())
                     Log.w(TAG, "requestFocus failed");
@@ -211,18 +212,18 @@ public final class Input extends Element {
     }
 
     private void emitFocusEvent(final boolean hasFocus) {
-        _env.getExecutor().execute(new Runnable() {
+        _env.getExecutor().execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 emit(null, hasFocus? "focus": "blur");
             }
         });
     }
 
     private void emitChangeEvent() {
-        _env.getExecutor().execute(new Runnable() {
+        _env.getExecutor().execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doRun() {
                 emit(null, "change");
             }
         });
@@ -250,9 +251,9 @@ public final class Input extends Element {
         {
             case "color": {
                 final int color = TypeConverter.toColor(value);
-                view.post(new Runnable() {
+                view.post(new SafeRunnable() {
                     @Override
-                    public void run() {
+                    public void doRun() {
                         view.setTextColor(color);
                     }
                 });
@@ -263,9 +264,9 @@ public final class Input extends Element {
                     IRenderer renderer = _env.getRenderer();
                     if (renderer != null) {
                         final int fontSize = TypeConverter.toFontSize(value.toString(), renderer.getDisplayMetrics());
-                        view.post(new Runnable() {
+                        view.post(new SafeRunnable() {
                             @Override
-                            public void run() {
+                            public void doRun() {
                                 view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
                             }
                         });
@@ -279,9 +280,9 @@ public final class Input extends Element {
             case "background":
             case "background-color": {
                 final int color = TypeConverter.toColor(value);
-                view.post(new Runnable() {
+                view.post(new SafeRunnable() {
                     @Override
-                    public void run() {
+                    public void doRun() {
                         view.setBackgroundColor(color);
                     }
                 });
@@ -289,9 +290,9 @@ public final class Input extends Element {
             }
             case "-pure-placeholder-color":
                 final int color = TypeConverter.toColor(value);
-                view.post(new Runnable() {
+                view.post(new SafeRunnable() {
                     @Override
-                    public void run() {
+                    public void doRun() {
                         view.setHintTextColor(color);
                     }
                 });

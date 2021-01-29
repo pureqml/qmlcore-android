@@ -46,9 +46,9 @@ public final class Timers {
             //Log.v(TAG, "Timer task " + _id + " finalized");
             ExecutorService executor = _env.getExecutor();
             if (executor != null && _callback != null) {
-                executor.execute(new Runnable() {
+                executor.execute(new SafeRunnable() {
                     @Override
-                    public void run() {
+                    public void doRun() {
                         releaseCallback();
                     }
                 });

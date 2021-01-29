@@ -113,9 +113,9 @@ public final class MainActivity
                         Log.i(TAG, "keepScreenOn " + enable);
                         final Window window = MainActivity.this.getWindow();
                         final View decorView = window.getDecorView();
-                        decorView.post(new Runnable() {
+                        decorView.post(new SafeRunnable() {
                             @Override
-                            public void run() {
+                            public void doRun() {
                                 if (enable)
                                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                                 else
@@ -136,9 +136,9 @@ public final class MainActivity
                             | View.SYSTEM_UI_FLAG_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
-                        decorView.post(new Runnable() {
+                        decorView.post(new SafeRunnable() {
                             @Override
-                            public void run() {
+                            public void doRun() {
                                 if (enable)
                                     decorView.setSystemUiVisibility(decorView.getSystemUiVisibility() | flags);
                                 else
