@@ -54,6 +54,8 @@ final class Wrapper {
         public Object invoke(V8Object self, V8Array arguments) {
             int id = self.getInteger(UNIQUE_ID_KEY);
             BaseObject object = _env.getObjectById(id);
+            if (object == null)
+                throw new RuntimeException("Object with " + id + " not found (discarded).");
             try {
                 return _method.invoke(object, arguments);
             } catch (IllegalAccessException e) {
