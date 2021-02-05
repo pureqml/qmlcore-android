@@ -89,6 +89,7 @@ public final class Input extends Element {
         });
     }
 
+    @Override
     public void discard() {
         super.discard();
         viewHolder.discard(_env.getRootView());

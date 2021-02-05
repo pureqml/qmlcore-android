@@ -312,6 +312,7 @@ public class Element extends BaseObject {
         _parent = null;
     }
 
+    @Override
     public void discard() {
         remove();
         _cacheValid = false;

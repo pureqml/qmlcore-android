@@ -22,6 +22,7 @@ public final class Spinner extends Element {
         viewHolder = new ViewHolder<>(context, view);
     }
 
+    @Override
     public void discard() {
         super.discard();
         viewHolder.discard(_env.getRootView());

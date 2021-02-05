@@ -540,4 +540,12 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
         });
     }
+
+    @Override
+    public void discard() {
+        super.discard();
+        viewHolder.discard(_env.getRootView());
+        releaseResource();
+    }
+
 }
