@@ -26,7 +26,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     private final static String TAG = "rt.Image";
     URL                         _url;
     V8Function                  _callback;
-    final Paint                       _paint;
+    final Paint                 _paint;
 
     private enum Position { LeftOrTop, Center, RightOrBottom }
 
@@ -162,6 +162,16 @@ public final class Image extends Element implements ImageLoadedCallback {
         _paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
         _paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
     }
+
+    @Override
+    public void discard() {
+        super.discard();
+        _url = null;
+        if (_callback instanceof Releasable)
+            ((Releasable)_callback).release();
+        _callback = null;
+    }
+
 
     public void load(String name, V8Function callback) {
         if (!name.contains("://"))
