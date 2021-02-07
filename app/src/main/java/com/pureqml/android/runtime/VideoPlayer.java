@@ -34,6 +34,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.VideoListener;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
 import com.pureqml.android.SafeRunnable;
@@ -58,6 +59,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     //this is persistent state
     private Rect                        rect;
+    private int                         videoWidth = 0;
+    private int                         videoHeight = 0;
     private String                      source;
     private boolean                     playerVisible = true;
     private boolean                     autoplay = false;
@@ -232,8 +235,31 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
         });
 
-        if (rect != null)
-            setRect(rect);
+        player.addVideoListener(new VideoListener() {
+            @Override
+            public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+                Log.v(TAG, "onVideoSizeChanged " + width + "x" + height + ", rotation: " + unappliedRotationDegrees + ", par: " + pixelWidthHeightRatio);
+                videoWidth = (int)(width * pixelWidthHeightRatio);
+                videoHeight = height;
+                handler.post(new SafeRunnable() {
+                    @Override
+                    public void doRun() {
+                        updateGeometry();
+                    }});
+            }
+
+            @Override
+            public void onSurfaceSizeChanged(int width, int height) {
+                Log.v(TAG, "onSurfaceSizeChanged " + width + "x" + height);
+            }
+
+            @Override
+            public void onRenderedFirstFrame() {
+                Log.v(TAG, "onRenderedFirstFrame");
+            }
+        });
+
+        updateGeometry();
         setVisibility(playerVisible);
         player.setPlayWhenReady(autoplay);
         if (source != null)
@@ -258,6 +284,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
             player.setVideoTextureView(null);
             player.release();
             player = null;
+            videoWidth = 0;
+            videoHeight = 0;
         }
     }
 
@@ -504,15 +532,39 @@ public final class VideoPlayer extends BaseObject implements IResource {
         hlsExtractorFlags = flagSwitcher ? hlsExtractorFlags | flag : hlsExtractorFlags &~ flag;
     }
 
-    private void setRect(Rect rect) {
-        Log.i(TAG, "Player.setRect " + rect);
-        viewHolder.setRect(_env.getRootView(), rect);
-        this.rect = rect;
+    private void updateGeometry() {
+        if (rect == null) {
+            Log.v(TAG, "updateGeometry skipped, rect is null");
+            return;
+        }
+
         Rect surfaceGeometry = _env.getSurfaceGeometry();
         //if surface geometry defined and rectangle less than surface geometry, set Z on top
-        boolean onTop = surfaceGeometry != null && !rect.contains(surfaceGeometry);
+        boolean onTop = surfaceGeometry != null && !rect.contains(surfaceGeometry); //we use original rect here (no AR)
         if (surfaceView != null)
             surfaceView.setZOrderOnTop(onTop);
+
+        if (videoWidth > 0 && videoHeight > 0) {
+            float scaleX = 1.0f * rect.width() / videoWidth;
+            float scaleY = 1.0f * rect.height() / videoHeight;
+            float scale = Math.min(scaleX, scaleY); //always fit
+            Log.v(TAG, "aspect ratio scale: " + scale);
+            int newWidth = (int)(scale * videoWidth);
+            int newHeight = (int)(scale * videoHeight);
+            int x = rect.left + (rect.width() - newWidth) / 2;
+            int y = rect.top + (rect.height() - newHeight) / 2;
+            Rect videoRect = new Rect(x, y, x + newWidth, y + newHeight);
+            Log.v(TAG, "corrected video rect: " + videoRect);
+            viewHolder.setRect(_env.getRootView(), videoRect);
+        }
+        else
+            viewHolder.setRect(_env.getRootView(), rect);
+    }
+
+    private void setRect(Rect rect) {
+        Log.i(TAG, "Player.setRect " + rect);
+        this.rect = rect;
+        updateGeometry();
     }
 
     public void setVisibility(boolean visible) {
