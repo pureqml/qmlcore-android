@@ -5,6 +5,7 @@ import android.app.Service;
 import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.FeatureInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
@@ -236,8 +237,11 @@ public final class ExecutionEnvironment extends Service
                             break;
                         default:
                             PackageManager pm = getContext().getPackageManager();
-                            if (pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) &&
-                                pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+                            FeatureInfo features[] = pm.getSystemAvailableFeatures();
+                            for(int i = 0; i < features.length; ++i) {
+                                Log.v(TAG, "Available system feature: " + features[i].name);
+                            }
+                            if (pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
                                 Log.i(TAG, "Running on mobile device");
                                 info.add("device", DeviceMobile);
                             } else {
