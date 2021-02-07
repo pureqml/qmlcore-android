@@ -127,10 +127,19 @@ public final class Input extends Element {
 
         if (name.equals("placeholder")) {
             placeholder = value;
-            view.setHint(placeholder);
+            view.post(new SafeRunnable() {
+                @Override
+                public void doRun() {
+                    view.setHint(placeholder);
+            }});
         } else if (name.equals("value")) {
             this.value = value;
-            view.setText(value);
+            view.post(new SafeRunnable() {
+                @Override
+                public void doRun() {
+                    view.setText(value);
+                }
+            });
         } else if (name.equals("inputmode")) {
             inputmode = value;
             updateType();
