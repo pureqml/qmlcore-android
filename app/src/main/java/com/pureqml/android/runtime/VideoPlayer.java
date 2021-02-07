@@ -52,9 +52,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private SimpleExoPlayer             player;
     private SurfaceView                 surfaceView;
     private TextureView                 textureView;
-    private final ViewHolder<?>               viewHolder;
-    private final Handler                     handler;
-    private final Timeline.Period             period;
+    private final ViewHolder<?>         viewHolder;
+    private final Handler               handler;
+    private final Timeline.Period       period;
 
     //this is persistent state
     private Rect                        rect;
@@ -65,8 +65,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private Runnable                    pollingTask = null;
 
     //exoplayer flags
-    private int                     hlsExtractorFlags = 0;
-    private boolean                 exposeCea608WhenMissingDeclarations = true;
+    private int                         hlsExtractorFlags = 0;
+    private boolean                     exposeCea608WhenMissingDeclarations = true;
 
     public VideoPlayer(IExecutionEnvironment env) {
         this(env, false);
