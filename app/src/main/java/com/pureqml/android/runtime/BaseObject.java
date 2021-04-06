@@ -18,7 +18,7 @@ public class BaseObject {
 
     protected final IExecutionEnvironment         _env;
     private final int                             _objectId;
-    private Map<String, List<V8Function>>   _callbacks;
+    private Map<String, List<V8Function>>         _callbacks;
 
     public BaseObject(IExecutionEnvironment env) {
         _env = env;
