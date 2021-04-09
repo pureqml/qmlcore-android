@@ -614,7 +614,7 @@ public final class ExecutionEnvironment extends Service
 
     public void paint() {
         synchronized (this) {
-            if (_paintScheduled || _executor == null || _executor.isShutdown() || _rootElement == null)
+            if (_paintScheduled || _executor == null || _executor.isShutdown() || _rootElement == null || _renderer == null)
                 return;
             _paintScheduled = true;
             Log.v(TAG, "paint scheduled");
