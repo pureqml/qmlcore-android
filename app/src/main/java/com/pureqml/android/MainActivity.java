@@ -18,6 +18,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -232,7 +233,14 @@ public final class MainActivity
         surfaceHolder.setFormat(PixelFormat.TRANSLUCENT);
         _mainView.setZOrderMediaOverlay(true);
 
-        surfaceHolder.addCallback(new SurfaceHolderCallback());
+        SurfaceHolderCallback surfaceCallback = new SurfaceHolderCallback();
+        surfaceHolder.addCallback(surfaceCallback);
+        Surface surface = surfaceHolder.getSurface();
+        if (surface != null && surface.isValid()) {
+            Log.d(TAG, "surface appears to be valid, firing callback...");
+            surfaceCallback.surfaceCreated(surfaceHolder);
+        }
+
 
         _mainView.setOnTouchListener(new View.OnTouchListener() {
             @Override
