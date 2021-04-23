@@ -831,6 +831,10 @@ public class Element extends BaseObject {
         return "";
     }
 
+    public void removeAttribute(String name) {
+        Log.d(TAG, "ignoring removeAttribute " + name);
+    }
+
     public void setProperty(String name, String value) {
         setAttribute(name, value);
     }
