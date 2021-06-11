@@ -16,6 +16,7 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -23,6 +24,8 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
 import com.google.android.exoplayer2.source.BaseMediaSource;
 import com.google.android.exoplayer2.source.BehindLiveWindowException;
+import com.google.android.exoplayer2.source.LoadEventInfo;
+import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -177,29 +180,14 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         player.addListener(new Player.EventListener() {
             @Override
-            public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-                Log.d(TAG, "onTracksChanged" + trackGroups + " " + trackSelections);
-            }
-
-            @Override
-            public void onLoadingChanged(boolean isLoading) {
+            public void onIsLoadingChanged(boolean isLoading) {
                 Log.d(TAG, "onLoadingChanged " + isLoading);
             }
 
             @Override
-            public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+            public void onPlaybackStateChanged(int playbackState) {
                 Log.d(TAG, "onPlayerStateChanged " + playbackState);
                 VideoPlayer.this.emit("stateChanged", playbackState);
-            }
-
-            @Override
-            public void onRepeatModeChanged(int repeatMode) {
-                Log.d(TAG, "onRepeatModeChanged " + repeatMode);
-            }
-
-            @Override
-            public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
-                Log.d(TAG, "onShuffleModeEnabledChanged " + shuffleModeEnabled);
             }
 
             @Override
@@ -216,17 +204,15 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onPositionDiscontinuity(int reason) {
                 Log.d(TAG, "onPositionDiscontinuity " + reason);
+                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                    Log.d(TAG, "onSeekProcessed");
+                    VideoPlayer.this.emit("seeked");
+                }
             }
 
             @Override
             public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
                 Log.d(TAG, "onPlaybackParametersChanged " + playbackParameters);
-            }
-
-            @Override
-            public void onSeekProcessed() {
-                Log.d(TAG, "onSeekProcessed");
-                VideoPlayer.this.emit("seeked");
             }
 
             @Override
@@ -323,65 +309,25 @@ public final class VideoPlayer extends BaseObject implements IResource {
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
             factory.setExtractorFactory(new DefaultHlsExtractorFactory(hlsExtractorFlags, exposeCea608WhenMissingDeclarations))
                     .setAllowChunklessPreparation(true);
-            source = factory.createMediaSource(Uri.parse(url));
+            source = factory.createMediaSource(MediaItem.fromUri(Uri.parse(url)));
         } else {
             ProgressiveMediaSource.Factory factory = new ProgressiveMediaSource.Factory(dataSourceFactory);
-            source = factory.createMediaSource(Uri.parse(url));
+            source = factory.createMediaSource(MediaItem.fromUri(Uri.parse(url)));
         }
 
         source.addEventListener(handler, new MediaSourceEventListener() {
-
-            @Override
-            public void onMediaPeriodCreated(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId) {
-
-            }
-
-            @Override
-            public void onMediaPeriodReleased(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId) {
-
-            }
-
-            @Override
-            public void onLoadStarted(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
-
-            }
-
-            @Override
-            public void onLoadCompleted(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
-
-            }
-
-            @Override
-            public void onLoadCanceled(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
-
-            }
-
             @Override
             public void onLoadError(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
                 Log.w(TAG, "onLoadError");
                 VideoPlayer.this.emit("error", "Source load error: " + error.getLocalizedMessage());
-            }
-
-            @Override
-            public void onReadingStarted(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId) {
-
-            }
-
-            @Override
-            public void onUpstreamDiscarded(int windowIndex, MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
-
-            }
-
-            @Override
-            public void onDownstreamFormatChanged(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
-
             }
         });
 
         handler.post(new SafeRunnable() {
             @Override
             public void doRun() {
-                player.prepare(source, true, true);
+                player.setMediaSource(source, true);
+                player.prepare();
                 Log.i(TAG, "Player.setSource exited");
             }
         });
