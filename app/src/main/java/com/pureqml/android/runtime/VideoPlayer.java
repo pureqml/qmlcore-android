@@ -156,7 +156,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                 .setPrioritizeTimeOverSizeThresholds(true)
                 .setBufferDurationsMs(1000, 50000, 1000, 1000)
-                .createDefaultLoadControl();
+                .build();
 
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(context);
         trackSelector.setParameters(
