@@ -1,13 +1,17 @@
 package com.pureqml.android.runtime;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
+import android.telecom.Call;
 import android.util.Log;
+import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.TextureView;
 
 import androidx.annotation.Nullable;
 
@@ -38,24 +42,154 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoListener;
+import com.google.android.exoplayer2.video.VideoSize;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
 import com.pureqml.android.SafeRunnable;
 import com.pureqml.android.TypeConverter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimerTask;
 
 import static com.google.android.exoplayer2.C.TIME_UNSET;
 
 
 public final class VideoPlayer extends BaseObject implements IResource {
+
+    private final class DeferredCallback implements SurfaceHolder.Callback {
+        final Handler handler;
+        final SurfaceHolder.Callback callback;
+
+        DeferredCallback(Handler handler, SurfaceHolder.Callback callback) {
+            this.handler = handler;
+            this.callback = callback;
+        }
+
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
+            handler.post(new SafeRunnable() {
+                @Override
+                protected void doRun() {
+                    callback.surfaceCreated(holder);
+                }
+            });
+        }
+
+        @Override
+        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            handler.post(new SafeRunnable() {
+                @Override
+                protected void doRun() {
+                    callback.surfaceChanged(holder, format, width, height);
+                }
+            });
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            handler.post(new SafeRunnable() {
+                @Override
+                protected void doRun() {
+                    callback.surfaceDestroyed(holder);
+                }
+            });
+        }
+    }
+
+    private final class DeferredSurfaceHolder implements SurfaceHolder {
+        final Handler handler;
+        final SurfaceHolder surfaceHolder;
+        final Map<Callback, DeferredCallback> callbacks;
+
+        DeferredSurfaceHolder(Handler handler, SurfaceHolder surfaceHolder) {
+            this.handler = handler;
+            this.surfaceHolder = surfaceHolder;
+            this.callbacks = new HashMap<>();
+        }
+
+        @Override
+        public void addCallback(Callback callback) {
+            DeferredCallback deferredCallback = new DeferredCallback(handler, callback);
+            synchronized (this) {
+                callbacks.put(callback, deferredCallback);
+            }
+            surfaceHolder.addCallback(deferredCallback);
+        }
+
+        @Override
+        public void removeCallback(Callback callback) {
+            surfaceHolder.removeCallback(callback);
+            DeferredCallback deferredCallback;
+            synchronized (this) {
+                deferredCallback = callbacks.get(callback);
+            }
+            surfaceHolder.removeCallback(deferredCallback);
+        }
+
+        @Override
+        public boolean isCreating() {
+            return surfaceHolder.isCreating();
+        }
+
+        @Override
+        public void setType(int type) {
+            surfaceHolder.setType(type);
+        }
+
+        @Override
+        public void setFixedSize(int width, int height) {
+            surfaceHolder.setFixedSize(width, height);
+        }
+
+        @Override
+        public void setSizeFromLayout() {
+            surfaceHolder.setSizeFromLayout();
+        }
+
+        @Override
+        public void setFormat(int format) {
+            surfaceHolder.setFormat(format);
+        }
+
+        @Override
+        public void setKeepScreenOn(boolean screenOn) {
+            surfaceHolder.setKeepScreenOn(screenOn);
+        }
+
+        @Override
+        public Canvas lockCanvas() {
+            return surfaceHolder.lockCanvas();
+        }
+
+        @Override
+        public Canvas lockCanvas(Rect dirty) {
+            return surfaceHolder.lockCanvas(dirty);
+        }
+
+        @Override
+        public void unlockCanvasAndPost(Canvas canvas) {
+            surfaceHolder.unlockCanvasAndPost(canvas);
+        }
+
+        @Override
+        public Rect getSurfaceFrame() {
+            return surfaceHolder.getSurfaceFrame();
+        }
+
+        @Override
+        public Surface getSurface() {
+            return surfaceHolder.getSurface();
+        }
+    };
+
+
     private static final String TAG = "VideoPlayer";
     private static final int PollingInterval = 500; //ms
 
     private SimpleExoPlayer             player;
     private SurfaceView                 surfaceView;
-    private TextureView                 textureView;
     private final ViewHolder<?>         viewHolder;
     private final Handler               handler;
     private final Timeline.Period       period;
@@ -75,10 +209,6 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private boolean                     exposeCea608WhenMissingDeclarations = true;
 
     public VideoPlayer(IExecutionEnvironment env) {
-        this(env, false);
-    }
-
-    public VideoPlayer(IExecutionEnvironment env, boolean useTextureView) {
         super(env);
 
         HandlerThread thread = new HandlerThread(this.toString());
@@ -86,13 +216,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
         handler = new Handler(thread.getLooper());
 
         Context context = env.getContext();
-        if (useTextureView) {
-            textureView = new TextureView(context);
-            viewHolder = new ViewHolder<>(context, textureView);
-        } else {
-            surfaceView = new SurfaceView(context);
-            viewHolder = new ViewHolder<>(context, surfaceView);
-        }
+        surfaceView = new SurfaceView(context);
+        viewHolder = new ViewHolder<>(context, surfaceView);
 
         period = new Timeline.Period();
 
@@ -173,12 +298,12 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 .setLooper(handler.getLooper())
                 .build();
 
-        if (surfaceView != null)
-            player.setVideoSurfaceView(surfaceView);
-        else
-            player.setVideoTextureView(textureView);
+        player.setVideoSurfaceHolder(
+                new DeferredSurfaceHolder(
+                        new Handler(handler.getLooper()),
+                        surfaceView.getHolder()));
 
-        player.addListener(new Player.EventListener() {
+        player.addListener(new Player.Listener() {
             @Override
             public void onIsLoadingChanged(boolean isLoading) {
                 Log.d(TAG, "onLoadingChanged " + isLoading);
@@ -202,7 +327,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
 
             @Override
-            public void onPositionDiscontinuity(int reason) {
+            public void onPositionDiscontinuity(Player.PositionInfo oldPosition, Player.PositionInfo newPosition, int reason) {
                 Log.d(TAG, "onPositionDiscontinuity " + reason);
                 if (reason == Player.DISCONTINUITY_REASON_SEEK) {
                     Log.d(TAG, "onSeekProcessed");
@@ -219,14 +344,12 @@ public final class VideoPlayer extends BaseObject implements IResource {
             public void onIsPlayingChanged(boolean isPlaying) {
                 Log.v(TAG, "onIsPlayingChanged " + isPlaying);
             }
-        });
 
-        player.addVideoListener(new VideoListener() {
             @Override
-            public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-                Log.v(TAG, "onVideoSizeChanged " + width + "x" + height + ", rotation: " + unappliedRotationDegrees + ", par: " + pixelWidthHeightRatio);
-                videoWidth = (int)(width * pixelWidthHeightRatio);
-                videoHeight = height;
+            public void onVideoSizeChanged(VideoSize videoSize) {
+                Log.v(TAG, "onVideoSizeChanged " + videoSize.width + "x" + videoSize.height + ", rotation: " + videoSize.unappliedRotationDegrees + ", par: " + videoSize.pixelWidthHeightRatio);
+                videoWidth = (int)(videoSize.width * videoSize.pixelWidthHeightRatio);
+                videoHeight = videoSize.height;
                 handler.post(new SafeRunnable() {
                     @Override
                     public void doRun() {
@@ -267,7 +390,6 @@ public final class VideoPlayer extends BaseObject implements IResource {
         pollingTask = null;
         if (player != null) {
             player.setVideoSurfaceView(null);
-            player.setVideoTextureView(null);
             player.release();
             player = null;
             videoWidth = 0;
@@ -487,8 +609,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Rect surfaceGeometry = _env.getSurfaceGeometry();
         //if surface geometry defined and rectangle less than surface geometry, set Z on top
         boolean onTop = surfaceGeometry != null && !rect.contains(surfaceGeometry); //we use original rect here (no AR)
-        if (surfaceView != null)
-            surfaceView.setZOrderOnTop(onTop);
+        surfaceView.setZOrderOnTop(onTop);
 
         if (videoWidth > 0 && videoHeight > 0) {
             float scaleX = 1.0f * rect.width() / videoWidth;
