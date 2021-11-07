@@ -61,7 +61,7 @@ public final class TextLayout {
                 int new_end = begin + n + 1;
                 if (new_end >= end) {
                     //end of the string - nothing to wrap
-                    new_end = end - 1;
+                    new_end = begin;
                 }
                 else {
                     while (new_end > begin && !isWhitespace(text.charAt(new_end))) {
