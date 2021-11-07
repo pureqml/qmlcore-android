@@ -238,7 +238,7 @@ public final class Text extends Element {
 
     private void layoutLine(int begin, int end, int maxWidth) {
         if (_wrap == Wrap.Wrap) {
-            _layout.wrap(_paint, begin, end, maxWidth);
+            _layout.wrap(_paint, begin, end, maxWidth, _wrapAnywhere);
         } else {
             int width = (int)_paint.measureText(_layout.text);
             _layout.add(begin, end, width);

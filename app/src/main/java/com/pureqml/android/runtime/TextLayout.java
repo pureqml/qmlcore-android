@@ -40,12 +40,45 @@ public final class TextLayout {
             this.width = width;
     }
 
-    public void wrap(Paint paint, int begin, int end, int maxWidth) {
+    private static boolean isWhitespace(Character ch) {
+        switch (ch) {
+            case ' ':
+            case '\n':
+            case '\r':
+            case '\t':
+            case '\f':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public void wrap(Paint paint, int begin, int end, int maxWidth, boolean anywhere) {
+        float[] measuredWidth = new float[1];
         while(begin < end) {
-            float[] measuredWidth = new float[1];
             int n = paint.breakText(text, begin, end, true, maxWidth, measuredWidth);
+            if (!anywhere && n < text.length()) {
+                int new_end = begin + n + 1;
+                if (new_end >= end) {
+                    //end of the string - nothing to wrap
+                    new_end = end - 1;
+                }
+                else {
+                    while (new_end > begin && !isWhitespace(text.charAt(new_end))) {
+                        --new_end;
+                    }
+                    //new_end is pointing to the last whitespace char.
+                }
+                //fixme: skip whitespaces?
+                if (new_end > begin) {
+                    n = new_end - begin;
+                    measuredWidth[0] = paint.measureText(text, begin, begin + n);
+                }
+            }
             add(begin, begin + n, (int)measuredWidth[0]);
             begin += n;
+            while(begin < end && isWhitespace(text.charAt(begin)))
+                ++begin;
         }
     }
 
