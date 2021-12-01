@@ -6,8 +6,6 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
-import android.telecom.Call;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -19,11 +17,11 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
 import com.google.android.exoplayer2.source.BaseMediaSource;
@@ -33,15 +31,12 @@ import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.google.android.exoplayer2.video.VideoListener;
 import com.google.android.exoplayer2.video.VideoSize;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
@@ -51,7 +46,6 @@ import com.pureqml.android.TypeConverter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimerTask;
 
 import static com.google.android.exoplayer2.C.TIME_UNSET;
 
@@ -188,7 +182,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private static final String TAG = "VideoPlayer";
     private static final int PollingInterval = 500; //ms
 
-    private SimpleExoPlayer             player;
+    private ExoPlayer                   player;
     private SurfaceView                 surfaceView;
     private final ViewHolder<?>         viewHolder;
     private final Handler               handler;
@@ -239,7 +233,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         handler.post(new SafeRunnable() {
             @Override
             public void doRun() {
-                SimpleExoPlayer player = VideoPlayer.this.player;
+                ExoPlayer player = VideoPlayer.this.player;
                 if (player == null)
                     return;
 
@@ -259,11 +253,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
         });
     }
 
-    private static boolean isBehindLiveWindow(ExoPlaybackException e) {
-        if (e.type != ExoPlaybackException.TYPE_SOURCE) {
-            return false;
-        }
-        Throwable cause = e.getSourceException();
+    private static boolean isBehindLiveWindow(PlaybackException e) {
+        Throwable cause = e.getCause();
         while (cause != null) {
             if (cause instanceof BehindLiveWindowException) {
                 return true;
@@ -292,7 +283,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                         .setAllowVideoNonSeamlessAdaptiveness(true)
         );
 
-        player = new SimpleExoPlayer.Builder(context)
+        player = new ExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadControl)
                 .setLooper(handler.getLooper())
@@ -316,7 +307,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
 
             @Override
-            public void onPlayerError(final ExoPlaybackException error) {
+            public void onPlayerError(PlaybackException error) {
                 Log.d(TAG, "onPlayerError " + error);
                 VideoPlayer.this.emit("error", error.toString());
                 if (isBehindLiveWindow(error)) {
