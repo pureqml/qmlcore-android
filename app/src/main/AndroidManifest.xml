@@ -34,7 +34,7 @@
         android:fullBackupContent="@xml/backup_descriptor"
         tools:ignore="UnusedAttribute">
 
-        <activity android:name=".MainActivity" android:configChanges="orientation|screenSize" android:theme="@style/AppTheme.NoTitleBar">
+        <activity android:name=".MainActivity" android:configChanges="orientation|screenSize" android:theme="@style/AppTheme.NoTitleBar" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
