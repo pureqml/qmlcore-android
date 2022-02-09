@@ -27,8 +27,8 @@ public final class Input extends Element {
     String                          inputmode = "";
     String                          autocomplete = "";
     String                          type = "text";
-    final EditText                        view;
-    final ViewHolder<EditText>            viewHolder;
+    final EditText                  view;
+    final ViewHolder<EditText>      viewHolder;
 
     public Input(IExecutionEnvironment env) {
         super(env);
@@ -95,8 +95,8 @@ public final class Input extends Element {
         viewHolder.discard(_env.getRootView());
     }
 
-    private void updateType() {
-        view.post(new SafeRunnable() {
+    private void updateNativeInputType() {
+        _env.getRootView().post(new SafeRunnable() {
             @Override
             public void doRun() {
                 if (Build.VERSION.SDK_INT >= 26) {
@@ -127,14 +127,14 @@ public final class Input extends Element {
 
         if (name.equals("placeholder")) {
             placeholder = value;
-            view.post(new SafeRunnable() {
+            _env.getRootView().post(new SafeRunnable() {
                 @Override
                 public void doRun() {
                     view.setHint(placeholder);
             }});
         } else if (name.equals("value")) {
             this.value = value;
-            view.post(new SafeRunnable() {
+            _env.getRootView().post(new SafeRunnable() {
                 @Override
                 public void doRun() {
                     view.setText(value);
@@ -142,11 +142,13 @@ public final class Input extends Element {
             });
         } else if (name.equals("inputmode")) {
             inputmode = value;
-            updateType();
+            updateNativeInputType();
         } else if (name.equals("type")) {
             type = value;
+            updateNativeInputType();
         } else if (name.equals("autocomplete")) {
             autocomplete = value;
+            updateNativeInputType();
         } else
             super.setAttribute(name, value);
     }
@@ -172,7 +174,7 @@ public final class Input extends Element {
         if (!getRect().contains(x, y))
             return false;
 
-        view.post(new SafeRunnable() {
+        _env.getRootView().post(new SafeRunnable() {
             @Override
             public void doRun() {
                 view.onTouchEvent(event);
@@ -196,7 +198,7 @@ public final class Input extends Element {
     public void blur() {
         Log.i(TAG, "removing focus...");
         super.blur();
-        view.post(new SafeRunnable() {
+        _env.getRootView().post(new SafeRunnable() {
             @Override
             public void doRun() {
 //                view.clearFocus(); //this will trigger refocus and infinite focus loop
@@ -210,7 +212,7 @@ public final class Input extends Element {
     public void focus() {
         Log.i(TAG, "focusing input...");
         super.focus();
-        view.post(new SafeRunnable() {
+        _env.getRootView().post(new SafeRunnable() {
             @Override
             public void doRun() {
                 view.setCursorVisible(true);
@@ -261,7 +263,7 @@ public final class Input extends Element {
         {
             case "color": {
                 final int color = TypeConverter.toColor(value);
-                view.post(new SafeRunnable() {
+                _env.getRootView().post(new SafeRunnable() {
                     @Override
                     public void doRun() {
                         view.setTextColor(color);
@@ -274,7 +276,7 @@ public final class Input extends Element {
                     IRenderer renderer = _env.getRenderer();
                     if (renderer != null) {
                         final int fontSize = TypeConverter.toFontSize(value.toString(), renderer.getDisplayMetrics());
-                        view.post(new SafeRunnable() {
+                        _env.getRootView().post(new SafeRunnable() {
                             @Override
                             public void doRun() {
                                 view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
@@ -290,7 +292,7 @@ public final class Input extends Element {
             case "background":
             case "background-color": {
                 final int color = TypeConverter.toColor(value);
-                view.post(new SafeRunnable() {
+                _env.getRootView().post(new SafeRunnable() {
                     @Override
                     public void doRun() {
                         view.setBackgroundColor(color);
@@ -300,7 +302,7 @@ public final class Input extends Element {
             }
             case "-pure-placeholder-color":
                 final int color = TypeConverter.toColor(value);
-                view.post(new SafeRunnable() {
+                _env.getRootView().post(new SafeRunnable() {
                     @Override
                     public void doRun() {
                         view.setHintTextColor(color);
