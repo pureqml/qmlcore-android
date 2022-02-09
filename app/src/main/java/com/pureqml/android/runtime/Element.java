@@ -797,12 +797,13 @@ public class Element extends BaseObject {
                 } else if (!scrollUsed && rect.contains(x, y)) {
                     if (hasCallbackFor(EVENT_MOUSEUP)) {
                         emitMouseEvent(EVENT_MOUSEUP, x, y, x - rect.left, y - rect.top);
-                        return true;
+                        handled = true;
                     }
                     if (hasCallbackFor(EVENT_CLICK)) {
                         emitMouseEvent(EVENT_CLICK, x, y, x - rect.left, y - rect.top);
-                        return true;
+                        handled = true;
                     }
+                    return handled;
                 }
                 return false;
             }
