@@ -104,7 +104,7 @@ public final class Input extends Element {
                         view.setAutofillHints(View.AUTOFILL_HINT_USERNAME);
                     else if (autocomplete.equals("current-password"))
                         view.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
-                    else
+                    else if (!autocomplete.isEmpty())
                         Log.w(TAG, "ignoring autocomplete hint " + autocomplete);
                 }
                 if (type.equals("password")) {
