@@ -35,7 +35,7 @@ import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.DefaultDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoSize;
 import com.pureqml.android.IExecutionEnvironment;
@@ -52,7 +52,7 @@ import static com.google.android.exoplayer2.C.TIME_UNSET;
 
 public final class VideoPlayer extends BaseObject implements IResource {
 
-    private final class DeferredCallback implements SurfaceHolder.Callback {
+    private static final class DeferredCallback implements SurfaceHolder.Callback {
         final Handler handler;
         final SurfaceHolder.Callback callback;
 
@@ -127,6 +127,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             return surfaceHolder.isCreating();
         }
 
+        @Deprecated
         @Override
         public void setType(int type) {
             surfaceHolder.setType(type);
@@ -415,7 +416,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             return;
         }
 
-        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(_env.getContext(), Util.getUserAgent(_env.getContext(), "pureqml"));
+        DataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(_env.getContext());
 
         BaseMediaSource source;
         if (url.contains(".m3u8")) { //FIXME: add proper content type here

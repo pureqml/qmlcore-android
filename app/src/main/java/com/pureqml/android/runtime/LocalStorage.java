@@ -13,13 +13,10 @@ import com.pureqml.android.SafeRunnable;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public final class LocalStorage extends BaseObject {
     private static final String TAG = "localstorage";
-    private final int BufferSize = 128 * 1024;
     private final ExecutorService _threadPool;
     private final ExecutorService _scriptThread;
 
@@ -56,7 +53,8 @@ public final class LocalStorage extends BaseObject {
             FileInputStream file = _env.getContext().openFileInput(name + ".storage");
             Log.d(TAG, "opened file " + name + " for reading...");
             ByteArrayOutputStream data = new ByteArrayOutputStream();
-            byte[] buffer = new byte[BufferSize];
+            int bufferSize = 128 * 1024;
+            byte[] buffer = new byte[bufferSize];
             int r;
             while ((r = file.read(buffer)) != -1) {
                 data.write(buffer, 0, r);

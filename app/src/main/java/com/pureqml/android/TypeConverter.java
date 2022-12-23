@@ -91,7 +91,7 @@ public final class TypeConverter {
     }
 
     public static int toFontSize(String value, DisplayMetrics metrics) {
-        Integer intValue = Integer.valueOf(value.substring(0, value.length() - 2));
+        int intValue = Integer.parseInt(value.substring(0, value.length() - 2));
         if (value.endsWith("px")) {
             return intValue;
         } else if (value.endsWith("pt")) {

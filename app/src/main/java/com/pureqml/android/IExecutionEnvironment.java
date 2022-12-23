@@ -13,7 +13,6 @@ import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Element;
 
-import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 
 public interface IExecutionEnvironment {

@@ -233,7 +233,7 @@ public class Element extends BaseObject {
         _scrollingElement.emitScroll();
     }
 
-    private final boolean findScrollingElement() {
+    private boolean findScrollingElement() {
         if (_scrollingElement != null)
             return true;
 
