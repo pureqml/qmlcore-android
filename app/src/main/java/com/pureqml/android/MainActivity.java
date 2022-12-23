@@ -89,8 +89,6 @@ public final class MainActivity
 
                 final SurfaceView view = _mainView;
                 _uiRenderer = new IRenderer() {
-                    DisplayMetrics _metrics;
-
                     @Override
                     public DisplayMetrics getDisplayMetrics() {
                         return MainActivity.this.getBaseContext().getResources().getDisplayMetrics();
@@ -130,7 +128,7 @@ public final class MainActivity
                         Log.i(TAG, "setFullScreen " + enable);
                         Window window = MainActivity.this.getWindow();
                         final View decorView = window.getDecorView();
-                        final int flags = View.SYSTEM_UI_FLAG_IMMERSIVE
+                        final int flags = (Build.VERSION.SDK_INT >= 19? View.SYSTEM_UI_FLAG_IMMERSIVE: 0)
                             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
