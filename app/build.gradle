@@ -1,15 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
     ndkVersion "21.0.6113669"
     defaultConfig {
         applicationId "com.pureqml.qmlcore.runtime.android"
         minSdkVersion 16
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -33,6 +34,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.18.2'
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.2'
     implementation 'com.caverock:androidsvg-aar:1.4'
+    implementation 'androidx.multidex:multidex:2.0.1'
     //implementation 'com.neovisionaries:nv-websocket-client:2.10'
 
     testImplementation 'junit:junit:4.13.2'
