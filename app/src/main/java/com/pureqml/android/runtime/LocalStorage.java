@@ -12,6 +12,7 @@ import com.pureqml.android.SafeRunnable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.concurrent.ExecutorService;
 
@@ -64,6 +65,9 @@ public final class LocalStorage extends BaseObject {
             String value = data.toString("UTF-8");
             data.close();
             notify(callback, origin, value);
+        } catch (FileNotFoundException ex) {
+            Log.v(TAG, "no file found for " + name);
+            notify(error, origin, ex.toString());
         } catch (Exception ex) {
             Log.v(TAG, "can't open file " + name + " for reading", ex);
             notify(error, origin, ex.toString());
