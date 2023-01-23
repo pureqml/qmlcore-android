@@ -575,15 +575,10 @@ public final class ExecutionEnvironment extends Service
             return;
 
         Rect rect = popDirtyRect();
-        if (rect != null)
-            Log.v(TAG, "paint: rect: " + rect.toString());
-        else {
-            Log.v(TAG, "paint: dirty rect is empty, skipping");
+        if (rect == null)
             return;
-        }
 
         Canvas canvas = null;
-        Log.v(TAG, "paint: " + rect);
         try {
             canvas = holder.lockCanvas(rect);
             if (canvas != null) {
@@ -616,7 +611,6 @@ public final class ExecutionEnvironment extends Service
             if (_paintScheduled || _executor == null || _executor.isShutdown() || _rootElement == null || _renderer == null)
                 return;
             _paintScheduled = true;
-            Log.v(TAG, "paint scheduled");
         }
         _executor.execute(new SafeRunnable() {
             @Override

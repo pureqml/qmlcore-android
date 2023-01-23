@@ -500,7 +500,7 @@ public class Element extends BaseObject {
         if (_children == null)
             return;
 
-        ArrayList<Element> children = (ArrayList<Element>)_children.clone();
+        final ArrayList<Element> children = (ArrayList<Element>)_children.clone();
         int scrollX = -getScrollXImpl(), scrollY = -getScrollYImpl();
 
         for (Element child : children) {
