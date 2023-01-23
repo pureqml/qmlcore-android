@@ -141,6 +141,8 @@ public final class HttpRequest {
                 V8Object target = new V8Object(runtime);
                 target.add("status", code);
                 target.add("responseText", text != null? text: "");
+                //FIXME: interpret response according to responseType
+                target.add("response", text != null? text: null);
                 result.add("target", target);
                 target.close();
             }
