@@ -419,7 +419,10 @@ public final class MainActivity
             case "Enter":
                 return "Select";
             default:
-                return keyName;
+                if (keyName.startsWith("Media"))
+                    return keyName.substring(5);
+                else
+                    return keyName;
         }
     }
 
