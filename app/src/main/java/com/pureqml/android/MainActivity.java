@@ -425,7 +425,7 @@ public final class MainActivity
 
     static String GetKeyNameImpl(int keyCode) {
         switch(keyCode) {
-           case KeyEvent.KEYCODE_UNKNOWN: return "Unknown";
+            case KeyEvent.KEYCODE_UNKNOWN: return "Unknown";
             case KeyEvent.KEYCODE_SOFT_LEFT: return "SoftLeft";
             case KeyEvent.KEYCODE_SOFT_RIGHT: return "SoftRight";
             case KeyEvent.KEYCODE_HOME: return "Home";
@@ -709,6 +709,27 @@ public final class MainActivity
             case KeyEvent.KEYCODE_SYSTEM_NAVIGATION_DOWN: return "SystemNavigationDown";
             case KeyEvent.KEYCODE_SYSTEM_NAVIGATION_LEFT: return "SystemNavigationLeft";
             case KeyEvent.KEYCODE_SYSTEM_NAVIGATION_RIGHT: return "SystemNavigationRight";
+            case KeyEvent.KEYCODE_ALL_APPS: return "AllApps";
+            case KeyEvent.KEYCODE_REFRESH: return "Refresh";
+            case KeyEvent.KEYCODE_THUMBS_UP: return "ThumbsUp";
+            case KeyEvent.KEYCODE_THUMBS_DOWN: return "ThumbsDown";
+            case KeyEvent.KEYCODE_PROFILE_SWITCH: return "ProfileSwitch";
+            case KeyEvent.KEYCODE_VIDEO_APP_1: return "VideoApp1";
+            case KeyEvent.KEYCODE_VIDEO_APP_2: return "VideoApp2";
+            case KeyEvent.KEYCODE_VIDEO_APP_3: return "VideoApp3";
+            case KeyEvent.KEYCODE_VIDEO_APP_4: return "VideoApp4";
+            case KeyEvent.KEYCODE_VIDEO_APP_5: return "VideoApp5";
+            case KeyEvent.KEYCODE_VIDEO_APP_6: return "VideoApp6";
+            case KeyEvent.KEYCODE_VIDEO_APP_7: return "VideoApp7";
+            case KeyEvent.KEYCODE_VIDEO_APP_8: return "VideoApp8";
+            case KeyEvent.KEYCODE_FEATURED_APP_1: return "FeaturedApp1";
+            case KeyEvent.KEYCODE_FEATURED_APP_2: return "FeaturedApp2";
+            case KeyEvent.KEYCODE_FEATURED_APP_3: return "FeaturedApp3";
+            case KeyEvent.KEYCODE_FEATURED_APP_4: return "FeaturedApp4";
+            case KeyEvent.KEYCODE_DEMO_APP_1: return "DemoApp1";
+            case KeyEvent.KEYCODE_DEMO_APP_2: return "DemoApp2";
+            case KeyEvent.KEYCODE_DEMO_APP_3: return "DemoApp3";
+            case KeyEvent.KEYCODE_DEMO_APP_4: return "DemoApp4";
             default:
                 return null;
         }
