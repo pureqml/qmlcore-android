@@ -36,7 +36,6 @@ import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSource;
-import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoSize;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
@@ -92,7 +91,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
     }
 
-    private final class DeferredSurfaceHolder implements SurfaceHolder {
+    private final static class DeferredSurfaceHolder implements SurfaceHolder {
         final Handler handler;
         final SurfaceHolder surfaceHolder;
         final Map<Callback, DeferredCallback> callbacks;
@@ -184,7 +183,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private static final int PollingInterval = 500; //ms
 
     private ExoPlayer                   player;
-    private SurfaceView                 surfaceView;
+    private final SurfaceView           surfaceView;
     private final ViewHolder<?>         viewHolder;
     private final Handler               handler;
     private final Timeline.Period       period;
