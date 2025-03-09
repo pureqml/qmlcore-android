@@ -163,7 +163,7 @@ public final class Rectangle extends Element {
             }
         }
 
-        if (_border != null) {
+        if (_border != null && _innerBorder > 0) {
             Paint paint = patchAlpha(_border, Color.alpha(_color), opacity);
             RectF borderRect = new RectF(rect);
             borderRect.inset(_innerBorder / 2.0f, _innerBorder / 2.0f);
