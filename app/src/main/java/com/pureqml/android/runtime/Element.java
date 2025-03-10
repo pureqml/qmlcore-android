@@ -140,9 +140,11 @@ public class Element extends BaseObject {
         emitScroll();
     }
 
+    protected Rect createRedrawRect() { return new Rect(); }
+
     public Rect getRedrawRect(Rect clipRect) {
         //this function tries to calculate rectangle if this element says it's invalidated
-        Rect elementRect = new Rect();
+        Rect elementRect = createRedrawRect();
         if (_globallyVisible) {
             Rect rect = new Rect(getScreenRect());
             if (rect.intersect(clipRect)) {

@@ -149,13 +149,42 @@ public final class Text extends Element {
         super.update();
     }
 
+    private void layout() {
+        if (_text == null || _layout != null)
+            return;
+
+        assert _layout == null;
+
+        if (_wrap == Wrap.Wrap)
+            layoutText();
+
+        if (_layout == null && _cachedWidth < 0) {
+            _cachedWidth = (int)_paint.measureText(_text);
+        }
+    }
+
+    @Override
+    protected Rect createRedrawRect() {
+        if (!_globallyVisible)
+            return super.createRedrawRect();
+
+        layout();
+        Rect rect = getScreenRect();
+        if (_layout != null) {
+            if (_layout.width > rect.width())
+                rect.union(rect.left, rect.top, rect.left + _layout.width, rect.top + _layout.height);
+        } else {
+            rect.union(rect.left, rect.top, rect.left + _cachedWidth, rect.top + (int)_paint.getTextSize());
+        }
+
+        return rect;
+    }
+
     @Override
     public void paint(PaintState state) {
+        layout();
         beginPaint(state);
         if (_text != null) {
-            if (_layout == null && _wrap == Wrap.Wrap) {
-                layoutText();
-            }
             Rect rect = getRect();
             float textSize = _paint.getTextSize();
             float lineHeight = textSize; //fixme: support proper line height/baseline
@@ -164,9 +193,6 @@ public final class Text extends Element {
             float y = state.baseY + ascent;
             if (_layout == null) {
                 //simple layoutless line
-                if (_cachedWidth < 0) {
-                    _cachedWidth = (int)_paint.measureText(_text);
-                }
 
                 switch (_halign) {
                     case AlignHCenter:
