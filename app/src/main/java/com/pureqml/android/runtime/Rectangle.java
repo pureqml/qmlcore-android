@@ -109,17 +109,13 @@ public final class Rectangle extends Element {
             case "border-width":
                 _borderWidth = toFloat(value);
                 getBorder().setStrokeWidth(_borderWidth);
-                if (!_outerBorder)
-                    _innerBorder = (int)_borderWidth;
                 break;
 
             case "box-sizing":
                 if (value.equals("content-box")) {
                     _outerBorder = true;
-                    _innerBorder = 0;
                 } else if (value.equals("border-box")) {
                     _outerBorder = false;
-                    _innerBorder = (int)_borderWidth;
                 }
                 break;
 
@@ -147,6 +143,29 @@ public final class Rectangle extends Element {
         update();
     }
 
+    private void unionWithBorder(Rect rect) {
+        if (_outerBorder && _borderWidth > 0) {
+            int width = (int)Math.ceil(_borderWidth);
+            int inset = -width;
+            rect.inset(inset, inset);
+        }
+    }
+
+    @Override
+    protected Rect createRedrawRect() {
+        if (!_globallyVisible)
+            return super.createRedrawRect();
+
+        Rect rect = getScreenRect();
+        if (_outerBorder && _borderWidth > 0) {
+            int width = (int)Math.ceil(_borderWidth);
+            rect.offset(width, width);
+        }
+
+        unionWithBorder(rect);
+        return rect;
+    }
+
     @Override
     public void paint(PaintState state) {
         beginPaint(state);
@@ -154,6 +173,9 @@ public final class Rectangle extends Element {
         Canvas canvas = state.canvas;
         float opacity = state.opacity;
         Rect rect = getDstRect(state);
+
+        if (_outerBorder && _borderWidth > 0)
+            rect.offset((int)_borderWidth, (int)_borderWidth);
 
         if (_background.getColor() != 0 || _gradientOrientation != null) {
             if (_gradientOrientation != null) {
@@ -178,10 +200,13 @@ public final class Rectangle extends Element {
             }
         }
 
-        if (_border != null && _innerBorder > 0) {
+        if (_border != null && _borderWidth > 0) {
             Paint paint = patchAlpha(_border, Color.alpha(_color), opacity);
             RectF borderRect = new RectF(rect);
-            borderRect.inset(_innerBorder / 2.0f, _innerBorder / 2.0f);
+            float inset = _borderWidth / 2.0f;
+            if (_outerBorder)
+                inset -= _borderWidth;
+            borderRect.inset(inset, inset);
             if (paint != null) {
                 if (_radius > 0) {
                     canvas.drawRoundRect(borderRect, _radius, _radius, paint);
@@ -192,6 +217,8 @@ public final class Rectangle extends Element {
         }
 
         _lastRect.union(rect);
+        unionWithBorder(_lastRect);
+
         paintChildren(state);
 
         endPaint();

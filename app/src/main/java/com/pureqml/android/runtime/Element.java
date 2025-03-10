@@ -48,7 +48,6 @@ public class Element extends BaseObject {
     protected boolean           _globallyVisible;
     private boolean             _clip;
     protected int               _radius = 0;
-    protected int               _innerBorder = 0;
     protected Element           _parent;
     protected int               _z;
     private boolean             _cache = false;
@@ -511,7 +510,7 @@ public class Element extends BaseObject {
                 continue;
 
             Rect childRect = child.getRect();
-            int childX = scrollX + child.getBaseX() + _innerBorder, childY = scrollY + child.getBaseY() + _innerBorder;
+            int childX = scrollX + child.getBaseX(), childY = scrollY + child.getBaseY();
             int childWidth = childRect.width(), childHeight = childRect.height();
             boolean cache = child._cache;
 
