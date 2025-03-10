@@ -17,12 +17,15 @@ import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.TypeConverter;
 
 import static com.pureqml.android.TypeConverter.toColor;
+import static com.pureqml.android.TypeConverter.toFloat;
 import static com.pureqml.android.TypeConverter.toInteger;
 
 public final class Rectangle extends Element {
     private final static String TAG = "rt.Rectangle";
     private final Paint   _background;
     private Paint   _border;
+    boolean         _outerBorder = false;
+    float           _borderWidth = 0;
     int             _color = 0;
     String          _gradientOrientation = null;
     int[] _gradientColors = null;
@@ -104,8 +107,20 @@ public final class Rectangle extends Element {
                 break;
 
             case "border-width":
-                _innerBorder = toInteger(value);
-                getBorder().setStrokeWidth(_innerBorder);
+                _borderWidth = toFloat(value);
+                getBorder().setStrokeWidth(_borderWidth);
+                if (!_outerBorder)
+                    _innerBorder = (int)_borderWidth;
+                break;
+
+            case "box-sizing":
+                if (value.equals("content-box")) {
+                    _outerBorder = true;
+                    _innerBorder = 0;
+                } else if (value.equals("border-box")) {
+                    _outerBorder = false;
+                    _innerBorder = (int)_borderWidth;
+                }
                 break;
 
             case "background-color":
