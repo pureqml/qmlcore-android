@@ -175,7 +175,7 @@ public final class Text extends Element {
                 rect.union(rect.left, rect.top, rect.left + _layout.width, rect.top + _layout.height);
         } else {
             int right = rect.left + _cachedWidth;
-            int bottom = rect.top + (int)_paint.getTextSize();
+            int bottom = rect.top + (int)(_paint.getTextSize() + _paint.descent());
             if (rect.right < right)
                 rect.right = right;
             if (rect.bottom < bottom)
