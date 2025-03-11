@@ -311,7 +311,7 @@ public final class Image extends Element implements ImageLoadedCallback {
             }
 
             if (bitmap != null) {
-                _paint.setXfermode(new PorterDuffXfermode(state.roundClipWorkaround? PorterDuff.Mode.SRC_IN: PorterDuff.Mode.SRC_OVER));
+                _paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
 
                 Paint paint = patchAlpha(_paint, 255, state.opacity);
                 if (paint != null) {

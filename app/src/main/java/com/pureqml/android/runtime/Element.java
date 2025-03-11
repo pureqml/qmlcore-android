@@ -480,9 +480,6 @@ public class Element extends BaseObject {
     protected final void beginPaint(PaintState state) {
         _lastRect.setEmpty();
         _combinedRect.setEmpty();
-        if (roundClippingNeeded()) {
-            state.roundClipWorkaround = true;
-        }
     }
 
     protected final void endPaint() {
