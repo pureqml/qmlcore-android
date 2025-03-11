@@ -171,11 +171,15 @@ public final class Text extends Element {
         layout();
         Rect rect = getScreenRect();
         if (_layout != null) {
-            if (_layout.width > rect.width())
-                rect.union(rect.left, rect.top, rect.left + _layout.width, rect.top + _layout.height);
+            int right = rect.left + _layout.width;
+            int bottom = rect.top + (int)Math.ceil(_paint.getTextSize() * _layout.stripes.size() + _paint.getFontMetrics().bottom);
+            if (rect.right < right)
+                rect.right = right;
+            if (rect.bottom < bottom)
+                rect.bottom = bottom;
         } else {
             int right = rect.left + _cachedWidth;
-            int bottom = rect.top + (int)(_paint.getTextSize() + _paint.descent());
+            int bottom = rect.top + (int)Math.ceil(_paint.getTextSize() + _paint.getFontMetrics().bottom);
             if (rect.right < right)
                 rect.right = right;
             if (rect.bottom < bottom)
