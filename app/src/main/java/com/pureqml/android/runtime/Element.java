@@ -530,7 +530,7 @@ public class Element extends BaseObject {
                 int canvasRestorePoint;
 
                 if (saveCanvasState)
-                    canvasRestorePoint = state.canvas.save();
+                    canvasRestorePoint = state.save();
                 else
                     canvasRestorePoint = -1;
 
@@ -538,21 +538,21 @@ public class Element extends BaseObject {
 
                     if (_scale != null) {
                         //Log.v(TAG, "adjusting scale to " + _scale);
-                        state.canvas.scale(_scale.x, _scale.y, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
+                        state.scale(_scale.x, _scale.y, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
                     }
 
                     if (_rotate != 0) {
-                        state.canvas.rotate(_rotate, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
+                        state.rotate(_rotate, state.baseX + childWidth / 2.0f, state.baseY + childHeight / 2.0f);
                     }
 
                     if (clip) {
                         if (roundClippingNeeded()) {
                             Path path = new Path();
                             path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
-                            if (!state.canvas.clipPath(path))
+                            if (!state.clipPath(path))
                                 paint = false;
                         } else {
-                            if (!state.canvas.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
+                            if (!state.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
                                 paint = false;
                         }
                     }
@@ -565,7 +565,7 @@ public class Element extends BaseObject {
                     Log.w(TAG, "paint", ex);
                 }
                 if (saveCanvasState) {
-                    state.canvas.restoreToCount(canvasRestorePoint);
+                    state.restoreToCount(canvasRestorePoint);
                 }
                 if (cache) {
                     state.end();
@@ -574,10 +574,10 @@ public class Element extends BaseObject {
             }
 
             if (child._cacheValid) {
-                int saveCount = parent.canvas.save();
-                parent.canvas.translate(parent.baseX + childX, parent.baseY + childY);
-                parent.canvas.drawPicture(child._cachePicture);
-                parent.canvas.restoreToCount(saveCount);
+                int saveCount = parent.save();
+                parent.translate(parent.baseX + childX, parent.baseY + childY);
+                parent.drawPicture(child._cachePicture);
+                parent.restoreToCount(saveCount);
             }
 
             childRect.offset(parent.baseX, parent.baseY);

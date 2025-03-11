@@ -171,7 +171,6 @@ public final class Rectangle extends Element {
         beginPaint(state);
         PaintState childrenState = null;
 
-        Canvas canvas = state.canvas;
         float opacity = state.opacity;
         Rect rect = getDstRect(state);
 
@@ -197,9 +196,9 @@ public final class Rectangle extends Element {
             Paint paint = patchAlpha(_background, Color.alpha(_color), opacity);
             if (paint != null) {
                 if (_radius > 0) {
-                    canvas.drawRoundRect(new RectF(rect), _radius, _radius, paint);
+                    state.drawRoundRect(rect, _radius, _radius, paint);
                 } else {
-                    canvas.drawRect(rect, paint);
+                    state.drawRect(rect, paint);
                 }
             }
         }
@@ -213,15 +212,14 @@ public final class Rectangle extends Element {
             borderRect.inset(inset, inset);
             if (paint != null) {
                 if (_radius > 0) {
-                    canvas.drawRoundRect(borderRect, _radius, _radius, paint);
+                    state.drawRoundRect(borderRect, _radius, _radius, paint);
                 } else {
-                    canvas.drawRect(borderRect, paint);
+                    state.drawRect(borderRect, paint);
                 }
             }
         }
 
-        _lastRect.union(rect);
-        unionWithBorder(_lastRect);
+        _lastRect.union(state.getDirtyRect());
 
         paintChildren(childrenState != null? childrenState: state);
 

@@ -318,24 +318,26 @@ public final class Image extends Element implements ImageLoadedCallback {
                     boolean clip = _backgroundX.needClip(_backgroundY);
                     boolean doPaint = true;
                     if (clip) {
-                        state.canvas.save();
-                        if (!state.canvas.clipRect(dst))
+                        state.save();
+                        if (!state.clipRect(dst))
                             doPaint = false;
                     }
 
                     if (doPaint) {
                         Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
                         _backgroundX.merge(_backgroundY, dst, src);
-                        state.canvas.drawBitmap(bitmap, src, dst, paint);
-                        _lastRect.set(dst);
+                        state.drawBitmap(bitmap, src, dst, paint);
                     }
 
                     if (clip)
-                        state.canvas.restore();
+                        state.restore();
                 }
             } else
                 Log.d(TAG, "null bitmap returned for " + _url);
         }
+
+        _lastRect.union(state.getDirtyRect());
+
         paintChildren(state);
 
         endPaint();

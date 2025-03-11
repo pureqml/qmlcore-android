@@ -215,11 +215,7 @@ public final class Text extends Element {
                         y += rect.height() - lineHeight;
                         break;
                 }
-                _lastRect.left = (int)x;
-                _lastRect.right = (int)x + _cachedWidth;
-                _lastRect.top = (int)y - ascent;
-
-                state.canvas.drawText(_text, x, y, _paint);
+                state.drawText(_text, x, y, _paint);
                 y += lineHeight;
             } else {
                 switch (_halign) {
@@ -240,11 +236,10 @@ public final class Text extends Element {
                 }
                 //Log.v(TAG, "paint: " + _layout + ", halign: " + _halign + ", valign: "  + _valign + ", rect: " + rect);
                 for (TextLayout.Stripe stripe : _layout.stripes) {
-                    state.canvas.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
+                    state.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
                     y += lineHeight;
                 }
             }
-            _lastRect.bottom = (int) (y - lineHeight + _paint.descent());
         }
         paintChildren(state);
         endPaint();
