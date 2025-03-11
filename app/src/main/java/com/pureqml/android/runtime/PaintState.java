@@ -115,7 +115,8 @@ public final class PaintState {
         int y = (int)Math.floor(dstY);
         int a = (int)Math.ceil(paint.getFontMetrics().top);
         int d = (int)Math.ceil(paint.getFontMetrics().bottom);
-        addDirtyRect(x, y - a, x + w, y + d);
+        // top/ascent normally is negative, adding it to y.
+        addDirtyRect(x, y + a, x + w, y + d);
     }
 
     public void drawText(String text, int start, int end, float x, float y,
