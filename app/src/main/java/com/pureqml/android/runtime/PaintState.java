@@ -117,8 +117,8 @@ public final class PaintState {
     private void updateTextBounds(float dstX, float dstY, int w, Paint paint) {
         int x = (int)Math.floor(dstX);
         int y = (int)Math.floor(dstY);
-        int a = (int)Math.ceil(paint.ascent());
-        int d = (int)Math.ceil(paint.descent());
+        int a = (int)Math.ceil(paint.getFontMetrics().top);
+        int d = (int)Math.ceil(paint.getFontMetrics().bottom);
         addDirtyRect(x, y - a, x + w, y + d);
     }
 
