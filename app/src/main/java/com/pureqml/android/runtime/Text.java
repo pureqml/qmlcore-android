@@ -245,6 +245,7 @@ public final class Text extends Element {
                 }
             }
         }
+        _lastRect.union(state.getDirtyRect());
         paintChildren(state);
         endPaint();
     }
