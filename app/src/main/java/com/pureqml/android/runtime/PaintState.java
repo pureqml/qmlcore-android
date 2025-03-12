@@ -2,6 +2,7 @@ package com.pureqml.android.runtime;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Picture;
@@ -17,6 +18,7 @@ public final class PaintState {
     public final int baseX;
     public final int baseY;
     public final float opacity;
+    public final Matrix transform;
 
     public PaintState(Canvas canvas) {
         this.picture = null;
@@ -24,6 +26,7 @@ public final class PaintState {
         this.baseX = this.baseY = 0;
         this.opacity = 1.0f;
         this.dirtyRect = new Rect();
+        this.transform = new Matrix();
     }
 
     public PaintState(PaintState parent, int x, int y, float opacity) {
@@ -33,6 +36,7 @@ public final class PaintState {
         this.baseY = parent.baseY + y;
         this.opacity = opacity;
         this.dirtyRect = new Rect();
+        this.transform = new Matrix();
     }
 
     public PaintState(Picture picture, int w, int h, float opacity) {
@@ -42,6 +46,7 @@ public final class PaintState {
         this.baseY = 0;
         this.opacity = opacity;
         this.dirtyRect = new Rect();
+        this.transform = new Matrix();
     }
 
     public void end() {
@@ -64,23 +69,19 @@ public final class PaintState {
 
     public void translate(float dx, float dy) {
         canvas.translate(dx, dy);
-        dirtyRect.offset((int)dx, (int)dy);
+        transform.postTranslate(dx, dy);
     }
 
     public void scale(float sx, float sy, float px, float py) {
         translate(px, py);
         canvas.scale(sx, sy);
-        dirtyRect.left = (int)Math.floor(dirtyRect.left * sx);
-        dirtyRect.top = (int)Math.floor(dirtyRect.top * sy);
-        dirtyRect.right = (int)Math.floor(dirtyRect.right * sx);
-        dirtyRect.bottom = (int)Math.floor(dirtyRect.bottom * sy);
+        transform.postScale(sx, sy);
         translate(-px, -py);
     }
 
     public void rotate(float degrees, float px, float py) {
         canvas.rotate(degrees, px, py);
-        final double sqrt2 = 1.4142135623730951;
-        dirtyRect.inset((int)-(dirtyRect.width() * sqrt2), (int)-(dirtyRect.height() * sqrt2));
+        transform.postRotate(degrees, px, py);
     }
 
     public boolean clipPath(Path path) {
@@ -158,16 +159,35 @@ public final class PaintState {
         addDirtyRect(rect.left - sw, rect.top - sw, rect.right + sw, rect.bottom + sw);
     }
 
+    private void addTransformedDirtyRect(RectF rect) {
+        transform.mapRect(rect);
+        Rect dst = new Rect();
+        rect.round(dst);
+        dirtyRect.union(dst);
+    }
+
     public void addDirtyRect(int x, int y, int r, int b) {
-        dirtyRect.union(x, y, r, b);
+        if (transform.isIdentity()) {
+            dirtyRect.union(x, y, r, b);
+        } else {
+            addTransformedDirtyRect(new RectF(x, y, r, b));
+        }
     }
 
     public void addDirtyRect(float x, float y, float r, float b) {
-        dirtyRect.union((int)Math.floor(x), (int)Math.floor(y), (int)Math.ceil(r), (int)Math.ceil(b));
+        if (transform.isIdentity()) {
+            dirtyRect.union((int) Math.floor(x), (int) Math.floor(y), (int) Math.ceil(r), (int) Math.ceil(b));
+        } else {
+            addTransformedDirtyRect(new RectF(x, y, r, b));
+        }
     }
 
     public void addDirtyRect(Rect rect) {
-        dirtyRect.union(rect);
+        if (transform.isIdentity()) {
+            dirtyRect.union(rect);
+        } else {
+            addTransformedDirtyRect(new RectF(rect));
+        }
     }
 
     public void addDirtyRect(RectF rect) {
