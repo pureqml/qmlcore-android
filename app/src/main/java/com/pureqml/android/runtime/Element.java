@@ -178,6 +178,7 @@ public class Element extends BaseObject {
     public void enableCache(boolean enable)
     {
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            Log.w(TAG, "cache is disabled on pre-M android");
             return; //fixme: could not be replayed on hw-accelerated canvas, use software on pre-M ?
         }
 
