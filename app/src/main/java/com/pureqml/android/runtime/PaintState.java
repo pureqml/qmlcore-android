@@ -99,10 +99,8 @@ public final class PaintState {
     public void drawPicture(Picture picture) {
         canvas.drawPicture(picture);
         int w = picture.getWidth();
-        int r = dirtyRect.left + w;
         int h = picture.getHeight();
-        int b = dirtyRect.bottom + h;
-        addDirtyRect(dirtyRect.left, dirtyRect.top, r, b);
+        addDirtyRect(0, 0, w, h);
     }
 
     public void drawBitmap(Bitmap bitmap, Rect src, Rect dst,
