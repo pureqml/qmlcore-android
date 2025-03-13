@@ -144,20 +144,19 @@ public class Element extends BaseObject {
     public Rect getRedrawRect(Rect clipRect) {
         //this function tries to calculate rectangle if this element says it's invalidated
         Rect elementRect = createRedrawRect();
-        if (_globallyVisible) {
-            Rect rect = new Rect(getScreenRect());
-            if (rect.intersect(clipRect)) {
-                //Log.v(TAG, "screen rect " + rect);
-                elementRect.union(rect);
-            }
 
-            rect = new Rect(_combinedRect);
-            if (rect.intersect(clipRect)) {
-                //Log.v(TAG, "combined rect " + rect);
-                elementRect.union(rect);
-            }
-
+        Rect rect = new Rect(getScreenRect());
+        if (rect.intersect(clipRect)) {
+            //Log.v(TAG, "screen rect " + rect);
+            elementRect.union(rect);
         }
+
+        rect = new Rect(_combinedRect);
+        if (rect.intersect(clipRect)) {
+            //Log.v(TAG, "combined rect " + rect);
+            elementRect.union(rect);
+        }
+
         Rect last = new Rect(_lastRect);
         if (last.intersect(clipRect)) {
             //Log.v(TAG, "last rect " + last);
@@ -505,8 +504,11 @@ public class Element extends BaseObject {
 
         for (Element child : children) {
             float opacity = child._opacity * parent.opacity;
-            if (!child._visible || !PaintState.visible(opacity))
+            if (!child._visible || !PaintState.visible(opacity)) {
+                child._lastRect.setEmpty();
+                child._combinedRect.setEmpty();
                 continue;
+            }
 
             Rect childRect = child.getRect();
             int childX = scrollX + child.getBaseX(), childY = scrollY + child.getBaseY();
@@ -579,14 +581,11 @@ public class Element extends BaseObject {
                 parent.restoreToCount(saveCount);
             }
 
-            childRect.offset(parent.baseX, parent.baseY);
-            _combinedRect.union(childRect);
+            childRect.offset(parent.baseX + childX, parent.baseY + childY);
+            child._combinedRect.union(childRect);
 
             _combinedRect.union(child._combinedRect);
-            Rect last = child._lastRect;
-            if (cache)
-                last.offset(childX, childY);
-            _lastRect.union(last);
+            _lastRect.union(child._lastRect);
         }
     }
 
