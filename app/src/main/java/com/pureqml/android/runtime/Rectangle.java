@@ -219,10 +219,7 @@ public final class Rectangle extends Element {
             }
         }
 
-        _lastRect.union(state.getDirtyRect());
-
         paintChildren(childrenState != null? childrenState: state);
-
-        endPaint();
+        endPaint(state);
     }
 }

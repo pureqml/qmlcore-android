@@ -52,7 +52,7 @@ public final class Spinner extends Element {
             viewHolder.setRect(_env.getRootView(), rect);
         }
 
-        endPaint();
+        endPaint(state);
     }
 
 }

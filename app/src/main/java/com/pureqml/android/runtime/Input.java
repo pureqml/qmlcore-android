@@ -254,7 +254,7 @@ public final class Input extends Element {
             viewHolder.setRect(_env.getRootView(), rect);
         }
 
-        endPaint();
+        endPaint(state);
     }
 
     @Override

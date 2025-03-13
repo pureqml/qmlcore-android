@@ -336,10 +336,7 @@ public final class Image extends Element implements ImageLoadedCallback {
                 Log.d(TAG, "null bitmap returned for " + _url);
         }
 
-        _lastRect.union(state.getDirtyRect());
-
         paintChildren(state);
-
-        endPaint();
+        endPaint(state);
     }
 }

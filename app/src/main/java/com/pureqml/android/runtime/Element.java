@@ -483,7 +483,8 @@ public class Element extends BaseObject {
         _combinedRect.setEmpty();
     }
 
-    protected final void endPaint() {
+    protected final void endPaint(PaintState state) {
+        _lastRect.union(state.getDirtyRect());
     }
 
     protected final int getBaseX() {
@@ -592,7 +593,7 @@ public class Element extends BaseObject {
     public void paint(PaintState state) {
         beginPaint(state);
         paintChildren(state);
-        endPaint();
+        endPaint(state);
     }
 
     public Rect getScreenRect() {

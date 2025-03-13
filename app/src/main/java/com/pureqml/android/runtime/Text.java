@@ -245,9 +245,8 @@ public final class Text extends Element {
                 }
             }
         }
-        _lastRect.union(state.getDirtyRect());
         paintChildren(state);
-        endPaint();
+        endPaint(state);
     }
 
     public void setText(String text) {
