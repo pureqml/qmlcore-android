@@ -141,26 +141,26 @@ public class Element extends BaseObject {
 
     protected Rect createRedrawRect() { return new Rect(); }
 
-    public Rect getRedrawRect(Rect clipRect) {
+    public final Rect getRedrawRect(Rect clipRect) {
         //this function tries to calculate rectangle if this element says it's invalidated
         Rect elementRect = createRedrawRect();
 
-        Rect rect = new Rect(getScreenRect());
-        if (rect.intersect(clipRect)) {
-            //Log.v(TAG, "screen rect " + rect);
-            elementRect.union(rect);
+        {
+            Rect rect = getScreenRect();
+            if (Rect.intersects(rect, clipRect)) {
+                //Log.v(TAG, "screen rect " + rect);
+                elementRect.union(rect);
+            }
         }
 
-        rect = new Rect(_combinedRect);
-        if (rect.intersect(clipRect)) {
+        if (Rect.intersects(_combinedRect, clipRect)) {
             //Log.v(TAG, "combined rect " + rect);
-            elementRect.union(rect);
+            elementRect.union(_combinedRect);
         }
 
-        Rect last = new Rect(_lastRect);
-        if (last.intersect(clipRect)) {
+        if (Rect.intersects(_lastRect, clipRect)) {
             //Log.v(TAG, "last rect " + last);
-            elementRect.union(last);
+            elementRect.union(_lastRect);
         }
         Element parent = _parent;
         while(parent != null) {
@@ -512,6 +512,7 @@ public class Element extends BaseObject {
 
             Rect childRect = child.getRect();
             int childX = scrollX + child.getBaseX(), childY = scrollY + child.getBaseY();
+            childRect.offsetTo(parent.baseX + childX, parent.baseY + childY);
             int childWidth = childRect.width(), childHeight = childRect.height();
             boolean cache = child._cache;
 
@@ -520,7 +521,7 @@ public class Element extends BaseObject {
                 if (cache) {
                     if (child._cachePicture == null)
                         child._cachePicture = new Picture();
-                    state = new PaintState(child._cachePicture, childWidth, childHeight, opacity);
+                    state = new PaintState(child._cachePicture, parent, childX, childY, childWidth, childHeight, opacity);
                 } else {
                     state = new PaintState(parent, childX, childY, opacity);
                 }
@@ -553,7 +554,7 @@ public class Element extends BaseObject {
                             if (!state.clipPath(path))
                                 paint = false;
                         } else {
-                            if (!state.clipRect(new Rect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight)))
+                            if (!state.clipRect(childRect))
                                 paint = false;
                         }
                     }
@@ -575,15 +576,10 @@ public class Element extends BaseObject {
             }
 
             if (child._cacheValid) {
-                int saveCount = parent.save();
-                parent.translate(parent.baseX + childX, parent.baseY + childY);
-                parent.drawPicture(child._cachePicture);
-                parent.restoreToCount(saveCount);
+                parent.drawPicture(child._cachePicture, parent.baseX + childX, parent.baseY + childY);
             }
 
-            childRect.offset(parent.baseX + childX, parent.baseY + childY);
             child._combinedRect.union(childRect);
-
             _combinedRect.union(child._combinedRect);
             _lastRect.union(child._lastRect);
         }

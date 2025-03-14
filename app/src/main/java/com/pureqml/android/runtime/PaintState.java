@@ -17,6 +17,8 @@ public final class PaintState {
     private final Rect dirtyRect;
     public final int baseX;
     public final int baseY;
+    public final int cacheX;
+    public final int cacheY;
     public final float opacity;
     public final Matrix transform;
 
@@ -24,6 +26,7 @@ public final class PaintState {
         this.picture = null;
         this.canvas = canvas;
         this.baseX = this.baseY = 0;
+        this.cacheX = this.cacheY = 0;
         this.opacity = 1.0f;
         this.dirtyRect = new Rect();
         this.transform = new Matrix();
@@ -32,6 +35,8 @@ public final class PaintState {
     public PaintState(PaintState parent, int x, int y, float opacity) {
         this.picture = null;
         this.canvas = parent.canvas;
+        this.cacheX = parent.cacheX;
+        this.cacheY = parent.cacheY;
         this.baseX = parent.baseX + x;
         this.baseY = parent.baseY + y;
         this.opacity = opacity;
@@ -39,11 +44,11 @@ public final class PaintState {
         this.transform = new Matrix();
     }
 
-    public PaintState(Picture picture, int w, int h, float opacity) {
+    public PaintState(Picture picture, PaintState parent, int x, int y, int w, int h, float opacity) {
         this.picture = picture;
         this.canvas = picture.beginRecording(w, h);
-        this.baseX = 0;
-        this.baseY = 0;
+        this.cacheX = this.baseX = parent.baseX + x;
+        this.cacheY = this.baseY = parent.baseY + y;
         this.opacity = opacity;
         this.dirtyRect = new Rect();
         this.transform = new Matrix();
@@ -68,6 +73,8 @@ public final class PaintState {
     }
 
     public void translate(float dx, float dy) {
+        if (dx == 0.0f && dy == 0.0f)
+            return;
         canvas.translate(dx, dy);
         transform.postTranslate(dx, dy);
     }
@@ -85,27 +92,36 @@ public final class PaintState {
     }
 
     public boolean clipPath(Path path) {
-        return canvas.clipPath(path);
+        translate(-cacheX, -cacheY);
+        boolean clipped = canvas.clipPath(path);
+        translate(cacheX, cacheY);
+        return clipped;
     }
 
     public boolean clipRect(Rect rect) {
-        return canvas.clipRect(rect);
+        translate(-cacheX, -cacheY);
+        boolean clipped = canvas.clipRect(rect);
+        translate(cacheX, cacheY);
+        return clipped;
     }
 
     public static boolean visible(float opacity) {
         return opacity >= opacityThreshold;
     }
 
-    public void drawPicture(Picture picture) {
+    public void drawPicture(Picture picture, int x, int y) {
+        int saveCount = save();
+        translate(x - cacheX, y - cacheY);
         canvas.drawPicture(picture);
-        int w = picture.getWidth();
-        int h = picture.getHeight();
-        addDirtyRect(0, 0, w, h);
+        addDirtyRect(0, 0, picture.getWidth(), picture.getHeight());
+        restoreToCount(saveCount);
     }
 
     public void drawBitmap(Bitmap bitmap, Rect src, Rect dst,
                            Paint paint) {
+        dst.offset(-cacheX, -cacheY);
         canvas.drawBitmap(bitmap, src, dst, paint);
+        dst.offset(cacheX, cacheY);
         addDirtyRect(dst);
     }
 
@@ -120,14 +136,22 @@ public final class PaintState {
 
     public void drawText(String text, int start, int end, float x, float y,
                          Paint paint) {
-        canvas.drawText(text, start, end, x, y, paint);
+
+
+        float dstX, dstY;
+        dstX = x - cacheX;
+        dstY = y - cacheY;
+        canvas.drawText(text, start, end, dstX, dstY, paint);
         int w = (int)Math.ceil(paint.measureText(text, start, end));
         updateTextBounds(x, y, w, paint);
     }
 
     public void drawText(String text, float x, float y,
                          Paint paint) {
-        canvas.drawText(text, x, y, paint);
+        float dstX, dstY;
+        dstX = x - cacheX;
+        dstY = y - cacheY;
+        canvas.drawText(text, dstX, dstY, paint);
         int w = (int)Math.ceil(paint.measureText(text));
         updateTextBounds(x, y, w, paint);
     }
@@ -135,25 +159,33 @@ public final class PaintState {
     public void drawRoundRect(final Rect rect, float rx, float ry, Paint paint) {
         float sw = paint.getStrokeWidth();
         RectF dst = new RectF(rect);
+        dst.offset(-cacheX, -cacheY);
         canvas.drawRoundRect(dst, rx, ry, paint);
+        dst.offset(cacheX, cacheY);
         addDirtyRect(dst.left - sw, dst.top - sw, dst.right + sw, dst.bottom + sw);
     }
 
     public void drawRoundRect(RectF rect, float rx, float ry, Paint paint) {
         float sw = paint.getStrokeWidth();
+        rect.offset(-cacheX, -cacheY);
         canvas.drawRoundRect(rect, rx, ry, paint);
+        rect.offset(cacheX, cacheY);
         addDirtyRect(rect.left - sw, rect.top - sw, rect.right + sw, rect.bottom + sw);
     }
 
     public void drawRect(Rect rect, Paint paint) {
+        rect.offset(-cacheX, -cacheY);
         canvas.drawRect(new RectF(rect), paint);
+        rect.offset(cacheX, cacheY);
         int sw = (int)paint.getStrokeWidth();
         addDirtyRect(rect.left - sw, rect.top - sw, rect.right + sw, rect.bottom + sw);
     }
 
     public void drawRect(RectF rect, Paint paint) {
         float sw = paint.getStrokeWidth();
+        rect.offset(-cacheX, -cacheY);
         canvas.drawRect(rect, paint);
+        rect.offset(cacheX, cacheY);
         addDirtyRect(rect.left - sw, rect.top - sw, rect.right + sw, rect.bottom + sw);
     }
 
