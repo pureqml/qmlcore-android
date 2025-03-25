@@ -268,7 +268,7 @@ public final class Image extends Element implements ImageLoadedCallback {
             @Override
             public void doRun() {
                 Log.v(TAG, "on image loaded " + url + ", current url: " + _url);
-                if (!url.equals(_url) || _callback == null || _callback.isReleased())
+                if (!url.toString().equals(_url.toString()) || _callback == null || _callback.isReleased())
                     return;
 
                 Log.v(TAG, "image bitmap: " + _url + " -> " + bitmap);
