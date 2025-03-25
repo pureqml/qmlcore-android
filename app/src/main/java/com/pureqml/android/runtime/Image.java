@@ -176,6 +176,18 @@ public final class Image extends Element implements ImageLoadedCallback {
     public void load(String name, V8Function callback) {
         if (!name.contains("://"))
             name = "file:///" + name;
+
+        // Find and fix duplicated '?' entries
+        {
+            int questionMarkPos = name.indexOf('?');
+            if (questionMarkPos >= 0 && name.indexOf('?', questionMarkPos + 1) >= 0) {
+                Log.w(TAG, "duplicate '?' characters in url");
+                name = name.subSequence(0, questionMarkPos + 1) +
+                        name.substring(questionMarkPos + 1).replace('?', '&');
+                Log.v(TAG, "rewritten url: " + name);
+            }
+        }
+
         _url = null;
         try {
             _url = new URL(name);
@@ -191,9 +203,8 @@ public final class Image extends Element implements ImageLoadedCallback {
             args.close();
             return;
         }
-        //Log.v(TAG, "loading " + url);
-        ImageLoader loader = _env.getImageLoader();
-        loader.load(_url, this);
+        // Log.v(TAG, "loading " + _url);
+        _env.getImageLoader().load(_url, this);
         _callback = callback;
     }
 
