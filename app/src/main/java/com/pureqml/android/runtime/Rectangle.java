@@ -27,6 +27,7 @@ public final class Rectangle extends Element {
     boolean         _outerBorder = false;
     float           _borderWidth = 0;
     int             _color = 0;
+    int             _borderColor;
     String          _gradientOrientation = null;
     int[] _gradientColors = null;
     float[] _gradientPositions = null;
@@ -37,6 +38,7 @@ public final class Rectangle extends Element {
 
     public Rectangle(IExecutionEnvironment env) {
         super(env);
+        _borderColor = Color.rgb(0, 0, 0);
         _background = new Paint(Paint.ANTI_ALIAS_FLAG);
         _background.setStyle(Paint.Style.FILL);
         setupPaint(_background);
@@ -103,7 +105,8 @@ public final class Rectangle extends Element {
                 break;
 
             case "border-color":
-                getBorder().setColor(toColor(value));
+                _borderColor = toColor(value);
+                getBorder().setColor(_borderColor);
                 break;
 
             case "border-width":
@@ -204,7 +207,7 @@ public final class Rectangle extends Element {
         }
 
         if (_border != null && _borderWidth > 0) {
-            Paint paint = patchAlpha(_border, Color.alpha(_color), opacity);
+            Paint paint = patchAlpha(_border, Color.alpha(_borderColor), opacity);
             RectF borderRect = new RectF(rect);
             float inset = _borderWidth / 2.0f;
             if (_outerBorder)
