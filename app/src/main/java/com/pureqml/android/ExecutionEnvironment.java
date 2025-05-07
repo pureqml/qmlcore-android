@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.FeatureInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -14,6 +15,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
@@ -50,7 +52,9 @@ import com.pureqml.android.runtime.Text;
 import com.pureqml.android.runtime.Timers;
 import com.pureqml.android.runtime.VideoPlayer;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -58,8 +62,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -342,6 +348,81 @@ public final class ExecutionEnvironment extends Service
             return scriptStream.toString();
     }
 
+    private String parseTTFFontFamily(String path) throws IOException {
+        byte[] data;
+        try (InputStream is = getAssets().open(path)) {
+            data = new byte[is.available()];
+            if (is.read(data) != data.length)
+                throw new RuntimeException("short read");
+        }
+        int nameOffset = 0;
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
+            int magic = dis.readInt();
+            if (magic != 0x00010000)
+                throw new RuntimeException("invalid TTF magic");
+            short nTables = dis.readShort();
+            dis.skipBytes(6);
+            while (nTables-- > 0) {
+                int id = dis.readInt();
+                int checkSum = dis.readInt();
+                int offset = dis.readInt();
+                int length = dis.readInt();
+                if (id == 0x6E616D65) {
+                    nameOffset = offset;
+                    break;
+                }
+            }
+        }
+        if (nameOffset == 0)
+            throw new RuntimeException("no name table in TTF file");
+
+        int fontFamilyOffset = 0;
+        int fontFamilyLength = 0;
+        int nameStringOffset = 0;
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
+            dis.skipBytes(nameOffset);
+            short format = dis.readShort();
+            short nRecords = dis.readShort();
+            nameStringOffset = dis.readShort();
+            while(nRecords-- > 0) {
+                short platformID = dis.readShort();
+                short platformSpecificID = dis.readShort();
+                short languageID = dis.readShort();
+                short nameID = dis.readShort();
+                short length = dis.readShort();
+                short offset = dis.readShort();
+                if (platformID == 3 && platformSpecificID == 1 && nameID == 1) {
+                    //Found font family
+                    fontFamilyOffset = offset;
+                    fontFamilyLength = length;
+                    break;
+                }
+            }
+        }
+        if (fontFamilyOffset == 0)
+            throw new RuntimeException("no font family name in name records");
+
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
+            dis.skipBytes(nameOffset + fontFamilyOffset + nameStringOffset);
+            byte[] fontFamilyBytes = new byte[fontFamilyLength];
+            if (dis.read(fontFamilyBytes) != fontFamilyLength)
+                throw new RuntimeException("font family short read");
+            return new String(fontFamilyBytes, "UTF-16BE");
+        }
+    }
+
+    private void loadFont(String path) {
+        Log.i(TAG, "loadFont " + path);
+
+        try {
+            String fontFamily = parseTTFFontFamily(path);
+            Typeface tf = Typeface.createFromAsset(getAssets(), path);
+            Log.i(TAG, "loaded font " + tf + " -> " + fontFamily);
+        } catch (Exception e) {
+            Log.w(TAG, "loading failed: " + path);
+        }
+    }
+
     private void start() {
         Log.i(TAG, "starting execution environment...");
 
@@ -350,16 +431,41 @@ public final class ExecutionEnvironment extends Service
         Log.v(TAG, "registering runtime...");
         registerRuntime();
 
-        Log.v(TAG, "executing main script...");
+        AssetManager am = getAssets();
+
+        Log.v(TAG, "loading assets...");
+        Queue<String> to_visit = new LinkedList<>();
+        to_visit.add("");
+        try {
+            while(!to_visit.isEmpty()) {
+                String next = to_visit.remove();
+                if (next.endsWith(".ttf"))
+                    loadFont(next);
+                String[] list = am.list(next);
+                if (list == null)
+                    continue;
+                for(String entry : list) {
+                    if (!next.isEmpty())
+                        to_visit.add(next + "/" + entry);
+                    else
+                        to_visit.add(entry);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         String script;
         final String assetName = "main.js";
         try {
-            InputStream input = getAssets().open(assetName);
+            InputStream input = am.open(assetName);
             script = readScript(input);
         } catch (IOException e) {
             Log.e(TAG, "failed opening main.js", e);
             return;
         }
+
+        Log.v(TAG, "executing main script...");
         _v8.executeVoidScript(script, assetName, 0);
         _exports = _v8.getObject("module").getObject("exports");
 
