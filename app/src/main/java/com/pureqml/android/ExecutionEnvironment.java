@@ -326,19 +326,26 @@ public final class ExecutionEnvironment extends Service
                     throw new RuntimeException("style() requires rules object");
                 Log.v(TAG, "adding style for " + selector);
                 V8Object rules = (V8Object)v8Array.get(1);
-                Typeface typeface = null;
+                String fontFamily = null;
+                int fontWeight = 0;
                 int fontSize = -1;
 
                 Object fontFamilyRule = rules.get("font-family");
                 if (!(fontFamilyRule instanceof V8Value) || !((V8Value)fontFamilyRule).isUndefined())
-                    typeface = getTypeface(fontFamilyRule.toString());
+                    fontFamily = fontFamilyRule.toString();
+
+                Object fontWeightRule = rules.get("font-weight");
+                if (!(fontWeightRule instanceof V8Value) || !((V8Value)fontWeightRule).isUndefined()) {
+                    String fontWeightStr = fontWeightRule.toString();
+                    fontWeight = ComputedStyle.parseFontWeight(fontWeightStr);
+                }
 
                 Object fontSizeRule = rules.get("font-size");
                 if (!(fontSizeRule instanceof V8Value) || !((V8Value)fontSizeRule).isUndefined())
                     fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
 
-                if (typeface != null || fontSize >= 0)
-                    defaultStyleForClass.put(selector, new ComputedStyle(typeface, fontSize));
+                if (fontFamily != null || fontWeight > 0 || fontSize >= 0)
+                    defaultStyleForClass.put(selector, new ComputedStyle(fontFamily, fontWeight, fontSize));
             }
         }, "style");
 
@@ -458,9 +465,15 @@ public final class ExecutionEnvironment extends Service
             Log.w(TAG, "loading failed: " + path);
         }
     }
-    public Typeface getTypeface(String fontFamily) {
-        Log.d(TAG, "getTypeface " + fontFamily + " stub");
-        return null;
+
+    @Override
+    public Typeface getTypeface(String fontFamily, int fontWeight, boolean italic) {
+        Log.d(TAG, "getTypeface " + fontFamily + " " + fontWeight + " stub");
+        boolean bold = fontWeight >= 500;
+        return Typeface.create(Typeface.DEFAULT, !italic?
+                (bold? Typeface.BOLD: Typeface.NORMAL):
+                (bold? Typeface.BOLD_ITALIC: Typeface.ITALIC)
+        );
     }
 
     private void start() {

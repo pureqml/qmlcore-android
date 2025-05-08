@@ -42,6 +42,10 @@ public final class Text extends Element {
     VerticalAlignment   _valign = VerticalAlignment.AlignTop;
     int                 _cachedWidth = -1;
 
+    String              _fontFamily = null;
+    int                 _fontWeight = 0;
+    boolean             _fontItalic = false;
+
     public Text(IExecutionEnvironment env) {
         super(env);
     }
@@ -53,12 +57,15 @@ public final class Text extends Element {
     @Override
     protected void addClass(ComputedStyle style) {
         super.addClass(style);
+        _fontFamily = style.fontFamily;
+        _fontWeight = style.fontWeight;
+        updateTypeface();
+    }
+
+    private void updateTypeface() {
         if (_paint == null)
             _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        if (style.fontSize >= 0)
-            _paint.setTextSize(style.fontSize);
-        if (style.typeface != null)
-            _paint.setTypeface(style.typeface);
+        _paint.setTypeface(_env.getTypeface(_fontFamily, _fontWeight, _fontItalic));
     }
 
     @Override
@@ -67,11 +74,15 @@ public final class Text extends Element {
             case "color":
                 _paint.setColor(TypeConverter.toColor(value));
                 break;
-            case "font-family": {
-                    Typeface typeface = _env.getTypeface((String)value);
-                    if (typeface != null)
-                        _paint.setTypeface(typeface);
-                }
+            case "font-family":
+                _fontFamily = (String)value;
+                if (_fontFamily.isEmpty())
+                    _fontFamily = null;
+                updateTypeface();
+                break;
+            case "font-style":
+                _fontItalic = value.toString().equals("italic");
+                updateTypeface();
                 break;
             case "font-size":
                 try {
@@ -85,10 +96,8 @@ public final class Text extends Element {
                 }
                 break;
             case "font-weight":
-                if (value.equals("bold") || ((value instanceof Integer) && (int)value >= 600))
-                    _paint.setTypeface(Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD));
-                else
-                    Log.v(TAG, "ignoring font-weight " + value);
+                _fontWeight = ComputedStyle.parseFontWeight(value);
+                updateTypeface();
                 break;
 
             case "white-space":
