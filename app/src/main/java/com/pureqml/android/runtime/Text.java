@@ -10,6 +10,7 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.ComputedStyle;
+import com.pureqml.android.FontFamily;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IRenderer;
 import com.pureqml.android.TypeConverter;
@@ -44,6 +45,7 @@ public final class Text extends Element {
 
     String              _fontFamily = null;
     int                 _fontWeight = 0;
+    int                 _fontWeightOverride = 0; // set via font-weight
     boolean             _fontItalic = false;
 
     public Text(IExecutionEnvironment env) {
@@ -65,7 +67,7 @@ public final class Text extends Element {
     private void updateTypeface() {
         if (_paint == null)
             _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        _paint.setTypeface(_env.getTypeface(_fontFamily, _fontWeight, _fontItalic));
+        _paint.setTypeface(_env.getTypeface(_fontFamily, _fontWeightOverride > 0? _fontWeightOverride: _fontWeight, _fontItalic));
     }
 
     @Override
@@ -74,10 +76,14 @@ public final class Text extends Element {
             case "color":
                 _paint.setColor(TypeConverter.toColor(value));
                 break;
-            case "font-family":
-                _fontFamily = (String)value;
-                if (_fontFamily.isEmpty())
-                    _fontFamily = null;
+            case "font-family": {
+                    FontFamily family = FontFamily.parse(value.toString());
+                    _fontFamily = family.family;
+                    if (family.weight > 0)
+                        _fontWeight = family.weight;
+                    if (_fontFamily.isEmpty())
+                        _fontFamily = null;
+                }
                 updateTypeface();
                 break;
             case "font-style":
@@ -96,7 +102,7 @@ public final class Text extends Element {
                 }
                 break;
             case "font-weight":
-                _fontWeight = ComputedStyle.parseFontWeight(value);
+                _fontWeightOverride = ComputedStyle.parseFontWeight(value);
                 updateTypeface();
                 break;
 

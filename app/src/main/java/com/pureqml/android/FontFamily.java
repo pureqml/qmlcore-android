@@ -3,7 +3,7 @@ package com.pureqml.android;
 import java.util.LinkedList;
 import java.util.List;
 
-public final class FontFamily {
+public final class FontFamily implements Comparable<FontFamily> {
     public final String family;
     public final int weight;
     public final boolean italic;
@@ -17,7 +17,7 @@ public final class FontFamily {
     public String toString() {
         return String.format("FontFamily { %s, weight: %d, italic: %s, oblique: %s}", family, weight, italic, oblique);
     }
-    static FontFamily parse(String name) {
+    public static FontFamily parse(String name) {
         int weight = 400; //Regular
         boolean italic = false;
         boolean oblique = false;
@@ -30,11 +30,15 @@ public final class FontFamily {
                 case "Oblique":
                     oblique = true;
                     break;
-                case "Thin":
                 case "Hairline":
+                    weight = 50;
+                    break;
+                case "Thin":
                     weight = 100;
                     break;
                 case "ExtraLight":
+                    weight = 150;
+                    break;
                 case "UltraLight":
                     weight = 200;
                     break;
@@ -59,13 +63,17 @@ public final class FontFamily {
                 case "UltraBold":
                     weight = 800;
                     break;
-                case "Black":
                 case "Heavy":
                     weight = 900;
                     break;
-                case "ExtraBlack":
+                case "Black":
+                    weight = 925;
+                    break;
                 case "UltraBlack":
                     weight = 950;
+                    break;
+                case "ExtraBlack":
+                    weight = 975;
                     break;
                 default:
                     filtered.add(token);
@@ -74,5 +82,17 @@ public final class FontFamily {
         }
         String family = String.join(" ", filtered);
         return new FontFamily(family, weight, italic, oblique);
+    }
+
+    @Override
+    public int compareTo(FontFamily o) {
+        int r = family.compareTo(o.family);
+        if (r != 0)
+            return r;
+        r = Boolean.compare(italic, o.italic);
+        if (r != 0)
+            return r;
+
+        return weight - o.weight;
     }
 }

@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -454,26 +455,50 @@ public final class ExecutionEnvironment extends Service
         }
     }
 
+    private final class TypefaceEntry implements Comparable<TypefaceEntry> {
+        public final FontFamily family;
+        public final Typeface typeface;
+        TypefaceEntry(FontFamily family, Typeface typeface) {
+            this.family = family;
+            this.typeface = typeface;
+        }
+
+        @Override
+        public int compareTo(TypefaceEntry o) {
+            return family.compareTo(o.family);
+        }
+    };
+    private final Map<String, ArrayList<TypefaceEntry>> typefaces = new HashMap<>();
+
+    @Override
+    public Typeface getTypeface(String fontFamily, int fontWeight, boolean italic) {
+        if (fontFamily != null && typefaces.containsKey(fontFamily)) {
+            Log.v(TAG, "stub " + fontFamily);
+        }
+        boolean bold = fontWeight >= 500;
+        return Typeface.create(Typeface.DEFAULT, !italic?
+                (bold? Typeface.BOLD: Typeface.NORMAL):
+                (bold? Typeface.BOLD_ITALIC: Typeface.ITALIC)
+        );
+    }
     private void loadFont(String path) {
         Log.i(TAG, "loadFont " + path);
 
         try {
             FontFamily fontFamily = parseFontFamily(path);
             Typeface tf = Typeface.createFromAsset(getAssets(), path);
-            Log.i(TAG, "loaded font " + tf + " -> " + fontFamily);
+            Log.v(TAG, "loaded " + fontFamily);
+            if (typefaces.containsKey(fontFamily.family)) {
+                ArrayList<TypefaceEntry> list = typefaces.get(fontFamily.family);
+                list.add(new TypefaceEntry(fontFamily, tf));
+            } else {
+                ArrayList<TypefaceEntry> list = new ArrayList<>();
+                list.add(new TypefaceEntry(fontFamily, tf));
+                typefaces.put(fontFamily.family, list);
+            }
         } catch (Exception e) {
             Log.w(TAG, "loading failed: " + path);
         }
-    }
-
-    @Override
-    public Typeface getTypeface(String fontFamily, int fontWeight, boolean italic) {
-        Log.d(TAG, "getTypeface " + fontFamily + " " + fontWeight + " stub");
-        boolean bold = fontWeight >= 500;
-        return Typeface.create(Typeface.DEFAULT, !italic?
-                (bold? Typeface.BOLD: Typeface.NORMAL):
-                (bold? Typeface.BOLD_ITALIC: Typeface.ITALIC)
-        );
     }
 
     private void start() {
@@ -506,6 +531,12 @@ public final class ExecutionEnvironment extends Service
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        for(ArrayList<TypefaceEntry> families : typefaces.values()) {
+            Collections.sort(families);
+            for(TypefaceEntry e: families)
+                Log.i(TAG, "font family " + e.family);
         }
 
         String script;
