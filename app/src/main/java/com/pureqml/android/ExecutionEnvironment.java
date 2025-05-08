@@ -521,17 +521,7 @@ public final class ExecutionEnvironment extends Service
         }
     }
 
-    private void start() {
-        Log.i(TAG, "starting execution environment...");
-
-        Log.v(TAG, "creating v8 runtime...");
-        _v8 = V8.createV8Runtime();
-        Log.v(TAG, "registering runtime...");
-        registerRuntime();
-
-        AssetManager am = getAssets();
-
-        Log.v(TAG, "loading assets...");
+    private void loadFonts(AssetManager am) {
         Queue<String> to_visit = new LinkedList<>();
         to_visit.add("");
         try {
@@ -552,6 +542,20 @@ public final class ExecutionEnvironment extends Service
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void start() {
+        Log.i(TAG, "starting execution environment...");
+
+        Log.v(TAG, "creating v8 runtime...");
+        _v8 = V8.createV8Runtime();
+        Log.v(TAG, "registering runtime...");
+        registerRuntime();
+
+        AssetManager am = getAssets();
+
+        Log.v(TAG, "loading assets...");
+        loadFonts(am);
 
         for(ArrayList<TypefaceEntry> families : typefaces.values()) {
             Collections.sort(families);
