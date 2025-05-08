@@ -38,6 +38,7 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
@@ -63,7 +64,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
@@ -80,79 +80,14 @@ public final class ExecutionEnvironment extends Service
         implements IExecutionEnvironment, IResource {
     public static final String TAG = "ExecutionEnvironment";
 
-    public final static class FontFamily {
-        public final String family;
-        public final int weight;
-        public final boolean italic;
-        public final boolean oblique;
-        FontFamily(String family, int weight, boolean italic, boolean oblique) {
-            this.family = family;
-            this.weight = weight;
-            this.italic = italic;
-            this.oblique = oblique;
-        }
-        public String toString() {
-            return String.format("FontFamily { %s, weight: %d, italic: %s, oblique: %s}", family, weight, italic, oblique);
-        }
-        static FontFamily parse(String name) {
-            int weight = 400; //Regular
-            boolean italic = false;
-            boolean oblique = false;
-            List<String> filtered = new LinkedList<String>();
-            for(String token : name.split("\\s+")) {
-                switch (token) {
-                    case "Italic":
-                        italic = true;
-                        break;
-                    case "Oblique":
-                        oblique = true;
-                        break;
-                    case "Thin":
-                    case "Hairline":
-                        weight = 100;
-                        break;
-                    case "ExtraLight":
-                    case "UltraLight":
-                        weight = 200;
-                        break;
-                    case "Light":
-                        weight = 300;
-                        break;
-                    case "Normal":
-                    case "Regular":
-                        weight = 400;
-                        break;
-                    case "Medium":
-                        weight = 500;
-                        break;
-                    case "SemiBold":
-                    case "DemiBold":
-                        weight = 600;
-                        break;
-                    case "Bold":
-                        weight = 700;
-                        break;
-                    case "ExtraBold":
-                    case "UltraBold":
-                        weight = 800;
-                        break;
-                    case "Black":
-                    case "Heavy":
-                        weight = 900;
-                        break;
-                    case "ExtraBlack":
-                    case "UltraBlack":
-                        weight = 950;
-                        break;
-                    default:
-                        filtered.add(token);
-                        break;
-                }
-            }
-            String family = String.join(" ", filtered);
-            return new FontFamily(family, weight, italic, oblique);
-        }
+    private final Map<String, ComputedStyle> defaultStyleForClass = new HashMap<>();
+
+    public ComputedStyle getDefaultStyle(String selector) {
+        // getOrDefault is too new
+        return (defaultStyleForClass.containsKey(selector))?
+            defaultStyleForClass.get(selector): null;
     }
+
     public class LocalBinder extends Binder {
         ExecutionEnvironment getService() {
             return ExecutionEnvironment.this;
@@ -391,9 +326,19 @@ public final class ExecutionEnvironment extends Service
                     throw new RuntimeException("style() requires rules object");
                 Log.v(TAG, "adding style for " + selector);
                 V8Object rules = (V8Object)v8Array.get(1);
-                for(String key : rules.getKeys()) {
-                    Log.v(TAG, " rule " + key + ": " + rules.get(key));
-                }
+                Typeface typeface = null;
+                int fontSize = -1;
+
+                Object fontFamilyRule = rules.get("font-family");
+                if (!(fontFamilyRule instanceof V8Value) || !((V8Value)fontFamilyRule).isUndefined())
+                    typeface = getTypeface(fontFamilyRule.toString());
+
+                Object fontSizeRule = rules.get("font-size");
+                if (!(fontSizeRule instanceof V8Value) || !((V8Value)fontSizeRule).isUndefined())
+                    fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
+
+                if (typeface != null || fontSize >= 0)
+                    defaultStyleForClass.put(selector, new ComputedStyle(typeface, fontSize));
             }
         }, "style");
 
@@ -512,6 +457,10 @@ public final class ExecutionEnvironment extends Service
         } catch (Exception e) {
             Log.w(TAG, "loading failed: " + path);
         }
+    }
+    public Typeface getTypeface(String fontFamily) {
+        Log.d(TAG, "getTypeface " + fontFamily + " stub");
+        return null;
     }
 
     private void start() {

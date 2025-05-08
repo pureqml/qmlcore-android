@@ -3,6 +3,7 @@ package com.pureqml.android;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -47,4 +48,7 @@ public interface IExecutionEnvironment {
 
     void focusView(View view, boolean set);
     void blockUiInput(boolean block);
+
+    public Typeface getTypeface(String fontFamily);
+    ComputedStyle getDefaultStyle(String selector);
 }

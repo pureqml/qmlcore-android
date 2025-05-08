@@ -9,6 +9,7 @@ import android.util.Log;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.pureqml.android.ComputedStyle;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IRenderer;
 import com.pureqml.android.TypeConverter;
@@ -32,7 +33,7 @@ public final class Text extends Element {
     }
 
     private final static String TAG = "rt.Text";
-    final Paint         _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    Paint               _paint;
     String              _text;
     TextLayout          _layout;
     Wrap                _wrap = Wrap.NoWrap;
@@ -50,10 +51,27 @@ public final class Text extends Element {
     private void resetLayout() { _layout = null; }
 
     @Override
+    protected void addClass(ComputedStyle style) {
+        super.addClass(style);
+        if (_paint == null)
+            _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        if (style.fontSize >= 0)
+            _paint.setTextSize(style.fontSize);
+        if (style.typeface != null)
+            _paint.setTypeface(style.typeface);
+    }
+
+    @Override
     protected void setStyle(String name, Object value) {
         switch(name) {
             case "color":
                 _paint.setColor(TypeConverter.toColor(value));
+                break;
+            case "font-family": {
+                    Typeface typeface = _env.getTypeface((String)value);
+                    if (typeface != null)
+                        _paint.setTypeface(typeface);
+                }
                 break;
             case "font-size":
                 try {

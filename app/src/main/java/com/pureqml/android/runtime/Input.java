@@ -79,6 +79,8 @@ public final class Input extends Element {
         });
     }
 
+    String getTag() { return "input"; }
+
     private void setValue(String value) {
         this.value = value;
         _env.getExecutor().execute(new SafeRunnable() {

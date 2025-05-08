@@ -17,6 +17,7 @@ import android.view.animation.DecelerateInterpolator;
 import com.eclipsesource.v8.Releasable;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+import com.pureqml.android.ComputedStyle;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.TypeConverter;
 
@@ -53,6 +54,7 @@ public class Element extends BaseObject {
     private boolean             _cache = false;
     private boolean             _cacheValid = false;
     private Picture             _cachePicture = null;
+    protected ComputedStyle     _style = null;
 
     protected ArrayList<Element> _children;
 
@@ -80,7 +82,10 @@ public class Element extends BaseObject {
 
     public Element(IExecutionEnvironment env) {
         super(env);
+        addClass(_env.getDefaultStyle(getTag()));
     }
+
+    String getTag() { return "div"; }
 
     public void animate() {
         if (_scrollVelocity == null)
@@ -328,8 +333,13 @@ public class Element extends BaseObject {
 
     public void updateStyle() {}
 
-    public void addClass(String classname)
-    { Log.d(TAG, "ignoring addClass " + classname); }
+    protected void addClass(ComputedStyle style) {
+        _style = ComputedStyle.merge(_style, style);
+    }
+
+    public final void addClass(String classname) {
+        addClass(_env.getDefaultStyle(getTag() + "." + classname));
+    }
 
     protected void removeChild(Element child) {
         if (_children != null)
