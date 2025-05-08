@@ -7,20 +7,17 @@ public final class FontFamily implements Comparable<FontFamily> {
     public final String family;
     public final int weight;
     public final boolean italic;
-    public final boolean oblique;
-    FontFamily(String family, int weight, boolean italic, boolean oblique) {
+    FontFamily(String family, int weight, boolean italic) {
         this.family = family;
         this.weight = weight;
         this.italic = italic;
-        this.oblique = oblique;
     }
     public String toString() {
-        return String.format("FontFamily { %s, weight: %d, italic: %s, oblique: %s}", family, weight, italic, oblique);
+        return String.format("FontFamily { %s, weight: %d, italic: %s}", family, weight, italic);
     }
     public static FontFamily parse(String name) {
         int weight = 400; //Regular
         boolean italic = false;
-        boolean oblique = false;
         List<String> filtered = new LinkedList<String>();
         for(String token : name.split("\\s+")) {
             switch (token) {
@@ -28,7 +25,6 @@ public final class FontFamily implements Comparable<FontFamily> {
                     italic = true;
                     break;
                 case "Oblique":
-                    oblique = true;
                     break;
                 case "Hairline":
                     weight = 50;
@@ -81,7 +77,7 @@ public final class FontFamily implements Comparable<FontFamily> {
             }
         }
         String family = String.join(" ", filtered);
-        return new FontFamily(family, weight, italic, oblique);
+        return new FontFamily(family, weight, italic);
     }
 
     @Override

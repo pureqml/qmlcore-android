@@ -473,7 +473,27 @@ public final class ExecutionEnvironment extends Service
     @Override
     public Typeface getTypeface(String fontFamily, int fontWeight, boolean italic) {
         if (fontFamily != null && typefaces.containsKey(fontFamily)) {
-            Log.v(TAG, "stub " + fontFamily);
+            ArrayList<TypefaceEntry> families = typefaces.get(fontFamily);
+            int pos = Collections.binarySearch(families, new TypefaceEntry(new FontFamily(fontFamily, fontWeight, italic), null));
+            if (pos >= 0)
+                return families.get(pos).typeface;
+            pos = -(pos + 1);
+            //FIXME: this does not take italic changes into account.
+            int begin = pos > 0? pos - 1: 0;
+            int end = pos + 1 < families.size()? pos + 1: families.size() - 1;
+            TypefaceEntry best = families.get(begin);
+            int bestDiff = Math.abs(best.family.weight - fontWeight);
+            for(int i = begin + 1; i <= end; ++i) {
+                TypefaceEntry te = families.get(i);
+                if (te.family.italic != italic)
+                    continue;
+                int diff = Math.abs(te.family.weight - fontWeight);
+                if (diff < bestDiff) {
+                    best = te;
+                    bestDiff = diff;
+                }
+            }
+            return best.typeface;
         }
         boolean bold = fontWeight >= 500;
         return Typeface.create(Typeface.DEFAULT, !italic?
