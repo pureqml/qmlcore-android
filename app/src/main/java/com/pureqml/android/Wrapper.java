@@ -79,7 +79,6 @@ final class Wrapper {
                 continue;
 
             Class<?>[] argTypes = method.getParameterTypes();
-            Log.i(TAG, "wrapping method " + name + " with " + argTypes.length + " args");
             if (argTypes.length == 1 && argTypes[0].equals(V8Array.class)) {
                 prototype.registerJavaMethod(new SimpleMethodWrapper(env, method), name);
             } else
