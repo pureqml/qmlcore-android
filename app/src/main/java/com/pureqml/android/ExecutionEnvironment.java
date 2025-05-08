@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
@@ -79,6 +80,79 @@ public final class ExecutionEnvironment extends Service
         implements IExecutionEnvironment, IResource {
     public static final String TAG = "ExecutionEnvironment";
 
+    public final static class FontFamily {
+        public final String family;
+        public final int weight;
+        public final boolean italic;
+        public final boolean oblique;
+        FontFamily(String family, int weight, boolean italic, boolean oblique) {
+            this.family = family;
+            this.weight = weight;
+            this.italic = italic;
+            this.oblique = oblique;
+        }
+        public String toString() {
+            return String.format("FontFamily { %s, weight: %d, italic: %s, oblique: %s}", family, weight, italic, oblique);
+        }
+        static FontFamily parse(String name) {
+            int weight = 400; //Regular
+            boolean italic = false;
+            boolean oblique = false;
+            List<String> filtered = new LinkedList<String>();
+            for(String token : name.split("\\s+")) {
+                switch (token) {
+                    case "Italic":
+                        italic = true;
+                        break;
+                    case "Oblique":
+                        oblique = true;
+                        break;
+                    case "Thin":
+                    case "Hairline":
+                        weight = 100;
+                        break;
+                    case "ExtraLight":
+                    case "UltraLight":
+                        weight = 200;
+                        break;
+                    case "Light":
+                        weight = 300;
+                        break;
+                    case "Normal":
+                    case "Regular":
+                        weight = 400;
+                        break;
+                    case "Medium":
+                        weight = 500;
+                        break;
+                    case "SemiBold":
+                    case "DemiBold":
+                        weight = 600;
+                        break;
+                    case "Bold":
+                        weight = 700;
+                        break;
+                    case "ExtraBold":
+                    case "UltraBold":
+                        weight = 800;
+                        break;
+                    case "Black":
+                    case "Heavy":
+                        weight = 900;
+                        break;
+                    case "ExtraBlack":
+                    case "UltraBlack":
+                        weight = 950;
+                        break;
+                    default:
+                        filtered.add(token);
+                        break;
+                }
+            }
+            String family = String.join(" ", filtered);
+            return new FontFamily(family, weight, italic, oblique);
+        }
+    }
     public class LocalBinder extends Binder {
         ExecutionEnvironment getService() {
             return ExecutionEnvironment.this;
@@ -348,7 +422,7 @@ public final class ExecutionEnvironment extends Service
             return scriptStream.toString();
     }
 
-    private String parseTTFFontFamily(String path) throws IOException {
+    private FontFamily parseFontFamily(String path) throws IOException {
         byte[] data;
         try (InputStream is = getAssets().open(path)) {
             data = new byte[is.available()];
@@ -402,12 +476,13 @@ public final class ExecutionEnvironment extends Service
         if (fontFamilyOffset == 0)
             throw new RuntimeException("no font family name in name records");
 
+
         try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
             dis.skipBytes(nameOffset + fontFamilyOffset + nameStringOffset);
             byte[] fontFamilyBytes = new byte[fontFamilyLength];
             if (dis.read(fontFamilyBytes) != fontFamilyLength)
                 throw new RuntimeException("font family short read");
-            return new String(fontFamilyBytes, "UTF-16BE");
+            return FontFamily.parse(new String(fontFamilyBytes, "UTF-16BE"));
         }
     }
 
@@ -415,7 +490,7 @@ public final class ExecutionEnvironment extends Service
         Log.i(TAG, "loadFont " + path);
 
         try {
-            String fontFamily = parseTTFFontFamily(path);
+            FontFamily fontFamily = parseFontFamily(path);
             Typeface tf = Typeface.createFromAsset(getAssets(), path);
             Log.i(TAG, "loaded font " + tf + " -> " + fontFamily);
         } catch (Exception e) {
