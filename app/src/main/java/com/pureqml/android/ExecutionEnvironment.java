@@ -517,7 +517,7 @@ public final class ExecutionEnvironment extends Service
                 typefaces.put(fontFamily.family, list);
             }
         } catch (Exception e) {
-            Log.w(TAG, "loading failed: " + path);
+            Log.w(TAG, "loading failed: " + path, e);
         }
     }
 
