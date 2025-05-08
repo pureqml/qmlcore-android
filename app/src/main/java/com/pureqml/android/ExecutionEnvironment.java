@@ -555,7 +555,7 @@ public final class ExecutionEnvironment extends Service
         AssetManager am = getAssets();
 
         Log.v(TAG, "loading assets...");
-        loadFonts(am);
+        // loadFonts(am);
 
         for(ArrayList<TypefaceEntry> families : typefaces.values()) {
             Collections.sort(families);
