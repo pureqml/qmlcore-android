@@ -69,8 +69,6 @@ final class Wrapper {
     }
 
     public static void generatePrototype(IExecutionEnvironment env, V8 v8, V8Object prototype, Class<?> cls) {
-        Log.i(TAG, "wrapping class " + cls.getName());
-
         for(Method method : cls.getMethods()) {
             String name = method.getName();
             int mods = method.getModifiers();
@@ -123,7 +121,6 @@ final class Wrapper {
     public static V8Object generateClass(IExecutionEnvironment env, V8 v8, V8Object namespace, String className, Class<?> cls, Class<?>[] ctorArgs) {
         try {
             Constructor<?> ctor = cls.getConstructor(ctorArgs);
-            Log.i(TAG, "wrapping ctor of " + cls.getName());
             namespace.registerJavaMethod(new ConstructorWrapper(env, ctor), className);
 
             V8Object function = namespace.getObject(className);
