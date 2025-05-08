@@ -381,6 +381,22 @@ public final class ExecutionEnvironment extends Service
             }
         }, "closeApp");
 
+        v8FD.registerJavaMethod(new JavaVoidCallback() {
+            @Override
+            public void invoke(V8Object v8Object, V8Array v8Array) {
+                if (v8Array.length() < 2)
+                    throw new RuntimeException("style() requires two arguments: selector and rules");
+                String selector = v8Array.get(0).toString();
+                if (!(v8Array.get(1) instanceof V8Object))
+                    throw new RuntimeException("style() requires rules object");
+                Log.v(TAG, "adding style for " + selector);
+                V8Object rules = (V8Object)v8Array.get(1);
+                for(String key : rules.getKeys()) {
+                    Log.v(TAG, " rule " + key + ": " + rules.get(key));
+                }
+            }
+        }, "style");
+
         V8Object objectProto    = Wrapper.generateClass(this, _v8, v8FD, "Object", BaseObject.class, new Class<?>[] { IExecutionEnvironment.class });
         V8Object elementProto   = Wrapper.generateClass(this, _v8, v8FD, "Element", Element.class, new Class<?>[] { IExecutionEnvironment.class });
         elementProto.setPrototype(objectProto);
