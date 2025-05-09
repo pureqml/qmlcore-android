@@ -65,10 +65,12 @@ public final class Text extends Element {
 
     private void updateTypeface() {
         if (_paint == null)
-            _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            _paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         String fontFamily = _fontFamily != null? _fontFamily: _style != null? _style.fontFamily: null;
         int fontWeight = _fontWeight > 0? _fontWeight: _style != null? _style.fontWeight: ComputedStyle.NormalWeight;
-        _paint.setTypeface(_env.getTypeface(fontFamily, fontWeight, _fontItalic));
+        Typeface tf = _env.getTypeface(fontFamily, fontWeight, _fontItalic);
+        _paint.setTypeface(tf);
+        update();
     }
 
     @Override
