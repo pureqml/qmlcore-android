@@ -409,26 +409,7 @@ public final class ExecutionEnvironment extends Service
             if (is.read(data) != data.length)
                 throw new RuntimeException("short read");
         }
-        int nameOffset = 0;
-        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
-            int magic = dis.readInt();
-            if (magic != 0x00010000)
-                throw new RuntimeException("invalid TTF magic");
-            short nTables = dis.readShort();
-            dis.skipBytes(6);
-            while (nTables-- > 0) {
-                int id = dis.readInt();
-                int checkSum = dis.readInt();
-                int offset = dis.readInt();
-                int length = dis.readInt();
-                if (id == 0x6E616D65) {
-                    nameOffset = offset;
-                    break;
-                }
-            }
-        }
-        if (nameOffset == 0)
-            throw new RuntimeException("no name table in TTF file");
+        int nameOffset = getNameOffset(data);
 
         int fontFamilyOffset = 0;
         int fontFamilyLength = 0;
@@ -466,7 +447,31 @@ public final class ExecutionEnvironment extends Service
         }
     }
 
-    private final class TypefaceEntry implements Comparable<TypefaceEntry> {
+    private static int getNameOffset(byte[] data) throws IOException {
+        int nameOffset = 0;
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
+            int magic = dis.readInt();
+            if (magic != 0x00010000)
+                throw new RuntimeException("invalid TTF magic");
+            short nTables = dis.readShort();
+            dis.skipBytes(6);
+            while (nTables-- > 0) {
+                int id = dis.readInt();
+                int checkSum = dis.readInt();
+                int offset = dis.readInt();
+                int length = dis.readInt();
+                if (id == 0x6E616D65) {
+                    nameOffset = offset;
+                    break;
+                }
+            }
+        }
+        if (nameOffset == 0)
+            throw new RuntimeException("no name table in TTF file");
+        return nameOffset;
+    }
+
+    private static final class TypefaceEntry implements Comparable<TypefaceEntry> {
         public final FontFamily family;
         public final Typeface typeface;
         TypefaceEntry(FontFamily family, Typeface typeface) {
