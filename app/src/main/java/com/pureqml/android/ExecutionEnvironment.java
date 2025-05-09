@@ -330,6 +330,7 @@ public final class ExecutionEnvironment extends Service
                 String fontFamily = null;
                 int fontWeight = 0;
                 int fontSize = -1;
+                Float lineHeight = null;
 
                 Object fontFamilyRule = rules.get("font-family");
                 if (!TypeConverter.isUndefined(fontFamilyRule))
@@ -345,8 +346,17 @@ public final class ExecutionEnvironment extends Service
                 if (!TypeConverter.isUndefined(fontSizeRule))
                     fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
 
-                if (fontFamily != null || fontWeight > 0 || fontSize >= 0) {
-                    ComputedStyle style = new ComputedStyle(fontFamily, fontWeight, fontSize);
+                Object lineHeightRule = rules.get("line-height");
+                if (!TypeConverter.isUndefined(lineHeightRule)) {
+                    try {
+                        lineHeight = Float.parseFloat(lineHeightRule.toString());
+                    } catch(Exception ex) {
+                        Log.w(TAG, "failed to parse line-height: " + lineHeightRule, ex);
+                    }
+                }
+
+                if (fontFamily != null || fontWeight > 0 || fontSize >= 0 || lineHeight != null) {
+                    ComputedStyle style = new ComputedStyle(fontFamily, fontWeight, fontSize, lineHeight);
                     Log.v(TAG, "computed style: " + style);
                     defaultStyleForClass.put(selector, style);
                 }

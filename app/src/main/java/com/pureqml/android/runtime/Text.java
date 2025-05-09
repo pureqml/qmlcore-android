@@ -46,6 +46,7 @@ public final class Text extends Element {
     String              _fontFamily = null;
     int                 _fontWeight = 0;
     boolean             _fontItalic = false;
+    float               _lineHeight = ComputedStyle.DefaultLineHeight;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -229,7 +230,7 @@ public final class Text extends Element {
         if (_text != null) {
             Rect rect = getRect();
             float textSize = _paint.getTextSize();
-            float lineHeight = textSize; //fixme: support proper line height/baseline
+            float lineHeight = (_style != null? (_style.lineHeight != null? _style.lineHeight: _lineHeight): _lineHeight) * textSize;
             final int ascent = (int)Math.ceil(-_paint.ascent()); //it's negative, we want positive
             float x = state.baseX;
             float y = state.baseY + ascent;
