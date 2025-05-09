@@ -45,11 +45,11 @@ public final class Text extends Element {
 
     String              _fontFamily = null;
     int                 _fontWeight = 0;
-    int                 _fontWeightOverride = 0; // set via font-weight
     boolean             _fontItalic = false;
 
     public Text(IExecutionEnvironment env) {
         super(env);
+        updateTypeface();
     }
 
     static private final Pattern textShadowPattern = Pattern.compile("(\\d+)px\\s*(\\d+)px\\s*(\\d+)px\\s*rgba\\(\\s*(\\d+)\\s*,(\\d+)\\s*,(\\d+)\\s*,([\\d.]+)\\s*\\)");
@@ -59,15 +59,15 @@ public final class Text extends Element {
     @Override
     protected void addClass(ComputedStyle style) {
         super.addClass(style);
-        _fontFamily = style.fontFamily;
-        _fontWeight = style.fontWeight;
         updateTypeface();
     }
 
     private void updateTypeface() {
         if (_paint == null)
             _paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        _paint.setTypeface(_env.getTypeface(_fontFamily, _fontWeightOverride > 0? _fontWeightOverride: _fontWeight, _fontItalic));
+        String fontFamily = _fontFamily != null? _fontFamily: _style != null? _style.fontFamily: null;
+        int fontWeight = _fontWeight > 0? _fontWeight: _style != null? _style.fontWeight: ComputedStyle.NormalWeight;
+        _paint.setTypeface(_env.getTypeface(fontFamily, fontWeight, _fontItalic));
     }
 
     @Override
@@ -102,7 +102,7 @@ public final class Text extends Element {
                 }
                 break;
             case "font-weight":
-                _fontWeightOverride = ComputedStyle.parseFontWeight(value);
+                _fontWeight = ComputedStyle.parseFontWeight(value);
                 updateTypeface();
                 break;
 

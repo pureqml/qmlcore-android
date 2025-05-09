@@ -5,6 +5,7 @@ import android.util.Log;
 
 public final class ComputedStyle {
     private static final String TAG = "ComputedStyle";
+    public static final int NormalWeight = 400;
 
     public final String fontFamily;
     public final int fontWeight;
@@ -44,7 +45,7 @@ public final class ComputedStyle {
                 fontWeight = 700;
                 break;
             case "normal":
-                fontWeight = 400;
+                fontWeight = NormalWeight;
                 break;
             default: try {
                 fontWeight = Integer.parseInt(fontWeightStr);
