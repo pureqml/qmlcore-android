@@ -125,4 +125,7 @@ public final class TypeConverter {
             return object;
     }
 
+    public static boolean isUndefined(Object value) {
+        return value instanceof V8Value && ((V8Value) value).isUndefined();
+    }
 }

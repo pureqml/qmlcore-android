@@ -10,6 +10,7 @@ import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.SafeRunnable;
+import com.pureqml.android.TypeConverter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -49,7 +50,7 @@ public final class HttpRequest {
             } else if (key.equals("contentType")) {
                 _connection.setRequestProperty("Content-Type", value.toString());
             } else if (key.equals("data")) {
-                if (value instanceof V8Value && ((V8Value) value).isUndefined()) {
+                if (TypeConverter.isUndefined(value)) {
                     return;
                 }
                 _body = value.toString().getBytes("UTF-8");

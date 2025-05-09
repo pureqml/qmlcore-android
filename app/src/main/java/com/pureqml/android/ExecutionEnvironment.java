@@ -332,17 +332,17 @@ public final class ExecutionEnvironment extends Service
                 int fontSize = -1;
 
                 Object fontFamilyRule = rules.get("font-family");
-                if (!(fontFamilyRule instanceof V8Value) || !((V8Value)fontFamilyRule).isUndefined())
+                if (!TypeConverter.isUndefined(fontFamilyRule))
                     fontFamily = fontFamilyRule.toString();
 
                 Object fontWeightRule = rules.get("font-weight");
-                if (!(fontWeightRule instanceof V8Value) || !((V8Value)fontWeightRule).isUndefined()) {
+                if (!TypeConverter.isUndefined(fontWeightRule)) {
                     String fontWeightStr = fontWeightRule.toString();
                     fontWeight = ComputedStyle.parseFontWeight(fontWeightStr);
                 }
 
                 Object fontSizeRule = rules.get("font-size");
-                if (!(fontSizeRule instanceof V8Value) || !((V8Value)fontSizeRule).isUndefined())
+                if (!TypeConverter.isUndefined(fontSizeRule))
                     fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
 
                 if (fontFamily != null || fontWeight > 0 || fontSize >= 0) {
