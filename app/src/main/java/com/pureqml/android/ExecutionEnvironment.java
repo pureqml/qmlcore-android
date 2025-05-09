@@ -345,8 +345,11 @@ public final class ExecutionEnvironment extends Service
                 if (!(fontSizeRule instanceof V8Value) || !((V8Value)fontSizeRule).isUndefined())
                     fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
 
-                if (fontFamily != null || fontWeight > 0 || fontSize >= 0)
-                    defaultStyleForClass.put(selector, new ComputedStyle(fontFamily, fontWeight, fontSize));
+                if (fontFamily != null || fontWeight > 0 || fontSize >= 0) {
+                    ComputedStyle style = new ComputedStyle(fontFamily, fontWeight, fontSize);
+                    Log.v(TAG, "computed style: " + style);
+                    defaultStyleForClass.put(selector, style);
+                }
             }
         }, "style");
 

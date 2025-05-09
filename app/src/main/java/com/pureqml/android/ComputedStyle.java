@@ -26,6 +26,10 @@ public final class ComputedStyle {
         );
     }
 
+    public String toString() {
+        return String.format("font-family: %s; font-weight: %d; font-size: %d", fontFamily, fontWeight, fontSize);
+    }
+
     public static int parseFontWeight(Object value) {
         if (value instanceof Integer) {
             return (Integer)value;
