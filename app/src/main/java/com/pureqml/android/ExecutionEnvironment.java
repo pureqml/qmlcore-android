@@ -84,9 +84,7 @@ public final class ExecutionEnvironment extends Service
     private final Map<String, ComputedStyle> defaultStyleForClass = new HashMap<>();
 
     public ComputedStyle getDefaultStyle(String selector) {
-        // getOrDefault is too new
-        return (defaultStyleForClass.containsKey(selector))?
-            defaultStyleForClass.get(selector): null;
+        return defaultStyleForClass.get(selector);
     }
 
     public class LocalBinder extends Binder {
@@ -485,8 +483,8 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public Typeface getTypeface(String fontFamily, int fontWeight, boolean italic) {
-        if (fontFamily != null && typefaces.containsKey(fontFamily)) {
-            ArrayList<TypefaceEntry> families = typefaces.get(fontFamily);
+        ArrayList<TypefaceEntry> families = typefaces.get(fontFamily);
+        if (families != null) {
             int pos = Collections.binarySearch(families, new TypefaceEntry(new FontFamily(fontFamily, fontWeight, italic), null));
             if (pos >= 0)
                 return families.get(pos).typeface;
@@ -521,11 +519,11 @@ public final class ExecutionEnvironment extends Service
             FontFamily fontFamily = parseFontFamily(path);
             Typeface tf = Typeface.createFromAsset(getAssets(), path);
             Log.v(TAG, "loaded " + fontFamily);
-            if (typefaces.containsKey(fontFamily.family)) {
-                ArrayList<TypefaceEntry> list = typefaces.get(fontFamily.family);
+            ArrayList<TypefaceEntry> list = typefaces.get(fontFamily.family);
+            if (list != null) {
                 list.add(new TypefaceEntry(fontFamily, tf));
             } else {
-                ArrayList<TypefaceEntry> list = new ArrayList<>();
+                list = new ArrayList<>();
                 list.add(new TypefaceEntry(fontFamily, tf));
                 typefaces.put(fontFamily.family, list);
             }
