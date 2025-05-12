@@ -23,7 +23,7 @@ public final class TextLayout {
         }
 
         public String toString() {
-            return "" + start + "-" + end + " (" + width + "px)";
+            return start + "-" + end + " (" + width + "px)";
         }
     }
 
