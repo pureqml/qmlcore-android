@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.text.TextPaint;
 import android.util.Log;
 
 import com.eclipsesource.v8.V8Array;
@@ -65,7 +66,7 @@ public final class Text extends Element {
 
     private void updateTypeface() {
         if (_paint == null)
-            _paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+            _paint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         String fontFamily = _fontFamily != null? _fontFamily: _style != null? _style.fontFamily: null;
         int fontWeight = _fontWeight > 0? _fontWeight: _style != null? _style.fontWeight: ComputedStyle.NormalWeight;
         Typeface tf = _env.getTypeface(fontFamily, fontWeight, _fontItalic);
