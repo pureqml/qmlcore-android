@@ -11,7 +11,7 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.ComputedStyle;
-import com.pureqml.android.FontFamily;
+import com.pureqml.android.Font;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IRenderer;
 import com.pureqml.android.TypeConverter;
@@ -81,7 +81,7 @@ public final class Text extends Element {
                 _paint.setColor(TypeConverter.toColor(value));
                 break;
             case "font-family": {
-                    FontFamily family = FontFamily.parse(value.toString());
+                    Font family = Font.parse(value.toString());
                     _fontFamily = family.family;
                     if (family.weight > 0)
                         _fontWeight = family.weight;

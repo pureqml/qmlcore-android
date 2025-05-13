@@ -38,7 +38,6 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
-import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
@@ -402,7 +401,7 @@ public final class ExecutionEnvironment extends Service
             return scriptStream.toString();
     }
 
-    private FontFamily parseFontFamily(String path) throws IOException {
+    private Font parseFontFamily(String path) throws IOException {
         byte[] data;
         try (InputStream is = getAssets().open(path)) {
             data = new byte[is.available()];
@@ -443,7 +442,7 @@ public final class ExecutionEnvironment extends Service
             byte[] fontFamilyBytes = new byte[fontFamilyLength];
             if (dis.read(fontFamilyBytes) != fontFamilyLength)
                 throw new RuntimeException("font family short read");
-            return FontFamily.parse(new String(fontFamilyBytes, "UTF-16BE"));
+            return Font.parse(new String(fontFamilyBytes, "UTF-16BE"));
         }
     }
 
@@ -472,9 +471,9 @@ public final class ExecutionEnvironment extends Service
     }
 
     private static final class TypefaceEntry implements Comparable<TypefaceEntry> {
-        public final FontFamily family;
+        public final Font family;
         public final Typeface typeface;
-        TypefaceEntry(FontFamily family, Typeface typeface) {
+        TypefaceEntry(Font family, Typeface typeface) {
             this.family = family;
             this.typeface = typeface;
         }
@@ -490,7 +489,7 @@ public final class ExecutionEnvironment extends Service
     public Typeface getTypeface(String fontFamily, int fontWeight, boolean italic) {
         ArrayList<TypefaceEntry> families = typefaces.get(fontFamily);
         if (families != null) {
-            int pos = Collections.binarySearch(families, new TypefaceEntry(new FontFamily(fontFamily, fontWeight, italic), null));
+            int pos = Collections.binarySearch(families, new TypefaceEntry(new Font(fontFamily, fontWeight, italic), null));
             if (pos >= 0)
                 return families.get(pos).typeface;
             pos = -(pos + 1);
@@ -521,7 +520,7 @@ public final class ExecutionEnvironment extends Service
         Log.i(TAG, "loadFont " + path);
 
         try {
-            FontFamily fontFamily = parseFontFamily(path);
+            Font fontFamily = parseFontFamily(path);
             Typeface tf = Typeface.createFromAsset(getAssets(), path);
             Log.v(TAG, "loaded " + fontFamily);
             ArrayList<TypefaceEntry> list = typefaces.get(fontFamily.family);

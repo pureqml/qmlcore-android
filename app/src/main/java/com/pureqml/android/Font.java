@@ -3,19 +3,19 @@ package com.pureqml.android;
 import java.util.LinkedList;
 import java.util.List;
 
-public final class FontFamily implements Comparable<FontFamily> {
+public final class Font implements Comparable<Font> {
     public final String family;
     public final int weight;
     public final boolean italic;
-    FontFamily(String family, int weight, boolean italic) {
+    Font(String family, int weight, boolean italic) {
         this.family = family;
         this.weight = weight;
         this.italic = italic;
     }
     public String toString() {
-        return String.format("FontFamily { %s, weight: %d, italic: %s}", family, weight, italic);
+        return String.format("Font { %s, weight: %d, italic: %s}", family, weight, italic);
     }
-    public static FontFamily parse(String name) {
+    public static Font parse(String name) {
         int weight = 400; //Regular
         boolean italic = false;
         List<String> filtered = new LinkedList<String>();
@@ -77,11 +77,11 @@ public final class FontFamily implements Comparable<FontFamily> {
             }
         }
         String family = String.join(" ", filtered);
-        return new FontFamily(family, weight, italic);
+        return new Font(family, weight, italic);
     }
 
     @Override
-    public int compareTo(FontFamily o) {
+    public int compareTo(Font o) {
         int r = family.compareTo(o.family);
         if (r != 0)
             return r;
