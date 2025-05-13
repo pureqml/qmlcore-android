@@ -16,6 +16,8 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.fonts.FontFamily;
+import android.graphics.fonts.SystemFonts;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
@@ -516,12 +518,16 @@ public final class ExecutionEnvironment extends Service
                 (bold? Typeface.BOLD_ITALIC: Typeface.ITALIC)
         );
     }
-    private void loadFont(String path) {
+    private void loadFont(String path) throws IOException {
         Log.i(TAG, "loadFont " + path);
 
         try {
             Font fontFamily = parseFontFamily(path);
             Typeface tf = Typeface.createFromAsset(getAssets(), path);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                android.graphics.fonts .Font font = new android.graphics.fonts.Font.Builder(getAssets(), path).build();
+                SystemFonts.getAvailableFonts().add(font);
+            }
             Log.v(TAG, "loaded " + fontFamily);
             ArrayList<TypefaceEntry> list = typefaces.get(fontFamily.family);
             if (list != null) {
