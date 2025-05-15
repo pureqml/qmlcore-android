@@ -558,7 +558,7 @@ public class Element extends BaseObject {
                     }
 
                     if (clip) {
-                        if (roundClippingNeeded()) {
+                        if (child.roundClippingNeeded()) {
                             Path path = new Path();
                             path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
                             if (!state.clipPath(path))
