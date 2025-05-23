@@ -155,7 +155,7 @@ public final class HttpRequest {
 
         private void emitError(final Exception e) {
             if (_error != null)
-                _error.call(null, createEventArguments(400, e.toString()));
+                _error.call(null, createEventArguments(0, e.toString()));
             else
                 Log.w(TAG, "no error handler for request found", e);
         }
