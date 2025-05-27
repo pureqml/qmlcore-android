@@ -332,7 +332,7 @@ public final class Text extends Element {
         }
         layoutLine(begin, _layout.text.length(), rect.width());
 
-        _layout.height = (int) (_layout.stripes.size() * _paint.getTextSize());
+        _layout.height = (int) (_layout.stripes.size() * (_paint.getTextSize()) + _paint.getFontMetrics().bottom);
     }
 
     public void layoutText(V8Function callback) {
