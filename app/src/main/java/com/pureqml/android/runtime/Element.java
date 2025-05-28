@@ -525,6 +525,8 @@ public class Element extends BaseObject {
             childRect.offsetTo(parent.baseX + childX, parent.baseY + childY);
             int childWidth = childRect.width(), childHeight = childRect.height();
             boolean cache = child._cache;
+            boolean fitParentRect = childRect.contains(_rect);
+
 
             if (!child._cacheValid) {
                 PaintState state;
@@ -558,7 +560,12 @@ public class Element extends BaseObject {
                     }
 
                     if (clip) {
-                        if (child.roundClippingNeeded()) {
+                        if (fitParentRect && roundClippingNeeded()) {
+                            Path path = new Path();
+                            path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
+                            if (!state.clipPath(path))
+                                paint = false;
+                        } else if (child.roundClippingNeeded()) {
                             Path path = new Path();
                             path.addRoundRect(state.baseX, state.baseY, state.baseX + childWidth, state.baseY + childHeight, _radius, _radius, Path.Direction.CW);
                             if (!state.clipPath(path))
