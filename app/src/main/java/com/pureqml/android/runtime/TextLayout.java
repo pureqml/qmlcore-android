@@ -59,17 +59,20 @@ public final class TextLayout {
         float[] measuredWidth = new float[1];
         while(begin < end) {
             int n = paint.breakText(text, begin, end, true, maxWidth, measuredWidth);
-            if (!anywhere && n < text.length()) {
-                int new_end = begin + n + 1;
-                if (new_end >= end) {
+            if (!anywhere && begin + n < text.length()) {
+                int new_end = begin + n;
+                if (new_end > end) {
                     //end of the string - nothing to wrap
-                    new_end = begin;
+                    new_end = end;
                 }
                 else {
-                    while (new_end > begin && !isWhitespace(text.charAt(new_end))) {
-                        --new_end;
+                    if (new_end < text.length() && !isWhitespace(text.charAt(new_end))) {
+                        //only start stripping if next char is not a whitespace
+                        while (new_end > begin && !isWhitespace(text.charAt(new_end - 1))) {
+                            --new_end;
+                        }
+                        //new_end - 1 is pointing to the last whitespace char.
                     }
-                    //new_end is pointing to the last whitespace char.
                 }
                 //fixme: skip whitespaces?
                 if (new_end > begin) {
