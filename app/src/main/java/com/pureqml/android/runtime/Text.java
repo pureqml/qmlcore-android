@@ -321,6 +321,7 @@ public final class Text extends Element {
         if (_text == null)
             return;
 
+        float fontHeight = _paint.getTextSize();
         _layout = new TextLayout(preprocess(_text));
         Rect rect = getRect();
 
@@ -332,7 +333,7 @@ public final class Text extends Element {
         }
         layoutLine(begin, _layout.text.length(), rect.width());
 
-        _layout.height = (int) (_layout.stripes.size() * (_paint.getTextSize()) + _paint.getFontMetrics().bottom);
+        _layout.height = (int) (_layout.stripes.size() * fontHeight * _lineHeight + _paint.getFontMetrics().bottom);
     }
 
     public void layoutText(V8Function callback) {
