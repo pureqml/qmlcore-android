@@ -4,8 +4,10 @@ import android.graphics.Paint;
 
 import java.util.LinkedList;
 import java.util.List;
+import android.util.Log;
 
 public final class TextLayout {
+    public static final String TAG = "TextLayout";
     public final String   text;
 
     public int      width;
