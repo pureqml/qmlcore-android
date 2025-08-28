@@ -26,7 +26,9 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.window.OnBackInvokedDispatcher;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -257,6 +259,15 @@ public final class MainActivity
             }
         });
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (!processBack())
+                    finish();
+            }
+        });
+
+
         bindService(new Intent(this,
                 ExecutionEnvironment.class), _executionEnvironmentConnection, Context.BIND_AUTO_CREATE | Context.BIND_ADJUST_WITH_ACTIVITY);
         _executionEnvironmentBound = true;
@@ -326,8 +337,7 @@ public final class MainActivity
         return super.dispatchKeyEvent(event);
     }
 
-    @Override
-    public void onBackPressed() {
+    private boolean processBack() {
         boolean result = false;
         try {
             result = _executionEnvironment.getExecutor().submit(new Callable<Boolean>() {
@@ -339,13 +349,10 @@ public final class MainActivity
                 }
             }).get();
             Log.d(TAG, "key handler finishes with " + result);
-        } catch (ExecutionException e) {
-            Log.e(TAG, "onBackPressed", e);
-        } catch (InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             Log.e(TAG, "onBackPressed", e);
         }
-        if (!result)
-            super.onBackPressed();
+        return result;
     }
 
     @Override
