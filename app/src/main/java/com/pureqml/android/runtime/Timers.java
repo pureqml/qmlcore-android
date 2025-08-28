@@ -166,7 +166,7 @@ public final class Timers {
 
     public void discard() {
         for(int i = 0, n = _tasks.size(); i < n; ++i) {
-            Task task = _tasks.valueAt(i);
+            Task task = _tasks.get(i, null);
             if (task != null)
                 task.cancel();
         }
