@@ -12,31 +12,33 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
+import androidx.media3.common.Timeline;
+import androidx.media3.common.VideoSize;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.exoplayer.DefaultLoadControl;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory;
+import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.exoplayer.source.BaseMediaSource;
+import androidx.media3.exoplayer.source.BehindLiveWindowException;
+import androidx.media3.exoplayer.source.LoadEventInfo;
+import androidx.media3.exoplayer.source.MediaLoadData;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.MediaSourceEventListener;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
 
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
-import com.google.android.exoplayer2.source.BaseMediaSource;
-import com.google.android.exoplayer2.source.BehindLiveWindowException;
-import com.google.android.exoplayer2.source.LoadEventInfo;
-import com.google.android.exoplayer2.source.MediaLoadData;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.MediaSourceEventListener;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSource;
-import com.google.android.exoplayer2.video.VideoSize;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
 import com.pureqml.android.SafeRunnable;
@@ -46,7 +48,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.android.exoplayer2.C.TIME_UNSET;
+import static androidx.media3.common.C.TIME_UNSET;
 
 
 public final class VideoPlayer extends BaseObject implements IResource {
@@ -182,7 +184,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private static final String TAG = "VideoPlayer";
     private static final int PollingInterval = 500; //ms
 
-    private ExoPlayer                   player;
+    private ExoPlayer player;
     private final SurfaceView           surfaceView;
     private final ViewHolder<?>         viewHolder;
     private final Handler               handler;
@@ -253,6 +255,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         });
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private static boolean isBehindLiveWindow(PlaybackException e) {
         Throwable cause = e.getCause();
         while (cause != null) {
@@ -264,6 +267,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         return false;
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void acquireResourceImpl() {
         if (player != null)
             return;
@@ -404,6 +408,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         });
     }
 
+    @OptIn(markerClass = {UnstableApi.class, UnstableApi.class})
     public void setSource(String url) {
         Log.i(TAG, "Player.setSource " + url);
         source = url;
@@ -522,6 +527,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     public void setOption(String name, Object value) {
         Log.i(TAG, "Player.setOption " + name + " : " + value);
         handler.post(new SafeRunnable() {
+            @OptIn(markerClass = UnstableApi.class)
             @Override
             public void doRun() {
                 switch (name) {

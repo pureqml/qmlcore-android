@@ -30,9 +30,9 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
 
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
-    implementation 'com.google.android.exoplayer:exoplayer-dash:2.19.1'
-    implementation 'com.google.android.exoplayer:exoplayer-hls:2.19.1'
+    implementation 'androidx.media3:media3-exoplayer:1.8.0'
+    implementation 'androidx.media3:media3-exoplayer-dash:1.8.0'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.8.0'
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.19.1'
     implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'androidx.multidex:multidex:2.0.1'
