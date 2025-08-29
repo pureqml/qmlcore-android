@@ -297,7 +297,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                     }
                 }
 
-                float linePos = 300;
+                float linePos;
                 switch(cue.lineAnchor) {
                     case Cue.ANCHOR_TYPE_START:
                         linePos = rect.top;
@@ -801,31 +801,35 @@ public final class VideoPlayer extends BaseObject implements IResource {
         Log.v(TAG, "getSubtitles()");
         V8 v8 = _env.getRuntime();
         V8Array subs = new V8Array(v8);
-        if (tracks != null) {
-            int groupIdx = 0;
-            for (Tracks.Group trackGroup : tracks.getGroups()) {
-                if (trackGroup.getType() != C.TRACK_TYPE_TEXT)
-                    continue;
-                for (int i = 0; i < trackGroup.length; i++) {
-                    // Individual track information.
-                    boolean isSupported = trackGroup.isTrackSupported(i);
-                    boolean isSelected = trackGroup.isTrackSelected(i);
-                    Format trackFormat = trackGroup.getTrackFormat(i);
-                    if (!isSupported) {
-                        continue;
-                    }
-                    Log.d(TAG, "track[" + groupIdx + "." + i + "]: supported: " + isSupported +", selected: " + isSelected + ", format: " + trackFormat.toString());
-                    V8Object track = new V8Object(v8);
-                    track.add("id", String.valueOf(groupIdx) + "." + String.valueOf(i));
-                    track.add("active", isSelected);
-                    track.add("language", trackFormat.language);
-                    track.add("label", trackFormat.label);
-                    subs.push(track);
-                }
-                ++groupIdx;
-            }
-        } else
+        if (tracks == null) {
             Log.w(TAG, "no tracks registered, wait for onTracksChanged event");
+            return subs;
+        }
+
+        int groupIdx = 0;
+        for (Tracks.Group trackGroup : tracks.getGroups()) {
+            if (trackGroup.getType() != C.TRACK_TYPE_TEXT) {
+                ++groupIdx;
+                continue;
+            }
+            for (int i = 0; i < trackGroup.length; i++) {
+                // Individual track information.
+                boolean isSupported = trackGroup.isTrackSupported(i);
+                boolean isSelected = trackGroup.isTrackSelected(i);
+                Format trackFormat = trackGroup.getTrackFormat(i);
+                if (!isSupported) {
+                    continue;
+                }
+                Log.d(TAG, "track[" + groupIdx + "." + i + "]: supported: " + isSupported +", selected: " + isSelected + ", format: " + trackFormat.toString());
+                V8Object track = new V8Object(v8);
+                track.add("id", String.valueOf(groupIdx) + "." + String.valueOf(i));
+                track.add("active", isSelected);
+                track.add("language", trackFormat.language);
+                track.add("label", trackFormat.label);
+                subs.push(track);
+            }
+            ++groupIdx;
+        }
         return subs;
     }
 
