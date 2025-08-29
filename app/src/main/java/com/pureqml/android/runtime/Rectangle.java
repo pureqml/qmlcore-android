@@ -1,6 +1,5 @@
 package com.pureqml.android.runtime;
 
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;

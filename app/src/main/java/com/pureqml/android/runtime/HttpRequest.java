@@ -19,11 +19,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
 public final class HttpRequest {
     private static final String TAG = "HttpRequestDispatcher";
     private static boolean cacheInstalled;
+    private static HttpResponseCache cache;
 
     static class Request extends SafeRunnable {
         private static final String TAG = "HttpRequest";
@@ -35,38 +37,48 @@ public final class HttpRequest {
         V8Function              _error;
 
         private void setProperty(String key, Object value) throws IOException {
-            if (key.equals("url")) {
-                //ignore
-            } else if (key.equals("headers")) {
-                V8Object headers = (V8Object) value;
-                for (String k : headers.getKeys()) {
-                    String v = headers.get(k).toString();
-                    Log.v(TAG, "request header " + k + ": " + v);
-                    _connection.setRequestProperty(k, v);
-                }
-            } else if (key.equals("method")) {
-                Log.v(TAG, "request method " + value);
-                _connection.setRequestMethod(value.toString());
-            } else if (key.equals("contentType")) {
-                _connection.setRequestProperty("Content-Type", value.toString());
-            } else if (key.equals("data")) {
-                if (TypeConverter.isUndefined(value)) {
-                    return;
-                }
-                _body = value.toString().getBytes("UTF-8");
-                if (_body.length > 0)
-                    _connection.setDoOutput(true);
-            } else if (key.equals("done")) {
-                _callback = (V8Function)value;
-            } else if (key.equals("error")) {
-                _error = (V8Function)value;
-            } else
-                Log.w(TAG, "unhandled request field " + key);
+            switch (key) {
+                case "url":
+                    //ignore
+                    break;
+                case "headers":
+                    V8Object headers = (V8Object) value;
+                    for (String k : headers.getKeys()) {
+                        String v = headers.get(k).toString();
+                        Log.v(TAG, "request header " + k + ": " + v);
+                        _connection.setRequestProperty(k, v);
+                    }
+                    break;
+                case "method":
+                    Log.v(TAG, "request method " + value);
+                    _connection.setRequestMethod(value.toString());
+                    break;
+                case "contentType":
+                    _connection.setRequestProperty("Content-Type", value.toString());
+                    break;
+                case "data":
+                    if (TypeConverter.isUndefined(value)) {
+                        return;
+                    }
+                    _body = value.toString().getBytes(StandardCharsets.UTF_8);
+                    if (_body.length > 0)
+                        _connection.setDoOutput(true);
+                    break;
+                case "done":
+                    _callback = (V8Function) value;
+                    break;
+                case "error":
+                    _error = (V8Function) value;
+                    break;
+                default:
+                    Log.w(TAG, "unhandled request field " + key);
+                    break;
+            }
         }
 
         @Override
         public void doRun() {
-            int code = 0;
+            int code;
             String text;
             ExecutorService executor = _env.getExecutor();
             if (executor == null) {
@@ -85,18 +97,7 @@ public final class HttpRequest {
                 code = _connection.getResponseCode();
                 Log.d(TAG, "response code: " + code);
 
-                InputStream inputStream;
-                if (code >= 200 && code < 400)
-                    inputStream = _connection.getInputStream();
-                else
-                    inputStream = _connection.getErrorStream();
-
-                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[4096];
-                int length;
-                while ((length = inputStream.read(buffer)) != -1) {
-                    dataOutputStream.write(buffer, 0, length);
-                }
+                ByteArrayOutputStream dataOutputStream = getResponseStream(code);
                 Log.d(TAG, "finished reading response");
 
                 text = dataOutputStream.toString("UTF-8");
@@ -109,13 +110,10 @@ public final class HttpRequest {
                     @Override
                     public void doRun() {
                         if (_callback != null && !_callback.isReleased()) {
-                            V8Array args = createEventArguments(argCode, argText);
-                            try {
+                            try (V8Array args = createEventArguments(argCode, argText)) {
                                 _callback.call(null, args);
-                            } catch(Exception ex) {
+                            } catch (Exception ex) {
                                 Log.w(TAG, "callback failed", ex);
-                            } finally {
-                                args.close();
                             }
                         }
                     }
@@ -134,6 +132,22 @@ public final class HttpRequest {
             }
         }
 
+        private ByteArrayOutputStream getResponseStream(int code) throws IOException {
+            InputStream inputStream;
+            if (code >= 200 && code < 400)
+                inputStream = _connection.getInputStream();
+            else
+                inputStream = _connection.getErrorStream();
+
+            ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = inputStream.read(buffer)) != -1) {
+                dataOutputStream.write(buffer, 0, length);
+            }
+            return dataOutputStream;
+        }
+
         V8Array createEventArguments(int code, String text) {
             V8 runtime = _env.getRuntime();
             V8Array arguments = new V8Array(runtime);
@@ -143,7 +157,7 @@ public final class HttpRequest {
                 target.add("status", code);
                 target.add("responseText", text != null? text: "");
                 //FIXME: interpret response according to responseType
-                target.add("response", text != null? text: null);
+                target.add("response", text);
                 result.add("target", target);
                 target.close();
             }
@@ -191,9 +205,9 @@ public final class HttpRequest {
         long httpCacheSize = 200 * 1024 * 1024;
         try {
             Log.d(TAG, "installing cache at " + httpCacheDir + " for " + httpCacheSize + " bytes");
-            HttpResponseCache.install(httpCacheDir, httpCacheSize);
+            cache = HttpResponseCache.install(httpCacheDir, httpCacheSize);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.w(TAG, "HTTP response cache installation failed:", e);
         }
         finally {
             cacheInstalled = true;

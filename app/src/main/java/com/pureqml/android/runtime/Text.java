@@ -16,6 +16,7 @@ import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IRenderer;
 import com.pureqml.android.TypeConverter;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +48,7 @@ public final class Text extends Element {
     String              _fontFamily = null;
     int                 _fontWeight = 0;
     boolean             _fontItalic = false;
-    float               _lineHeight = ComputedStyle.DefaultLineHeight;
+    final float               _lineHeight = ComputedStyle.DefaultLineHeight;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -160,18 +161,18 @@ public final class Text extends Element {
             case "text-shadow":
                 Matcher matcher = textShadowPattern.matcher(value.toString());
                 if (matcher.matches()) {
-                    int dx = Integer.valueOf(matcher.group(1));
-                    int dy = Integer.valueOf(matcher.group(2));
-                    int r = Integer.valueOf(matcher.group(4));
-                    int g = Integer.valueOf(matcher.group(5));
-                    int b = Integer.valueOf(matcher.group(6));
-                    float a = Float.valueOf(matcher.group(7));
+                    int dx = Integer.parseInt(Objects.requireNonNull(matcher.group(1)));
+                    int dy = Integer.parseInt(Objects.requireNonNull(matcher.group(2)));
+                    int r = Integer.parseInt(Objects.requireNonNull(matcher.group(4)));
+                    int g = Integer.parseInt(Objects.requireNonNull(matcher.group(5)));
+                    int b = Integer.parseInt(Objects.requireNonNull(matcher.group(6)));
+                    float a = Float.parseFloat(Objects.requireNonNull(matcher.group(7)));
                     if ((dx | dy) != 0 && a > 0) {
                         _paint.setShadowLayer((float)Math.hypot(dx, dy), dx, dy, Color.argb((int)(255 * a), r, g, b));
                     } else
                         _paint.clearShadowLayer();
                 } else
-                    Log.w(TAG, "unsupported text shadow spec: " + value.toString());
+                    Log.w(TAG, "unsupported text shadow spec: " + value);
                 break;
 
             default:
@@ -189,8 +190,6 @@ public final class Text extends Element {
     private void layout() {
         if (_text == null || _layout != null)
             return;
-
-        assert _layout == null;
 
         if (_wrap == Wrap.Wrap)
             layoutText();
@@ -242,7 +241,7 @@ public final class Text extends Element {
 
                 switch (_halign) {
                     case AlignHCenter:
-                        x += (rect.width() - _cachedWidth) / 2;
+                        x += (rect.width() - _cachedWidth) / 2.0f;
                         break;
                     case AlignRight:
                         x += rect.width() - _cachedWidth;
@@ -257,11 +256,10 @@ public final class Text extends Element {
                         break;
                 }
                 state.drawText(_text, x, y, _paint);
-                y += lineHeight;
             } else {
                 switch (_halign) {
                     case AlignHCenter:
-                        x += (rect.width() - _layout.width) / 2;
+                        x += (rect.width() - _layout.width) / 2.0f;
                         break;
                     case AlignRight:
                         x += rect.width() - _layout.width;
@@ -269,7 +267,7 @@ public final class Text extends Element {
                 }
                 switch (_valign) {
                     case AlignVCenter:
-                        y += (rect.height() - _layout.height) / 2;
+                        y += (rect.height() - _layout.height) / 2.0f;
                         break;
                     case AlignBottom:
                         y += rect.height() - _layout.height;

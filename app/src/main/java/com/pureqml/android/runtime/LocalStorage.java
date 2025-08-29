@@ -14,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
 public final class LocalStorage extends BaseObject {
@@ -89,7 +90,7 @@ public final class LocalStorage extends BaseObject {
         try {
             FileOutputStream file = _env.getContext().openFileOutput(name + ".storage", Context.MODE_PRIVATE);
             Log.i(TAG, "opened file for writing...");
-            file.write(value.getBytes("UTF-8"));
+            file.write(value.getBytes(StandardCharsets.UTF_8));
             file.close();
         } catch (Exception ex) {
             Log.e(TAG, "can't open file " + name + " for writing", ex);

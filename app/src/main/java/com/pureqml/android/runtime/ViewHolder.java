@@ -1,6 +1,5 @@
 package com.pureqml.android.runtime;
 
-import android.content.Context;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.View;
@@ -12,10 +11,10 @@ import com.pureqml.android.SafeRunnable;
 public final class ViewHolder<ViewType extends View> {
     private static final String TAG = "ViewHolder";
 
-    private final ViewType                view;
-    RelativeLayout.LayoutParams     layoutParams;
+    private final ViewType              view;
+    RelativeLayout.LayoutParams         layoutParams;
 
-    public ViewHolder(Context context, ViewType view) {
+    public ViewHolder(ViewType view) {
         this.view = view;
     }
 

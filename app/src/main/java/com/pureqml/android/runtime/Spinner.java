@@ -19,7 +19,7 @@ public final class Spinner extends Element {
         Context context = env.getContext();
         view = new ProgressBar(context);
         view.setIndeterminate(true);
-        viewHolder = new ViewHolder<>(context, view);
+        viewHolder = new ViewHolder<>(view);
     }
 
     @Override
@@ -48,7 +48,7 @@ public final class Spinner extends Element {
 
         if (!rect.isEmpty()) {
             rect.offsetTo(state.baseX, state.baseY);
-            Log.v(TAG, "spinner layout " + rect.toString());
+            Log.v(TAG, "spinner layout " + rect);
             viewHolder.setRect(_env.getRootView(), rect);
         }
 

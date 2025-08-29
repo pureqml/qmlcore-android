@@ -18,6 +18,7 @@ import android.view.SurfaceView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
+import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.Format;
 import androidx.media3.common.MediaItem;
@@ -83,7 +84,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
 
         @Override
-        public void surfaceCreated(SurfaceHolder holder) {
+        public void surfaceCreated(@NonNull SurfaceHolder holder) {
             handler.post(new SafeRunnable() {
                 @Override
                 protected void doRun() {
@@ -93,7 +94,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
 
         @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
             handler.post(new SafeRunnable() {
                 @Override
                 protected void doRun() {
@@ -103,7 +104,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
 
         @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
+        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
             handler.post(new SafeRunnable() {
                 @Override
                 protected void doRun() {
@@ -151,7 +152,6 @@ public final class VideoPlayer extends BaseObject implements IResource {
         @Deprecated
         @Override
         public void setType(int type) {
-            surfaceHolder.setType(type);
         }
 
         @Override
@@ -198,7 +198,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         public Surface getSurface() {
             return surfaceHolder.getSurface();
         }
-    };
+    }
 
     @UnstableApi
     private class CustomTextOutput implements TextOutput {
@@ -206,7 +206,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
 
         @Override
-        public void onCues(CueGroup cueGroup) {
+        public void onCues(@NonNull CueGroup cueGroup) {
             if (paintDelegate != null)
                 paintDelegate.setCue(cueGroup);
         }
@@ -222,7 +222,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
 
         @Override
-        protected void buildTextRenderers(Context context, TextOutput output, Looper outputLooper, int extensionRendererMode, ArrayList<Renderer> out) {
+        protected void buildTextRenderers(@NonNull Context context, @NonNull TextOutput output, @NonNull Looper outputLooper, int extensionRendererMode, ArrayList<Renderer> out) {
             out.add(new TextRenderer(customTextOutput, outputLooper));
         }
     }
@@ -251,11 +251,11 @@ public final class VideoPlayer extends BaseObject implements IResource {
     //exoplayer flags
     private int                         hlsExtractorFlags = 0;
     private boolean                     exposeCea608WhenMissingDeclarations = true;
-    private static float                defaultTextSizeSP = 22;
+    private final static float                defaultTextSizeSP = 22;
 
     private static class PaintDelegate implements Element.PaintDelegate {
-        Context context;
-        Element ui;
+        final Context context;
+        final Element ui;
         CueGroup cueGroup;
 
         PaintDelegate(Context context, Element ui) {
@@ -362,19 +362,19 @@ public final class VideoPlayer extends BaseObject implements IResource {
                         state.drawText(line, x, y, paint);
                         y += lineHeight;
                     }
-                } else if (cue.bitmap != null) {
+                } else {
                     Rect dstRect = new Rect((int)x, (int)y, (int)(x + cue.bitmap.getWidth()), (int)(y + cue.bitmap.getHeight()));
                     state.drawBitmap(cue.bitmap, null, dstRect, paint);
                 }
             }
         }
 
-        void setCue(CueGroup cueGroup) {
+        void setCue(@NonNull CueGroup cueGroup) {
             Log.v(TAG, "onCues " + cueGroup.cues.size());
             this.cueGroup = cueGroup;
             ui.update();
         }
-    };
+    }
     PaintDelegate                       paintDelegate;
 
     public VideoPlayer(IExecutionEnvironment env, Element ui) {
@@ -391,7 +391,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         Context context = env.getContext();
         surfaceView = new SurfaceView(context);
-        viewHolder = new ViewHolder<>(context, surfaceView);
+        viewHolder = new ViewHolder<>(surfaceView);
 
         period = new Timeline.Period();
 
@@ -496,7 +496,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
 
             @Override
-            public void onPlayerError(PlaybackException error) {
+            public void onPlayerError(@NonNull PlaybackException error) {
                 Log.d(TAG, "onPlayerError " + error);
                 VideoPlayer.this.emit("error", error.toString());
                 if (isBehindLiveWindow(error)) {
@@ -507,7 +507,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
 
             @Override
-            public void onPositionDiscontinuity(Player.PositionInfo oldPosition, Player.PositionInfo newPosition, int reason) {
+            public void onPositionDiscontinuity(@NonNull Player.PositionInfo oldPosition, @NonNull Player.PositionInfo newPosition, int reason) {
                 Log.d(TAG, "onPositionDiscontinuity " + reason);
                 if (reason == Player.DISCONTINUITY_REASON_SEEK) {
                     Log.d(TAG, "onSeekProcessed");
@@ -516,7 +516,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
 
             @Override
-            public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+            public void onPlaybackParametersChanged(@NonNull PlaybackParameters playbackParameters) {
                 Log.d(TAG, "onPlaybackParametersChanged " + playbackParameters);
             }
 
@@ -526,8 +526,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
 
             @Override
-            public void onVideoSizeChanged(VideoSize videoSize) {
-                Log.v(TAG, "onVideoSizeChanged " + videoSize.width + "x" + videoSize.height + ", rotation: " + videoSize.unappliedRotationDegrees + ", par: " + videoSize.pixelWidthHeightRatio);
+            public void onVideoSizeChanged(@NonNull VideoSize videoSize) {
+                Log.v(TAG, "onVideoSizeChanged " + videoSize.width + "x" + videoSize.height + ", par: " + videoSize.pixelWidthHeightRatio);
                 videoWidth = (int)(videoSize.width * videoSize.pixelWidthHeightRatio);
                 videoHeight = videoSize.height;
                 handler.post(new SafeRunnable() {
@@ -548,7 +548,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
             }
 
             @Override
-            public void onTracksChanged(Tracks tracks) {
+            public void onTracksChanged(@NonNull Tracks tracks) {
                 Log.v(TAG, "onTracksChanged");
                 int groupIdx = 0;
                 for (Tracks.Group trackGroup : tracks.getGroups()) {
@@ -558,7 +558,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                         boolean isSupported = trackGroup.isTrackSupported(i);
                         boolean isSelected = trackGroup.isTrackSelected(i);
                         Format trackFormat = trackGroup.getTrackFormat(i);
-                        Log.d(TAG, "track[" + groupIdx + "." + i + "]: supported: " + isSupported +", selected: " + isSelected + ", format: " + trackFormat.toString());
+                        Log.d(TAG, "track[" + groupIdx + "." + i + "]: supported: " + isSupported +", selected: " + isSelected + ", format: " + trackFormat);
                     }
                     ++groupIdx;
                 }
@@ -639,7 +639,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         source.addEventListener(handler, new MediaSourceEventListener() {
             @Override
-            public void onLoadError(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
+            public void onLoadError(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, @NonNull LoadEventInfo loadEventInfo, @NonNull MediaLoadData mediaLoadData, @NonNull IOException error, boolean wasCanceled) {
                 Log.w(TAG, "onLoadError");
                 VideoPlayer.this.emit("error", "Source load error: " + error.getLocalizedMessage());
             }
@@ -671,7 +671,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 if (paused)
                 {
                     paused = false;
-                    VideoPlayer.this.emit("pause", paused);
+                    VideoPlayer.this.emit("pause", false);
                     if (player != null)
                         player.setPlayWhenReady(true);
                 }
@@ -689,7 +689,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 if (!paused)
                 {
                     paused = true;
-                    VideoPlayer.this.emit("pause", paused);
+                    VideoPlayer.this.emit("pause", true);
                     if (player != null)
                         player.setPlayWhenReady(false);
                 }
@@ -820,9 +820,9 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 if (!isSupported) {
                     continue;
                 }
-                Log.d(TAG, "track[" + groupIdx + "." + i + "]: supported: " + isSupported +", selected: " + isSelected + ", format: " + trackFormat.toString());
+                Log.d(TAG, "track[" + groupIdx + "." + i + "]: selected: " + isSelected + ", format: " + trackFormat);
                 V8Object track = new V8Object(v8);
-                track.add("id", String.valueOf(groupIdx) + "." + String.valueOf(i));
+                track.add("id", groupIdx + "." + i);
                 track.add("active", isSelected);
                 track.add("language", trackFormat.language);
                 track.add("label", trackFormat.label);

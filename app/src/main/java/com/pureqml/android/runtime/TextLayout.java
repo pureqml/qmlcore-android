@@ -1,10 +1,10 @@
 package com.pureqml.android.runtime;
 
+import androidx.annotation.NonNull;
 import android.graphics.Paint;
 
 import java.util.LinkedList;
 import java.util.List;
-import android.util.Log;
 
 public final class TextLayout {
     public static final String TAG = "TextLayout";
@@ -24,6 +24,7 @@ public final class TextLayout {
             this.width = width;
         }
 
+        @NonNull
         public String toString() {
             return start + "-" + end + " (" + width + "px)";
         }
@@ -60,20 +61,7 @@ public final class TextLayout {
         while(begin < end) {
             int n = paint.breakText(text, begin, end, true, maxWidth, measuredWidth);
             if (!anywhere && begin + n < text.length()) {
-                int new_end = begin + n;
-                if (new_end > end) {
-                    //end of the string - nothing to wrap
-                    new_end = end;
-                }
-                else {
-                    if (new_end < text.length() && !isWhitespace(text.charAt(new_end))) {
-                        //only start stripping if next char is not a whitespace
-                        while (new_end > begin && !isWhitespace(text.charAt(new_end - 1))) {
-                            --new_end;
-                        }
-                        //new_end - 1 is pointing to the last whitespace char.
-                    }
-                }
+                int new_end = getNewEnd(begin, end, n);
                 //fixme: skip whitespaces?
                 if (new_end > begin) {
                     n = new_end - begin;
@@ -87,6 +75,25 @@ public final class TextLayout {
         }
     }
 
+    private int getNewEnd(int begin, int end, int n) {
+        int new_end = begin + n;
+        if (new_end > end) {
+            //end of the string - nothing to wrap
+            new_end = end;
+        }
+        else {
+            if (new_end < text.length() && !isWhitespace(text.charAt(new_end))) {
+                //only start stripping if next char is not a whitespace
+                while (new_end > begin && !isWhitespace(text.charAt(new_end - 1))) {
+                    --new_end;
+                }
+                //new_end - 1 is pointing to the last whitespace char.
+            }
+        }
+        return new_end;
+    }
+
+    @NonNull
     public String toString() {
         StringBuilder b = new StringBuilder();
         b.append("{ text: ");

@@ -112,52 +112,41 @@ public final class Timers {
 
         Log.i(TAG, "registering API functions...");
         V8 v8 = env.getRuntime();
-        v8.registerJavaMethod(new JavaCallback() {
-            @Override
-            public Object invoke(V8Object v8Object, V8Array arguments) {
-                Handler handler = _handler;
-                if (handler == null) {
-                    Log.w(TAG, "skipping setTimeout, timer is dead");
-                    return -1;
-                }
-                int timeout = arguments.getInteger(1);
-                int id = _nextId++;
-                Task task = new Task(id, arguments.getObject(0), timeout,true);
-                _tasks.put(id, task);
-                handler.postDelayed(task, timeout);
-                arguments.close();
-                return id;
+        v8.registerJavaMethod((v8Object, arguments) -> {
+            Handler handler = _handler;
+            if (handler == null) {
+                Log.w(TAG, "skipping setTimeout, timer is dead");
+                return -1;
             }
+            int timeout = arguments.getInteger(1);
+            int id = _nextId++;
+            Task task = new Task(id, arguments.getObject(0), timeout,true);
+            _tasks.put(id, task);
+            handler.postDelayed(task, timeout);
+            arguments.close();
+            return id;
         }, "setTimeout");
-        v8.registerJavaMethod(new JavaCallback() {
-            @Override
-            public Object invoke(V8Object v8Object, V8Array arguments) {
-                Handler handler = _handler;
-                if (handler == null) {
-                    Log.w(TAG, "skipping setInterval, timer is dead");
-                    return -1;
-                }
-                int period = arguments.getInteger(1);
-                int id = _nextId++;
-                Task task = new Task(id, arguments.getObject(0), period,false);
-                _tasks.put(id, task);
-                handler.postDelayed(task, period);
-                arguments.close();
-                return id;
+        v8.registerJavaMethod((v8Object, arguments) -> {
+            Handler handler = _handler;
+            if (handler == null) {
+                Log.w(TAG, "skipping setInterval, timer is dead");
+                return -1;
             }
+            int period = arguments.getInteger(1);
+            int id = _nextId++;
+            Task task = new Task(id, arguments.getObject(0), period,false);
+            _tasks.put(id, task);
+            handler.postDelayed(task, period);
+            arguments.close();
+            return id;
         }, "setInterval");
-        JavaVoidCallback cancel = new JavaVoidCallback() {
-            @Override
-            public void invoke(V8Object v8Object, V8Array arguments) {
-                int id = arguments.getInteger(0);
-                //callback will leak here, fixme
-                Task task = _tasks.get(id);
-                if (task != null) {
-                    task.cancel();
-                    _tasks.remove(id);
-                } else {
-                    //Log.v(TAG, "invalid/completed task " + id  + " cancelled");
-                }
+        JavaVoidCallback cancel = (v8Object, arguments) -> {
+            int id = arguments.getInteger(0);
+            //callback will leak here, fixme
+            Task task = _tasks.get(id);
+            if (task != null) {
+                task.cancel();
+                _tasks.remove(id);
             }
         };
         v8.registerJavaMethod(cancel, "clearTimeout");

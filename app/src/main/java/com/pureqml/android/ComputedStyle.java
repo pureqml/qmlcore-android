@@ -1,7 +1,9 @@
 package com.pureqml.android;
 
-import android.graphics.Typeface;
+import androidx.annotation.NonNull;
 import android.util.Log;
+
+import java.util.Locale;
 
 public final class ComputedStyle {
     private static final String TAG = "ComputedStyle";
@@ -33,8 +35,9 @@ public final class ComputedStyle {
         );
     }
 
+    @NonNull
     public String toString() {
-        return String.format("font-family: %s; font-weight: %d; font-size: %d; line-height: %g", fontFamily, fontWeight, fontSize, lineHeight);
+        return String.format(Locale.getDefault(), "font-family: %s; font-weight: %d; font-size: %d; line-height: %g", fontFamily, fontWeight, fontSize, lineHeight);
     }
 
     public static int parseFontWeight(Object value) {

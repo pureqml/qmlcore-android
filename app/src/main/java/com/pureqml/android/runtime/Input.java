@@ -35,22 +35,17 @@ public final class Input extends Element {
 
         Context context = env.getContext();
         view = new EditText(context);
-        viewHolder = new ViewHolder<>(context, view);
+        viewHolder = new ViewHolder<>(view);
 
-        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        view.setOnFocusChangeListener((v, hasFocus) -> _env.getExecutor().execute(new SafeRunnable() {
             @Override
-            public void onFocusChange(final View v, final boolean hasFocus) {
-                _env.getExecutor().execute(new SafeRunnable() {
-                    @Override
-                    public void doRun() {
-                        if (v == view) {
-                            Log.i(TAG, "on focus changed: " + hasFocus + " " + v.isFocused());
-                            Input.this.emitFocusEvent(hasFocus);
-                        }
-                    }
-                });
+            public void doRun() {
+                if (v == view) {
+                    Log.i(TAG, "on focus changed: " + hasFocus + " " + v.isFocused());
+                    Input.this.emitFocusEvent(hasFocus);
+                }
             }
-        });
+        }));
 
         view.addTextChangedListener(new TextWatcher() {
             @Override
@@ -64,18 +59,15 @@ public final class Input extends Element {
                 Input.this.setValue(s.toString());
             }
         });
-        view.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                Log.d(TAG, "onEditorAction: " + actionId);
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    Log.i(TAG, "IME_ACTION_DONE");
-                    _env.blockUiInput(false);
-                    _env.focusView(v, false);
-                    Input.this.emitChangeEvent();
-                }
-                return false;
+        view.setOnEditorActionListener((v, actionId, event) -> {
+            Log.d(TAG, "onEditorAction: " + actionId);
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                Log.i(TAG, "IME_ACTION_DONE");
+                _env.blockUiInput(false);
+                _env.focusView(v, false);
+                Input.this.emitChangeEvent();
             }
+            return false;
         });
     }
 
@@ -127,48 +119,59 @@ public final class Input extends Element {
         if (value == null)
             throw new NullPointerException("setAttribute " + name);
 
-        if (name.equals("placeholder")) {
-            placeholder = value;
-            _env.getRootView().post(new SafeRunnable() {
-                @Override
-                public void doRun() {
-                    view.setHint(placeholder);
-            }});
-        } else if (name.equals("value")) {
-            this.value = value;
-            _env.getRootView().post(new SafeRunnable() {
-                @Override
-                public void doRun() {
-                    view.setText(value);
-                }
-            });
-        } else if (name.equals("inputmode")) {
-            inputmode = value;
-            updateNativeInputType();
-        } else if (name.equals("type")) {
-            type = value;
-            updateNativeInputType();
-        } else if (name.equals("autocomplete")) {
-            autocomplete = value;
-            updateNativeInputType();
-        } else
-            super.setAttribute(name, value);
+        switch (name) {
+            case "placeholder":
+                placeholder = value;
+                _env.getRootView().post(new SafeRunnable() {
+                    @Override
+                    public void doRun() {
+                        view.setHint(placeholder);
+                    }
+                });
+                break;
+            case "value":
+                this.value = value;
+                _env.getRootView().post(new SafeRunnable() {
+                    @Override
+                    public void doRun() {
+                        view.setText(value);
+                    }
+                });
+                break;
+            case "inputmode":
+                inputmode = value;
+                updateNativeInputType();
+                break;
+            case "type":
+                type = value;
+                updateNativeInputType();
+                break;
+            case "autocomplete":
+                autocomplete = value;
+                updateNativeInputType();
+                break;
+            default:
+                super.setAttribute(name, value);
+                break;
+        }
     }
 
     @Override
     public String getAttribute(String name) {
-        if (name.equals("placeholder"))
-            return placeholder;
-        else if (name.equals("value"))
-            return value;
-        else if (name.equals("type"))
-            return type;
-        else if (name.equals("inputmode"))
-            return inputmode;
-        else if (name.equals("autocomplete"))
-            return autocomplete;
-        else
-            return super.getAttribute(name);
+        switch (name) {
+            case "placeholder":
+                return placeholder;
+            case "value":
+                return value;
+            case "type":
+                return type;
+            case "inputmode":
+                return inputmode;
+            case "autocomplete":
+                return autocomplete;
+            default:
+                return super.getAttribute(name);
+        }
     }
 
     @Override
@@ -252,7 +255,7 @@ public final class Input extends Element {
 
         if (!rect.isEmpty()) {
             rect.offsetTo(state.baseX, state.baseY);
-            Log.i(TAG, "input layout " + rect.toString());
+            Log.i(TAG, "input layout " + rect);
             viewHolder.setRect(_env.getRootView(), rect);
         }
 

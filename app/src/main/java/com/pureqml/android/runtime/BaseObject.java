@@ -107,7 +107,7 @@ public class BaseObject {
         for(V8Function callback : callbacks) {
             try {
                 Boolean r = (Boolean)callback.call(target, v8args);
-                if (r.booleanValue()) {
+                if (r) {
                     result = true;
                     break;
                 }

@@ -49,6 +49,6 @@ public interface IExecutionEnvironment {
     void focusView(View view, boolean set);
     void blockUiInput(boolean block);
 
-    public Typeface getTypeface(String fontFamily, int fontWeight, boolean italic);
+    Typeface getTypeface(String fontFamily, int fontWeight, boolean italic);
     ComputedStyle getDefaultStyle(String selector);
 }

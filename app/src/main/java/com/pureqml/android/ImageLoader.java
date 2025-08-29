@@ -79,7 +79,7 @@ public final class ImageLoader {
         public void doRun() {
             Log.i(TAG, "starting loading task on " + _url);
             try {
-                InputStream rawStream = null;
+                InputStream rawStream;
                 if (_url.getProtocol().equals("file")) {
                     String path = _url.getPath();
                     int pos = 0;

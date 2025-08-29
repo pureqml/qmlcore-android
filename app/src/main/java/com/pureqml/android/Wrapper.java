@@ -108,33 +108,29 @@ final class Wrapper {
                 int id = obj.getObjectId();
                 self.add(UNIQUE_ID_KEY, id);
                 _env.putObject(id, obj);
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                Log.e(TAG, "invoke error", e);
             }
         }
     }
 
     public static V8Object generateClass(IExecutionEnvironment env, V8 v8, V8Object namespace, String className, Class<?> cls, Class<?>[] ctorArgs) {
+        Constructor<?> ctor;
         try {
-            Constructor<?> ctor = cls.getConstructor(ctorArgs);
-            namespace.registerJavaMethod(new ConstructorWrapper(env, ctor), className);
-
-            V8Object function = namespace.getObject(className);
-            V8Object prototype = function.getObject("prototype");
-
-            generatePrototype(env, v8, prototype, cls);
-
-            function.close();
-
-            return prototype;
+            ctor = cls.getConstructor(ctorArgs);
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
+        namespace.registerJavaMethod(new ConstructorWrapper(env, ctor), className);
+
+        V8Object function = namespace.getObject(className);
+        V8Object prototype = function.getObject("prototype");
+
+        generatePrototype(env, v8, prototype, cls);
+
+        function.close();
+
+        return prototype;
     }
 
     public static int getObjectId(V8Object obj) {

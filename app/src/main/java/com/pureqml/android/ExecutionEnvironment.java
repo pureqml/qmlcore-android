@@ -29,8 +29,6 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.Nullable;
-
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.Releasable;
@@ -59,6 +57,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -211,7 +210,6 @@ public final class ExecutionEnvironment extends Service
         }
     }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return _binder;
@@ -244,25 +242,22 @@ public final class ExecutionEnvironment extends Service
 
                 try {
                     UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-                    switch (uiModeManager.getCurrentModeType()) {
-                        case Configuration.UI_MODE_TYPE_TELEVISION:
+                    if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
+                        Log.i(TAG, "Running on TV device");
+                        info.add("device", DeviceTV);
+                    } else {
+                        PackageManager pm = getContext().getPackageManager();
+                        FeatureInfo[] features = pm.getSystemAvailableFeatures();
+                        for (FeatureInfo feature : features) {
+                            Log.v(TAG, "Available system feature: " + feature.name);
+                        }
+                        if (pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+                            Log.i(TAG, "Running on mobile device");
+                            info.add("device", DeviceMobile);
+                        } else {
                             Log.i(TAG, "Running on TV device");
                             info.add("device", DeviceTV);
-                            break;
-                        default:
-                            PackageManager pm = getContext().getPackageManager();
-                            FeatureInfo features[] = pm.getSystemAvailableFeatures();
-                            for(int i = 0; i < features.length; ++i) {
-                                Log.v(TAG, "Available system feature: " + features[i].name);
-                            }
-                            if (pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
-                                Log.i(TAG, "Running on mobile device");
-                                info.add("device", DeviceMobile);
-                            } else {
-                                Log.i(TAG, "Running on TV device");
-                                info.add("device", DeviceTV);
-                            }
-                            break;
+                        }
                     }
                 } catch(Exception ex) {
                     Log.e(TAG, "getCurrentModeType", ex);
@@ -271,94 +266,82 @@ public final class ExecutionEnvironment extends Service
             }
         }, "getDeviceInfo");
 
-        v8FD.registerJavaMethod(new JavaVoidCallback() {
-            @Override
-            public void invoke(V8Object v8Object, V8Array v8Array) {
-                Log.i(TAG, "setDeviceFeature: " + v8Array);
-                if (v8Array.length() < 2)
-                    throw new RuntimeException("setDevice feature requires two arguments");
-                String name = v8Array.get(0).toString();
-                switch(name) {
-                    case "orientation":
-                        _orientation = v8Array.get(1).toString();
-                        if (_renderer != null)
-                            _renderer.lockOrientation(_orientation);
-                        break;
-                    case "fullscreen":
-                        _fullScreen = TypeConverter.toBoolean(v8Array.get(1));
-                        if (_renderer != null)
-                            _renderer.setFullScreen(_fullScreen);
-                        break;
-                    case "keep-screen-on":
-                        _keepScreenOn = TypeConverter.toBoolean(v8Array.get(1));
-                        if (_renderer != null)
-                            _renderer.keepScreenOn(_keepScreenOn);
-                        break;
-                    default:
-                        Log.w(TAG, "skipping device feature " + v8Array);
-                }
+        v8FD.registerJavaMethod((v8Object, v8Array) -> {
+            Log.i(TAG, "setDeviceFeature: " + v8Array);
+            if (v8Array.length() < 2)
+                throw new RuntimeException("setDevice feature requires two arguments");
+            String name = v8Array.get(0).toString();
+            switch(name) {
+                case "orientation":
+                    _orientation = v8Array.get(1).toString();
+                    if (_renderer != null)
+                        _renderer.lockOrientation(_orientation);
+                    break;
+                case "fullscreen":
+                    _fullScreen = TypeConverter.toBoolean(v8Array.get(1));
+                    if (_renderer != null)
+                        _renderer.setFullScreen(_fullScreen);
+                    break;
+                case "keep-screen-on":
+                    _keepScreenOn = TypeConverter.toBoolean(v8Array.get(1));
+                    if (_renderer != null)
+                        _renderer.keepScreenOn(_keepScreenOn);
+                    break;
+                default:
+                    Log.w(TAG, "skipping device feature " + v8Array);
             }
         }, "setDeviceFeature");
 
-        v8FD.registerJavaMethod(new JavaVoidCallback() {
-            @Override
-            public void invoke(V8Object v8Object, V8Array v8Array) {
-                HttpRequest.request(ExecutionEnvironment.this, v8Array);
-            }
+        v8FD.registerJavaMethod((v8Object, v8Array) -> {
+            HttpRequest.request(ExecutionEnvironment.this, v8Array);
         }, "httpRequest");
 
-        v8FD.registerJavaMethod(new JavaVoidCallback() {
-            @Override
-            public void invoke(V8Object v8Object, V8Array v8Array) {
-                Log.i(TAG, "closing App: " + v8Array);
-                if (_renderer != null)
-                    _renderer.closeApp();
-            }
+        v8FD.registerJavaMethod((v8Object, v8Array) -> {
+            Log.i(TAG, "closing App: " + v8Array);
+            if (_renderer != null)
+                _renderer.closeApp();
         }, "closeApp");
 
-        v8FD.registerJavaMethod(new JavaVoidCallback() {
-            @Override
-            public void invoke(V8Object v8Object, V8Array v8Array) {
-                if (v8Array.length() < 2)
-                    throw new RuntimeException("style() requires two arguments: selector and rules");
-                String selector = v8Array.get(0).toString();
-                if (!(v8Array.get(1) instanceof V8Object))
-                    throw new RuntimeException("style() requires rules object");
-                Log.v(TAG, "adding style for " + selector);
-                V8Object rules = (V8Object)v8Array.get(1);
-                String fontFamily = null;
-                int fontWeight = 0;
-                int fontSize = -1;
-                Float lineHeight = null;
+        v8FD.registerJavaMethod((v8Object, v8Array) -> {
+            if (v8Array.length() < 2)
+                throw new RuntimeException("style() requires two arguments: selector and rules");
+            String selector = v8Array.get(0).toString();
+            if (!(v8Array.get(1) instanceof V8Object))
+                throw new RuntimeException("style() requires rules object");
+            Log.v(TAG, "adding style for " + selector);
+            V8Object rules = (V8Object)v8Array.get(1);
+            String fontFamily = null;
+            int fontWeight = 0;
+            int fontSize = -1;
+            Float lineHeight = null;
 
-                Object fontFamilyRule = rules.get("font-family");
-                if (!TypeConverter.isUndefined(fontFamilyRule))
-                    fontFamily = fontFamilyRule.toString();
+            Object fontFamilyRule = rules.get("font-family");
+            if (!TypeConverter.isUndefined(fontFamilyRule))
+                fontFamily = fontFamilyRule.toString();
 
-                Object fontWeightRule = rules.get("font-weight");
-                if (!TypeConverter.isUndefined(fontWeightRule)) {
-                    String fontWeightStr = fontWeightRule.toString();
-                    fontWeight = ComputedStyle.parseFontWeight(fontWeightStr);
+            Object fontWeightRule = rules.get("font-weight");
+            if (!TypeConverter.isUndefined(fontWeightRule)) {
+                String fontWeightStr = fontWeightRule.toString();
+                fontWeight = ComputedStyle.parseFontWeight(fontWeightStr);
+            }
+
+            Object fontSizeRule = rules.get("font-size");
+            if (!TypeConverter.isUndefined(fontSizeRule))
+                fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
+
+            Object lineHeightRule = rules.get("line-height");
+            if (!TypeConverter.isUndefined(lineHeightRule)) {
+                try {
+                    lineHeight = Float.parseFloat(lineHeightRule.toString());
+                } catch(Exception ex) {
+                    Log.w(TAG, "failed to parse line-height: " + lineHeightRule, ex);
                 }
+            }
 
-                Object fontSizeRule = rules.get("font-size");
-                if (!TypeConverter.isUndefined(fontSizeRule))
-                    fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
-
-                Object lineHeightRule = rules.get("line-height");
-                if (!TypeConverter.isUndefined(lineHeightRule)) {
-                    try {
-                        lineHeight = Float.parseFloat(lineHeightRule.toString());
-                    } catch(Exception ex) {
-                        Log.w(TAG, "failed to parse line-height: " + lineHeightRule, ex);
-                    }
-                }
-
-                if (fontFamily != null || fontWeight > 0 || fontSize >= 0 || lineHeight != null) {
-                    ComputedStyle style = new ComputedStyle(fontFamily, fontWeight, fontSize, lineHeight);
-                    Log.v(TAG, "computed style: " + style);
-                    defaultStyleForClass.put(selector, style);
-                }
+            if (fontFamily != null || fontWeight > 0 || fontSize >= 0 || lineHeight != null) {
+                ComputedStyle style = new ComputedStyle(fontFamily, fontWeight, fontSize, lineHeight);
+                Log.v(TAG, "computed style: " + style);
+                defaultStyleForClass.put(selector, style);
             }
         }, "style");
 
@@ -414,7 +397,7 @@ public final class ExecutionEnvironment extends Service
 
         int fontFamilyOffset = 0;
         int fontFamilyLength = 0;
-        int nameStringOffset = 0;
+        int nameStringOffset;
         try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
             dis.skipBytes(nameOffset);
             short format = dis.readShort();
@@ -444,7 +427,7 @@ public final class ExecutionEnvironment extends Service
             byte[] fontFamilyBytes = new byte[fontFamilyLength];
             if (dis.read(fontFamilyBytes) != fontFamilyLength)
                 throw new RuntimeException("font family short read");
-            return Font.parse(new String(fontFamilyBytes, "UTF-16BE"));
+            return Font.parse(new String(fontFamilyBytes, StandardCharsets.UTF_16BE));
         }
     }
 
@@ -484,7 +467,7 @@ public final class ExecutionEnvironment extends Service
         public int compareTo(TypefaceEntry o) {
             return family.compareTo(o.family);
         }
-    };
+    }
     private final Map<String, ArrayList<TypefaceEntry>> typefaces = new HashMap<>();
 
     @Override
@@ -636,48 +619,45 @@ public final class ExecutionEnvironment extends Service
 
     @Override
     public void onDestroy() {
-        Future<Void> future = _executor.submit(new Callable<Void>() {
+        Future<Void> future = _executor.submit(() -> {
+        _timers.discard();
+
+        try { _rootObject.executeVoidFunction("discard", null); }
+        catch(Exception e) { Log.e(TAG, "discard failed", e); }
+
+        Vector<BaseObject> objects = new Vector<>(_objects.values());
+        for(BaseObject o : objects) {
+            if (o != null)
+                o.discard();
+        }
+
+        if (_rootElement != null) {
+            _rootElement.discard();
+            _rootElement = null;
+        }
+
+        _executor.execute(new SafeRunnable() {
             @Override
-            public Void call() {
-            _timers.discard();
-
-            try { _rootObject.executeVoidFunction("discard", null); }
-            catch(Exception e) { Log.e(TAG, "discard failed", e); }
-
-            Vector<BaseObject> objects = new Vector<>(_objects.values());
-            for(BaseObject o : objects) {
-                if (o != null)
-                    o.discard();
-            }
-
-            if (_rootElement != null) {
-                _rootElement.discard();
-                _rootElement = null;
-            }
-
-            _executor.execute(new SafeRunnable() {
-                @Override
-                public void doRun() {
-                    if (_rootObject != null) {
-                        _rootObject.close();
-                        _rootObject = null;
-                    }
-                    if (_exports != null) {
-                        _exports.close();
-                        _exports = null;
-                    }
-
-                    _objects.clear();
-                    try {
-                        _v8Scope.release();
-                        _v8Scope = null;
-                        _v8.close();
-                        _v8 = null;
-                    } catch (Exception ex) { Log.w(TAG, "v8 shutdown", ex); }
+            public void doRun() {
+                if (_rootObject != null) {
+                    _rootObject.close();
+                    _rootObject = null;
                 }
-            });
-            return null;
+                if (_exports != null) {
+                    _exports.close();
+                    _exports = null;
+                }
+
+                _objects.clear();
+                try {
+                    _v8Scope.release();
+                    _v8Scope = null;
+                    _v8.close();
+                    _v8 = null;
+                } catch (Exception ex) { Log.w(TAG, "v8 shutdown", ex); }
             }
+        });
+        return null;
         });
         try {
             future.get();
@@ -685,11 +665,7 @@ public final class ExecutionEnvironment extends Service
             Log.e(TAG, "stopping environment failed", e);
         }
         Log.i(TAG, "shutting down main executor...");
-        _executor.shutdown();
-        try
-        { _executor.awaitTermination(3, TimeUnit.SECONDS); }
-        catch(Exception ex)
-        { _executor.shutdownNow(); }
+        _executor.close();
         Log.i(TAG, "main executor shut down");
 
         _executor = null;
@@ -757,7 +733,7 @@ public final class ExecutionEnvironment extends Service
         return _imageLoader;
     }
 
-    protected void setSurfaceFrame(final Rect rect) {
+    void setSurfaceFrame(final Rect rect) {
         _executor.execute(new SafeRunnable() {
             @Override
             public void doRun() {
@@ -891,17 +867,14 @@ public final class ExecutionEnvironment extends Service
     }
 
     public Future<Boolean> sendEvent(final String keyName, final KeyEvent event) {
-        return _executor.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                try {
-                    boolean r = _rootElement != null && _rootElement.sendEvent(keyName, event);
-                    Log.v(TAG, "key processed = " + r);
-                    return r;
-                } catch(Exception e) {
-                    Log.e(TAG, "key handler failed", e);
-                    return false;
-                }
+        return _executor.submit(() -> {
+            try {
+                boolean r = _rootElement != null && _rootElement.sendEvent(keyName, event);
+                Log.v(TAG, "key processed = " + r);
+                return r;
+            } catch(Exception e) {
+                Log.e(TAG, "key handler failed", e);
+                return false;
             }
         });
     }
@@ -917,18 +890,13 @@ public final class ExecutionEnvironment extends Service
                 eventId = _eventId;
             }
         }
-        return _executor.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                try {
-                    Log.v(TAG,"touch coordinates " + event.getX() + ", " + event.getY() + ", id: " + eventId);
-                    boolean r = _rootElement != null && _rootElement.sendEvent(eventId, (int) event.getX(), (int) event.getY(), event);
-                    //Log.v(TAG, "click processed = " + r);
-                    return r;
-                } catch(Exception e) {
-                    Log.e(TAG, "click handler failed", e);
-                    return false;
-                }
+        return _executor.submit(() -> {
+            try {
+                Log.v(TAG,"touch coordinates " + event.getX() + ", " + event.getY() + ", id: " + eventId);
+                return _rootElement != null && _rootElement.sendEvent(eventId, (int) event.getX(), (int) event.getY(), event);
+            } catch(Exception e) {
+                Log.e(TAG, "click handler failed", e);
+                return false;
             }
         });
     }

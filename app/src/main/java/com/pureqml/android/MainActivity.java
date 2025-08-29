@@ -1,5 +1,7 @@
 package com.pureqml.android;
 
+import androidx.annotation.NonNull;
+
 import android.annotation.SuppressLint;
 import android.content.ComponentCallbacks2;
 import android.content.ComponentName;
@@ -26,7 +28,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.window.OnBackInvokedDispatcher;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
@@ -35,7 +36,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.pureqml.android.runtime.Element;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 public final class MainActivity
@@ -198,7 +198,7 @@ public final class MainActivity
         }
 
         @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
+        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
             Log.i(TAG, "surface destroyed");
             synchronized (MainActivity.this) {
                 if (_executionEnvironment != null)
@@ -208,7 +208,7 @@ public final class MainActivity
         }
 
         @Override
-        public void surfaceRedrawNeeded(SurfaceHolder holder) {
+        public void surfaceRedrawNeeded(@NonNull SurfaceHolder holder) {
             Log.i(TAG, "redraw needed");
             if (_executionEnvironment != null)
                 fullRedraw();
@@ -243,20 +243,17 @@ public final class MainActivity
         }
 
 
-        _mainView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (Log.isLoggable(TAG, Log.VERBOSE)) {
-                    Log.v(TAG, "motion " + event.toString());
-                }
-                if (_executionEnvironment == null)
-                    return false;
-                try {
-                    return _executionEnvironment.sendEvent(event).get();
-                } catch (Exception e) {
-                    Log.e(TAG, "execution exception", e);
-                    return false;
-                }
+        _mainView.setOnTouchListener((v, event) -> {
+            if (Log.isLoggable(TAG, Log.VERBOSE)) {
+                Log.v(TAG, "motion " + event.toString());
+            }
+            if (_executionEnvironment == null)
+                return false;
+            try {
+                return _executionEnvironment.sendEvent(event).get();
+            } catch (Exception e) {
+                Log.e(TAG, "execution exception", e);
+                return false;
             }
         });
 
@@ -344,13 +341,10 @@ public final class MainActivity
             if (executor == null)
                 return false;
 
-            boolean result = executor.submit(new Callable<Boolean>() {
-                @Override
-                public Boolean call() {
-                    Log.d(TAG, "back pressed, calling Context.processKey");
-                    Element context = _executionEnvironment.getRootElement();
-                    return context.emitUntilTrue(null, "keydown", "Back");
-                }
+            boolean result = executor.submit(() -> {
+                Log.d(TAG, "back pressed, calling Context.processKey");
+                Element context = _executionEnvironment.getRootElement();
+                return context.emitUntilTrue(null, "keydown", "Back");
             }).get();
             Log.d(TAG, "key handler finishes with " + result);
             return result;

@@ -1,7 +1,10 @@
 package com.pureqml.android;
 
+import androidx.annotation.NonNull;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 public final class Font implements Comparable<Font> {
     public final String family;
@@ -12,13 +15,15 @@ public final class Font implements Comparable<Font> {
         this.weight = weight;
         this.italic = italic;
     }
+
+    @NonNull
     public String toString() {
-        return String.format("Font { %s, weight: %d, italic: %s}", family, weight, italic);
+        return String.format(Locale.getDefault(), "Font { %s, weight: %d, italic: %s}", family, weight, italic);
     }
     public static Font parse(String name) {
         int weight = 400; //Regular
         boolean italic = false;
-        List<String> filtered = new LinkedList<String>();
+        List<String> filtered = new LinkedList<>();
         for(String token : name.split("\\s+")) {
             switch (token) {
                 case "Italic":
