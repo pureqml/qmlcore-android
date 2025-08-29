@@ -47,6 +47,7 @@ import com.pureqml.android.TypeConverter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import static androidx.media3.common.C.TIME_UNSET;
 
@@ -223,7 +224,12 @@ public final class VideoPlayer extends BaseObject implements IResource {
     }
 
     public void emit(String name, Object ... args) {
-        _env.getExecutor().execute(new SafeRunnable() {
+        ExecutorService executor = _env.getExecutor();
+        if (executor == null) {
+            Log.w(TAG, "no executor, skipping event " + name);
+            return;
+        }
+        executor.execute(new SafeRunnable() {
             @Override
             public void doRun() {
                 VideoPlayer.this.emit(null, name, args);

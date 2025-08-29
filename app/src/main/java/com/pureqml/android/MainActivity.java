@@ -36,6 +36,7 @@ import com.pureqml.android.runtime.Element;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 public final class MainActivity
         extends AppCompatActivity
@@ -338,9 +339,12 @@ public final class MainActivity
     }
 
     private boolean processBack() {
-        boolean result = false;
         try {
-            result = _executionEnvironment.getExecutor().submit(new Callable<Boolean>() {
+            ExecutorService executor = _executionEnvironment.getExecutor();
+            if (executor == null)
+                return false;
+
+            boolean result = executor.submit(new Callable<Boolean>() {
                 @Override
                 public Boolean call() {
                     Log.d(TAG, "back pressed, calling Context.processKey");
@@ -349,10 +353,11 @@ public final class MainActivity
                 }
             }).get();
             Log.d(TAG, "key handler finishes with " + result);
-        } catch (ExecutionException | InterruptedException e) {
+            return result;
+        } catch (Exception e) {
             Log.e(TAG, "onBackPressed", e);
         }
-        return result;
+        return false;
     }
 
     @Override
