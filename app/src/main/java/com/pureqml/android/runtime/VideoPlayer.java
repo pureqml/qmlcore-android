@@ -13,11 +13,16 @@ import android.view.SurfaceView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
+import androidx.media3.common.C;
+import androidx.media3.common.Format;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.common.Timeline;
+import androidx.media3.common.TrackGroup;
+import androidx.media3.common.TrackSelectionOverride;
+import androidx.media3.common.Tracks;
 import androidx.media3.common.VideoSize;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DataSource;
@@ -36,9 +41,11 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
 
+import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.V8Value;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
 import com.pureqml.android.SafeRunnable;
@@ -201,6 +208,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private boolean                     paused = false;
     private Runnable                    pollingTask = null;
 
+    private Tracks                      tracks = null;
+
     //exoplayer flags
     private int                         hlsExtractorFlags = 0;
     private boolean                     exposeCea608WhenMissingDeclarations = true;
@@ -291,6 +300,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
                         .setAllowVideoMixedMimeTypeAdaptiveness(true)
                         .setAllowAudioMixedMimeTypeAdaptiveness(true)
                         .setAllowVideoNonSeamlessAdaptiveness(true)
+                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, /* disabled= */ true)
         );
 
         player = new ExoPlayer.Builder(context)
@@ -366,6 +376,24 @@ public final class VideoPlayer extends BaseObject implements IResource {
             @Override
             public void onRenderedFirstFrame() {
                 Log.v(TAG, "onRenderedFirstFrame");
+            }
+
+            @Override
+            public void onTracksChanged(Tracks tracks) {
+                Log.v(TAG, "onTracksChanged");
+                int groupIdx = 0;
+                for (Tracks.Group trackGroup : tracks.getGroups()) {
+                    Log.d(TAG, "TrackGroup type: " + trackGroup.getType() + ", id: " + trackGroup.getMediaTrackGroup().id);
+                    for (int i = 0; i < trackGroup.length; i++) {
+                        // Individual track information.
+                        boolean isSupported = trackGroup.isTrackSupported(i);
+                        boolean isSelected = trackGroup.isTrackSelected(i);
+                        Format trackFormat = trackGroup.getTrackFormat(i);
+                        Log.d(TAG, "track[" + groupIdx + "." + i + "]: supported: " + isSupported +", selected: " + isSelected + ", format: " + trackFormat.toString());
+                    }
+                    ++groupIdx;
+                }
+                VideoPlayer.this.tracks = tracks;
             }
         });
 
@@ -597,6 +625,82 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void setRect(int l, int t, int r, int b) {
         setRect(new Rect(l, t, r, b));
+    }
+
+    public Object getSubtitles() {
+        Log.v(TAG, "getSubtitles()");
+        V8 v8 = _env.getRuntime();
+        V8Array subs = new V8Array(v8);
+        if (tracks != null) {
+            int groupIdx = 0;
+            for (Tracks.Group trackGroup : tracks.getGroups()) {
+                if (trackGroup.getType() != C.TRACK_TYPE_TEXT)
+                    continue;
+                for (int i = 0; i < trackGroup.length; i++) {
+                    // Individual track information.
+                    boolean isSupported = trackGroup.isTrackSupported(i);
+                    boolean isSelected = trackGroup.isTrackSelected(i);
+                    Format trackFormat = trackGroup.getTrackFormat(i);
+                    if (!isSupported) {
+                        continue;
+                    }
+                    Log.d(TAG, "track[" + groupIdx + "." + i + "]: supported: " + isSupported +", selected: " + isSelected + ", format: " + trackFormat.toString());
+                    V8Object track = new V8Object(v8);
+                    track.add("id", String.valueOf(groupIdx) + "." + String.valueOf(i));
+                    track.add("active", isSelected);
+                    track.add("language", trackFormat.language);
+                    track.add("label", trackFormat.label);
+                    subs.push(track);
+                }
+                ++groupIdx;
+            }
+        } else
+            Log.w(TAG, "no tracks registered, wait for onTracksChanged event");
+        return subs;
+    }
+
+    private void hideSubtitles() {
+        Log.i(TAG, "hideSubtitles");
+        handler.post(new SafeRunnable() {
+            @Override
+            public void doRun() {
+                player.setTrackSelectionParameters(
+                        player.getTrackSelectionParameters()
+                                .buildUpon()
+                                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, /* disabled= */ true)
+                                .build());
+            }
+        });
+    }
+
+    public void setSubtitles(String trackId) {
+        Log.d(TAG, "setSubtitles " + trackId);
+        if (trackId == null) {
+            hideSubtitles();
+            return;
+        }
+        String[] groupAndId = trackId.split("\\.");
+        if (groupAndId.length != 2)
+            throw new RuntimeException("invalid trackId format");
+
+        int groupId = Integer.parseInt(groupAndId[0]);
+        int trackIdx = Integer.parseInt(groupAndId[1]);
+        Tracks.Group trackGroup = tracks.getGroups().get(groupId);
+        Format trackFormat = trackGroup.getTrackFormat(trackIdx);
+        Log.i(TAG, "setSubtitles, group " + groupId + ", track id: " + trackIdx + ", language: " + trackFormat.language + ", label: " + trackFormat.label);
+        handler.post(new SafeRunnable() {
+            @Override
+            public void doRun() {
+                player.setTrackSelectionParameters(
+                        player.getTrackSelectionParameters()
+                                .buildUpon()
+                                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, /* disabled= */ false)
+                                .setOverrideForType(new TrackSelectionOverride(
+                                        trackGroup.getMediaTrackGroup(), trackIdx
+                                ))
+                                .build());
+            }
+        });
     }
 
     public void setHlsExtractorFlag(int flag, boolean flagSwitcher) {
