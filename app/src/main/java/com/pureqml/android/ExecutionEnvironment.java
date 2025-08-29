@@ -38,6 +38,7 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
+import com.eclipsesource.v8.utils.MemoryManager;
 import com.pureqml.android.runtime.BaseObject;
 import com.pureqml.android.runtime.Console;
 import com.pureqml.android.runtime.Element;
@@ -115,6 +116,7 @@ public final class ExecutionEnvironment extends Service
 
     private final IBinder _binder = new LocalBinder();
     private V8 _v8;
+    private MemoryManager _v8Scope;
 
     static class WeakRefList<E> extends ArrayList<WeakReference<E>> {}
 
@@ -564,6 +566,8 @@ public final class ExecutionEnvironment extends Service
 
         Log.v(TAG, "creating v8 runtime...");
         _v8 = V8.createV8Runtime();
+        Log.v(TAG, "creating v8 memory manager...");
+        _v8Scope = new MemoryManager(_v8);
         Log.v(TAG, "registering runtime...");
         registerRuntime();
 
@@ -664,7 +668,12 @@ public final class ExecutionEnvironment extends Service
                     }
 
                     _objects.clear();
-                    try { _v8.close(); } catch (Exception ex) { Log.w(TAG, "v8 shutdown", ex); }
+                    try {
+                        _v8Scope.release();
+                        _v8Scope = null;
+                        _v8.close();
+                        _v8 = null;
+                    } catch (Exception ex) { Log.w(TAG, "v8 shutdown", ex); }
                 }
             });
             return null;
@@ -672,9 +681,7 @@ public final class ExecutionEnvironment extends Service
         });
         try {
             future.get();
-        } catch (InterruptedException e) {
-            Log.e(TAG, "stopping environment failed", e);
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             Log.e(TAG, "stopping environment failed", e);
         }
         Log.i(TAG, "shutting down main executor...");
