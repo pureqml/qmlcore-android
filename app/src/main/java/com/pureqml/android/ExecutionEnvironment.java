@@ -377,7 +377,7 @@ public final class ExecutionEnvironment extends Service
         spinnerProto.setPrototype(elementProto);
         V8Object localStorageProto = Wrapper.generateClass(this, _v8, v8FD, "LocalStorage", LocalStorage.class, new Class<?>[] { IExecutionEnvironment.class });
         localStorageProto.setPrototype(objectProto);
-        V8Object videoPlayerProto = Wrapper.generateClass(this, _v8, v8FD, "VideoPlayer", VideoPlayer.class, new Class<?>[] { IExecutionEnvironment.class });
+        V8Object videoPlayerProto = Wrapper.generateClass(this, _v8, v8FD, "VideoPlayer", VideoPlayer.class, new Class<?>[] { IExecutionEnvironment.class, Element.class });
         videoPlayerProto.setPrototype(objectProto);
 
         v8FD.close();

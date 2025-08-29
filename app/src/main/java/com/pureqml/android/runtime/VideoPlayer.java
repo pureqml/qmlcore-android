@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -24,11 +25,16 @@ import androidx.media3.common.TrackGroup;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
 import androidx.media3.common.VideoSize;
+import androidx.media3.common.text.Cue;
+import androidx.media3.common.text.CueGroup;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.Renderer;
+import androidx.media3.exoplayer.RenderersFactory;
 import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
 import androidx.media3.exoplayer.source.BaseMediaSource;
@@ -38,6 +44,9 @@ import androidx.media3.exoplayer.source.MediaLoadData;
 import androidx.media3.exoplayer.source.MediaSource;
 import androidx.media3.exoplayer.source.MediaSourceEventListener;
 import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.text.SubtitleDecoderFactory;
+import androidx.media3.exoplayer.text.TextOutput;
+import androidx.media3.exoplayer.text.TextRenderer;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
 
@@ -52,7 +61,9 @@ import com.pureqml.android.SafeRunnable;
 import com.pureqml.android.TypeConverter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -188,6 +199,34 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
     };
 
+    @UnstableApi
+    private class CustomTextOutput implements TextOutput {
+        public CustomTextOutput() {
+        }
+
+        @Override
+        public void onCues(CueGroup cueGroup) {
+            Log.v(TAG, "onCues " + cueGroup.cues.size());
+            for(Cue cue : cueGroup.cues) {
+                Log.v(TAG, "Cue group " + cue.text);
+            }
+        }
+    }
+
+    @UnstableApi
+    private static class CustomRenderersFactory extends DefaultRenderersFactory {
+        private final TextOutput customTextOutput;
+
+        public CustomRenderersFactory(Context context, TextOutput textOutput) {
+            super(context);
+            this.customTextOutput = textOutput;
+        }
+
+        @Override
+        protected void buildTextRenderers(Context context, TextOutput output, Looper outputLooper, int extensionRendererMode, ArrayList<Renderer> out) {
+            out.add(new TextRenderer(customTextOutput, outputLooper));
+        }
+    }
 
     private static final String TAG = "VideoPlayer";
     private static final int PollingInterval = 500; //ms
@@ -199,6 +238,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private final Timeline.Period       period;
 
     //this is persistent state
+    private Element                     ui;
     private Rect                        rect;
     private int                         videoWidth = 0;
     private int                         videoHeight = 0;
@@ -214,8 +254,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private int                         hlsExtractorFlags = 0;
     private boolean                     exposeCea608WhenMissingDeclarations = true;
 
-    public VideoPlayer(IExecutionEnvironment env) {
+    public VideoPlayer(IExecutionEnvironment env, Element ui) {
         super(env);
+
+        this.ui = ui;
 
         HandlerThread thread = new HandlerThread(this.toString());
         thread.start();
@@ -305,6 +347,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         player = new ExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
+                .setRenderersFactory(new CustomRenderersFactory(context, new CustomTextOutput()))
                 .setLoadControl(loadControl)
                 .setLooper(handler.getLooper())
                 .build();
@@ -456,6 +499,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         DataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(_env.getContext());
 
+        SubtitleDecoderFactory subtitleDecoderFactory = SubtitleDecoderFactory.DEFAULT;
         BaseMediaSource source;
         if (url.contains(".m3u8")) { //FIXME: add proper content type here
             HlsMediaSource.Factory factory = new HlsMediaSource.Factory(dataSourceFactory);
