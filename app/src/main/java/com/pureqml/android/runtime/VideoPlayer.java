@@ -2,12 +2,16 @@ package com.pureqml.android.runtime;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.text.TextPaint;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -21,7 +25,6 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.common.Timeline;
-import androidx.media3.common.TrackGroup;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
 import androidx.media3.common.VideoSize;
@@ -34,7 +37,6 @@ import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.Renderer;
-import androidx.media3.exoplayer.RenderersFactory;
 import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
 import androidx.media3.exoplayer.source.BaseMediaSource;
@@ -54,7 +56,7 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
-import com.eclipsesource.v8.V8Value;
+import com.pureqml.android.ComputedStyle;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.IResource;
 import com.pureqml.android.SafeRunnable;
@@ -63,7 +65,6 @@ import com.pureqml.android.TypeConverter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -250,21 +251,127 @@ public final class VideoPlayer extends BaseObject implements IResource {
     //exoplayer flags
     private int                         hlsExtractorFlags = 0;
     private boolean                     exposeCea608WhenMissingDeclarations = true;
+    private static float                defaultTextSizeSP = 22;
 
-    private class PaintDelegate implements Element.PaintDelegate {
+    private static class PaintDelegate implements Element.PaintDelegate {
+        Context context;
         Element ui;
-        PaintDelegate(Element ui) { this.ui = ui; }
+        CueGroup cueGroup;
+
+        PaintDelegate(Context context, Element ui) {
+            this.context = context;
+            this.ui = ui;
+        }
 
         @Override
         public void paint(PaintState state) {
+            if (cueGroup == null || cueGroup.cues.isEmpty())
+                return;
+            Rect rect = ui.getRect();
+            float textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
+                    defaultTextSizeSP, context.getResources().getDisplayMetrics());
+            float lineHeight = textSize * ComputedStyle.DefaultLineHeight;
+            TextPaint paint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+            paint.setTextSize(textSize);
+            for(Cue cue : cueGroup.cues) {
+                if (cue.text == null && cue.bitmap == null)
+                    continue;
 
+                String[] text = cue.text != null? cue.text.toString().split("\n"): new String[0];
+                float anchorPos;
+                if (cue.position != Cue.DIMEN_UNSET) {
+                    anchorPos = rect.left + cue.position * rect.width();
+                } else {
+                    switch(cue.positionAnchor) {
+                        case Cue.ANCHOR_TYPE_START:
+                            anchorPos = rect.left;
+                            break;
+                        case Cue.ANCHOR_TYPE_END:
+                            anchorPos = rect.right;
+                            break;
+                        case Cue.ANCHOR_TYPE_MIDDLE:
+                        case Cue.TYPE_UNSET:
+                        default:
+                            anchorPos = rect.left + rect.width() / 2.0f;
+                            break;
+                    }
+                }
+
+                float linePos = 300;
+                switch(cue.lineAnchor) {
+                    case Cue.ANCHOR_TYPE_START:
+                        linePos = rect.top;
+                        break;
+                    case Cue.ANCHOR_TYPE_END:
+                        linePos = rect.bottom;
+                        break;
+                    case Cue.ANCHOR_TYPE_MIDDLE:
+                    case Cue.TYPE_UNSET:
+                    default:
+                        linePos = rect.top + rect.height() / 2.0f;
+                        break;
+                }
+
+                switch(cue.lineType) {
+                    case Cue.LINE_TYPE_FRACTION: {
+                        linePos += cue.line * rect.height();
+                        break;
+                    }
+                    case Cue.LINE_TYPE_NUMBER: {
+                        int lineCount = Math.round(rect.height() / lineHeight);
+                        int lineIdx = (int)cue.line;
+                        if (lineIdx < 0) {
+                            lineIdx += lineCount;
+                            // HLS subtitles often have line number -1 (last)
+                            // Correct it so the last line would be the last one on the screen.
+                            if (text.length > 1)
+                                lineIdx -= text.length - 1;
+                        }
+                        linePos = rect.top + (float)(lineIdx * rect.height()) / lineCount;
+                        break;
+                    }
+                    case Cue.TYPE_UNSET:
+                        break;
+                }
+
+                // vertical layouts are not supported
+                float x = anchorPos;
+                float y = linePos;
+
+                if (cue.text != null) {
+                    if (cue.textAlignment != null) {
+                        switch (cue.textAlignment) {
+                            case ALIGN_NORMAL:
+                                paint.setTextAlign(Paint.Align.LEFT);
+                                break;
+                            case ALIGN_OPPOSITE:
+                                paint.setTextAlign(Paint.Align.RIGHT);
+                                break;
+                            case ALIGN_CENTER:
+                            default:
+                                paint.setTextAlign(Paint.Align.CENTER);
+                                break;
+                        }
+                    }
+                    for(String line : text) {
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setColor(Color.BLACK);
+                        state.drawText(line, x, y, paint);
+                        paint.setStyle(Paint.Style.FILL);
+                        paint.setColor(Color.WHITE);
+                        state.drawText(line, x, y, paint);
+                        y += lineHeight;
+                    }
+                } else if (cue.bitmap != null) {
+                    Rect dstRect = new Rect((int)x, (int)y, (int)(x + cue.bitmap.getWidth()), (int)(y + cue.bitmap.getHeight()));
+                    state.drawBitmap(cue.bitmap, null, dstRect, paint);
+                }
+            }
         }
 
         void setCue(CueGroup cueGroup) {
             Log.v(TAG, "onCues " + cueGroup.cues.size());
-            for(Cue cue : cueGroup.cues) {
-                Log.v(TAG, "Cue group " + cue.text);
-            }
+            this.cueGroup = cueGroup;
             ui.update();
         }
     };
@@ -274,7 +381,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
         super(env);
 
         if (ui != null) {
-            paintDelegate = new PaintDelegate(ui);
+            paintDelegate = new PaintDelegate(env.getContext(), ui);
             ui.setPaintDelegate(paintDelegate);
         }
 
