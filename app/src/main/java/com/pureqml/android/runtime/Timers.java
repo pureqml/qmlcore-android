@@ -165,13 +165,15 @@ public final class Timers {
     }
 
     public void discard() {
-        for(int i = 0, n = _tasks.size(); i < n; ++i) {
-            Task task = _tasks.get(i, null);
+        Log.d(TAG, "discard");
+        while(_tasks.size() != 0) {
+            Task task = _tasks.valueAt(0);
             if (task != null)
                 task.cancel();
+            _tasks.removeAt(0);
         }
         _tasks.clear();
-        _handlerThread.quit();
+        _handlerThread.quitSafely();
         _handlerThread = null;
         _handler = null;
     }
