@@ -206,10 +206,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
         @Override
         public void onCues(CueGroup cueGroup) {
-            Log.v(TAG, "onCues " + cueGroup.cues.size());
-            for(Cue cue : cueGroup.cues) {
-                Log.v(TAG, "Cue group " + cue.text);
-            }
+            if (paintDelegate != null)
+                paintDelegate.setCue(cueGroup);
         }
     }
 
@@ -238,7 +236,6 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private final Timeline.Period       period;
 
     //this is persistent state
-    private Element                     ui;
     private Rect                        rect;
     private int                         videoWidth = 0;
     private int                         videoHeight = 0;
@@ -254,10 +251,32 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private int                         hlsExtractorFlags = 0;
     private boolean                     exposeCea608WhenMissingDeclarations = true;
 
+    private class PaintDelegate implements Element.PaintDelegate {
+        Element ui;
+        PaintDelegate(Element ui) { this.ui = ui; }
+
+        @Override
+        public void paint(PaintState state) {
+
+        }
+
+        void setCue(CueGroup cueGroup) {
+            Log.v(TAG, "onCues " + cueGroup.cues.size());
+            for(Cue cue : cueGroup.cues) {
+                Log.v(TAG, "Cue group " + cue.text);
+            }
+            ui.update();
+        }
+    };
+    PaintDelegate                       paintDelegate;
+
     public VideoPlayer(IExecutionEnvironment env, Element ui) {
         super(env);
 
-        this.ui = ui;
+        if (ui != null) {
+            paintDelegate = new PaintDelegate(ui);
+            ui.setPaintDelegate(paintDelegate);
+        }
 
         HandlerThread thread = new HandlerThread(this.toString());
         thread.start();

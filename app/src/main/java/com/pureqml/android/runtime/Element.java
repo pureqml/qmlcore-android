@@ -28,6 +28,9 @@ import java.util.Comparator;
 public class Element extends BaseObject {
     public static final String TAG = "rt.Element";
 
+    public interface PaintDelegate {
+        void paint(PaintState state);
+    };
     public static final class AlreadyHasAParentException extends RuntimeException {
         AlreadyHasAParentException() { super("AlreadyHasAParentException"); }
     }
@@ -80,9 +83,15 @@ public class Element extends BaseObject {
     private long                _scrollTimeBase;
     private long                _scrollTimeLast;
 
+    PaintDelegate               _paintDelegate;
+
     public Element(IExecutionEnvironment env) {
         super(env);
         addClass(_env.getDefaultStyle(getTag()));
+    }
+
+    public void setPaintDelegate(PaintDelegate paintDelegate) {
+        this._paintDelegate = paintDelegate;
     }
 
     String getTag() { return "div"; }
@@ -490,6 +499,8 @@ public class Element extends BaseObject {
     protected final void beginPaint(PaintState state) {
         _lastRect.setEmpty();
         _combinedRect.setEmpty();
+        if (_paintDelegate != null)
+            _paintDelegate.paint(state);
     }
 
     protected final void endPaint(PaintState state) {
