@@ -238,6 +238,8 @@ public final class ExecutionEnvironment extends Service
                 info.add("language", Locale.getDefault().toString());
                 info.add("modelName", Build.MODEL);
                 info.add("firmware", Build.VERSION.RELEASE);
+                info.add("sdk", Build.VERSION.RELEASE);
+                info.add("vendor", Build.MANUFACTURER);
                 info.add("runtime", "native");
 
                 try {
