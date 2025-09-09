@@ -363,6 +363,22 @@ public final class MainActivity
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG, "onPause");
+        if (_executionEnvironment != null)
+            _executionEnvironment.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "onResume");
+        if (_executionEnvironment != null)
+            _executionEnvironment.resume();
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         Log.i(TAG, "starting main activity...");

@@ -503,6 +503,19 @@ public final class ExecutionEnvironment extends Service
                 (bold? Typeface.BOLD_ITALIC: Typeface.ITALIC)
         );
     }
+
+    private void updateActiveState(boolean active) {
+        _executor.execute(new SafeRunnable() {
+            @Override
+            public void doRun() {
+                Log.i(TAG, "updateActiveState: " + active);
+                if (_rootElement != null) {
+                    _rootElement.emit(_rootObject, "activeChanged", active);
+                }
+            }
+        });
+    }
+
     private void loadFont(String path) {
         Log.i(TAG, "loadFont " + path);
 
@@ -966,6 +979,14 @@ public final class ExecutionEnvironment extends Service
             _blockInput = false;
             _focusedView = null;
         }
+    }
+
+    public void pause() {
+        updateActiveState(false);
+    }
+
+    public void resume() {
+        updateActiveState(true);
     }
 
     public View getFocusedView() {
