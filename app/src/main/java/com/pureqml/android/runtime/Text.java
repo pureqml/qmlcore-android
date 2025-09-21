@@ -275,7 +275,16 @@ public final class Text extends Element {
                 }
                 //Log.v(TAG, "paint: " + _layout + ", halign: " + _halign + ", valign: "  + _valign + ", rect: " + rect);
                 for (TextLayout.Stripe stripe : _layout.stripes) {
-                    state.drawText(_layout.text, stripe.start, stripe.end, x, y, _paint);
+                    int dx = 0;
+                    switch(_halign) {
+                        case AlignHCenter:
+                            dx += (_layout.width - stripe.width) / 2;
+                            break;
+                        case AlignRight:
+                            dx += _layout.width - stripe.width;
+                            break;
+                    }
+                    state.drawText(_layout.text, stripe.start, stripe.end, x + dx, y, _paint);
                     y += lineHeight;
                 }
             }
