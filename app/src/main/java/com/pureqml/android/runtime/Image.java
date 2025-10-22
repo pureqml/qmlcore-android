@@ -161,18 +161,22 @@ public final class Image extends Element implements ImageLoadedCallback {
         _paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
     }
 
+    private void setCallback(final V8Function callback) {
+        if (_callback != null) {
+            _callback.close();
+        }
+        _callback = callback;
+    }
+
     @Override
     public void discard() {
         super.discard();
         _url = null;
-        if (_callback != null) {
-            _callback.close();
-            _callback = null;
-        }
+        setCallback(null);
     }
 
 
-    public void load(String name, V8Function callback) {
+    public void load(String name, final V8Function callback) {
         if (!name.contains("://"))
             name = "file:///" + name;
 
@@ -199,12 +203,13 @@ public final class Image extends Element implements ImageLoadedCallback {
             Object r = callback.call(null, args); //indicate error
             if (r instanceof Releasable)
                 ((Releasable)r).release();
+            callback.close();
             args.close();
             return;
         }
         // Log.v(TAG, "loading " + _url);
+        setCallback(callback);
         _env.getImageLoader().load(_url, this);
-        _callback = callback;
     }
 
     private static final String regexWS = "\\s+";
@@ -266,7 +271,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     }
 
     @Override
-    public void onImageLoaded(URL url, final Bitmap bitmap) {
+    public void onImageLoaded(final URL url, final Bitmap bitmap) {
         Executor executor = _env.getExecutor();
         if (executor == null) {
             Log.d(TAG, "skipping callback, executor is dead");
@@ -301,6 +306,7 @@ public final class Image extends Element implements ImageLoadedCallback {
                             Log.w(TAG, "callback failed: ", ex);
                         }
                     }
+                    setCallback(null);
                 } finally {
                     update();
                 }
