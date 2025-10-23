@@ -26,9 +26,12 @@ android {
 }
 
 dependencies {
+    repositories {
+        maven { url = "https://jitpack.io" }
+    }
     //implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'io.github.k4k7us23:j2v8:1.0'
+    implementation("com.github.ynab:j2v8:6.2.1-16kb.2")
 
     implementation 'androidx.media3:media3-exoplayer:1.8.0'
     implementation 'androidx.media3:media3-exoplayer-dash:1.8.0'
