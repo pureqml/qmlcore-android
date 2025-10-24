@@ -14,6 +14,7 @@ import com.caverock.androidsvg.SVGParseException;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -116,7 +117,7 @@ public final class ImageLoader {
     {
         protected final URL                 _url;
         private boolean                     _finished;
-        private List<ImageLoadedCallback>   _callbacks;
+        private List<WeakReference<ImageLoadedCallback>> _callbacks;
 
         BaseImageHolder(URL url) {
             _url = url;
@@ -132,7 +133,7 @@ public final class ImageLoader {
             synchronized (this) {
                 finished = _finished;
                 if (!finished) {
-                    _callbacks.add(callback);
+                    _callbacks.add(new WeakReference<>(callback));
                 }
             }
             if (finished)
@@ -160,9 +161,11 @@ public final class ImageLoader {
                 _finished = true;
             }
 
-            for(ImageLoadedCallback callback : _callbacks) {
+            for(WeakReference<ImageLoadedCallback> ref : _callbacks) {
                 try {
-                    callback.onImageLoaded(_url, getNotifyBitmap());
+                    ImageLoadedCallback callback = ref.get();
+                    if (callback != null)
+                        callback.onImageLoaded(_url, getNotifyBitmap());
                 } catch(Exception ex) {
                     Log.e(TAG, "onImageLoaded failed: ", ex);
                 }
