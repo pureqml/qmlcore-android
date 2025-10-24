@@ -30,7 +30,7 @@ public final class ImageLoader {
     private final LruCache<URL, ImageHolder> _cache = new LruCache<URL, ImageHolder>(CacheSize) {
         @Override
         protected int sizeOf(URL key, ImageHolder value) {
-            return key.toString().length() * 4 + value.byteCount();
+            return value.byteCount();
         }
     };
 
@@ -194,7 +194,7 @@ public final class ImageLoader {
 
         @Override
         public synchronized int byteCount() {
-            return _url.toString().length() + (_image != null? _image.getByteCount(): 0);
+            return _url.toString().length() * 4 + (_image != null? _image.getByteCount(): 0);
         }
     }
 
