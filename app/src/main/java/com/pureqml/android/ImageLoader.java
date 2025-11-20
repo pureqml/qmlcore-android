@@ -117,7 +117,13 @@ public final class ImageLoader {
     }
 
     public void subscribe(URI url, ImageLoadedCallback callback) {
-        createCallbackHolder(url).subscribe(callback);
+        CallbackHolder callbacks = createCallbackHolder(url);
+        callbacks.subscribe(callback);
+        ImageHolder holder = getHolder(url);
+        Bitmap bitmap = holder.getBitmap();
+        if (bitmap != null) {
+            callbacks.onImageLoaded(url, bitmap);
+        }
     }
     public void unsubscribe(URI url, ImageLoadedCallback callback) {
         CallbackHolder holder = getCallbackHolder(url);
