@@ -2,8 +2,8 @@ package com.pureqml.android;
 
 import android.graphics.Bitmap;
 
-import java.net.URL;
+import java.net.URI;
 
 public interface ImageLoadedCallback {
-    void onImageLoaded(URL url, Bitmap bitmap);
+    void onImageLoaded(URI url, Bitmap bitmap);
 }

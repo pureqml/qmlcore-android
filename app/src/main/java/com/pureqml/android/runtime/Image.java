@@ -14,16 +14,17 @@ import com.eclipsesource.v8.V8Function;
 import com.eclipsesource.v8.V8Object;
 import com.pureqml.android.IExecutionEnvironment;
 import com.pureqml.android.ImageLoadedCallback;
+import com.pureqml.android.ImageLoader;
 import com.pureqml.android.SafeRunnable;
 import com.pureqml.android.TypeConverter;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.Executor;
 
 public final class Image extends Element implements ImageLoadedCallback {
     private final static String TAG = "rt.Image";
-    URL                         _url;
+    URI                         _url;
     V8Function                  _callback;
     final Paint                 _paint;
 
@@ -171,10 +172,12 @@ public final class Image extends Element implements ImageLoadedCallback {
     @Override
     public void discard() {
         super.discard();
-        _url = null;
+        if (_url != null) {
+            _env.getImageLoader().unsubscribe(_url, this);
+            _url = null;
+        }
         setCallback(null);
     }
-
 
     public void load(String name, final V8Function callback) {
         if (!name.contains("://"))
@@ -190,11 +193,14 @@ public final class Image extends Element implements ImageLoadedCallback {
                 Log.v(TAG, "rewritten url: " + name);
             }
         }
-
-        _url = null;
+        ImageLoader loader = _env.getImageLoader();
+        if (_url != null) {
+            loader.unsubscribe(_url, this);
+            _url = null;
+        }
         try {
-            _url = new URL(name);
-        } catch (MalformedURLException e) {
+            _url = new URI(name);
+        } catch (URISyntaxException e) {
             Log.e(TAG, "invalid url", e);
             V8 v8 = _env.getRuntime();
 
@@ -209,7 +215,7 @@ public final class Image extends Element implements ImageLoadedCallback {
         }
         // Log.v(TAG, "loading " + _url);
         setCallback(callback);
-        _env.getImageLoader().load(_url, this);
+        loader.subscribe(_url, this);
     }
 
     private static final String regexWS = "\\s+";
@@ -271,7 +277,7 @@ public final class Image extends Element implements ImageLoadedCallback {
     }
 
     @Override
-    public void onImageLoaded(final URL url, final Bitmap bitmap) {
+    public void onImageLoaded(final URI url, final Bitmap bitmap) {
         Executor executor = _env.getExecutor();
         if (executor == null) {
             Log.d(TAG, "skipping callback, executor is dead");
@@ -281,10 +287,17 @@ public final class Image extends Element implements ImageLoadedCallback {
             @Override
             public void doRun() {
                 Log.v(TAG, "on image loaded " + url + ", current url: " + _url);
-                if (_url == null || !url.toString().equals(_url.toString()) || _callback == null || _callback.isReleased())
+                if (_url == null || !_url.equals(url)) {
                     return;
+                }
 
                 Log.v(TAG, "image bitmap: " + _url + " -> " + bitmap);
+
+                if (_callback == null || _callback.isReleased()) {
+                    update();
+                    return;
+                }
+
                 try (V8Array args = new V8Array(_env.getRuntime())) {
                     if (bitmap != null) {
                         V8Object metrics = new V8Object(_env.getRuntime());
@@ -323,7 +336,7 @@ public final class Image extends Element implements ImageLoadedCallback {
             Bitmap bitmap = null;
 
             try {
-                bitmap = _env.getImageLoader().getBitmap(_url, dst.width(), dst.height());
+                bitmap = _env.getImageLoader().getBitmap(_url);
             } catch(Exception ex) {
                 Log.w(TAG, "image loading failed", ex);
             }
