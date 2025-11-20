@@ -163,8 +163,11 @@ public final class ImageLoader {
                     rawStream = _env.getAssets().open(path.substring(pos)); //strip leading slash
                 } else
                     rawStream = _url.toURL().openStream();
-
-                _holder.load(rawStream);
+                try {
+                    _holder.load(rawStream);
+                } finally {
+                    rawStream.close();
+                }
             } catch(Exception ex) {
                 Log.e(TAG, "image loading failed", ex);
             } finally {
