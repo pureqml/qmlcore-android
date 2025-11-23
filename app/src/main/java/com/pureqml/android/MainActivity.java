@@ -111,6 +111,12 @@ public final class MainActivity
                     }
 
                     @Override
+                    public String getIntentParam(String paramName) {
+                        Log.i(TAG, "get getIntentParam " + paramName);
+                        return getIntent().getStringExtra(paramName);
+                    }
+
+                    @Override
                     public void keepScreenOn(final boolean enable) {
                         Log.i(TAG, "keepScreenOn " + enable);
                         final Window window = MainActivity.this.getWindow();

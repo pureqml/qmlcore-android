@@ -292,6 +292,17 @@ public final class ExecutionEnvironment extends Service
             }
         }, "setDeviceFeature");
 
+        v8FD.registerJavaMethod(new JavaCallback() {
+            @Override
+            public Object invoke(V8Object v8Object, V8Array v8Array) {
+                if (v8Array.length() < 1) {
+                    throw new RuntimeException("getIntentParams feature requires one argument");
+                }
+                String paramName = v8Array.get(0).toString();
+                return _renderer.getIntentParam(paramName);
+            }
+        }, "getIntentParam");
+
         v8FD.registerJavaMethod((v8Object, v8Array) -> {
             HttpRequest.request(ExecutionEnvironment.this, v8Array);
         }, "httpRequest");
