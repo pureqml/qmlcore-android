@@ -244,6 +244,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     private boolean                     playerVisible = true;
     private boolean                     autoplay = false;
     private boolean                     paused = false;
+    private boolean                     stopped = false;
     private Runnable                    pollingTask = null;
 
     private Tracks                      tracks = null;
@@ -601,12 +602,13 @@ public final class VideoPlayer extends BaseObject implements IResource {
 
     public void stop() {
         Log.i(TAG, "Player.stop");
-        source = null;
         handler.post(new SafeRunnable() {
             @Override
             public void doRun() {
-                if (player != null)
+                if (player != null) {
                     player.stop();
+                    stopped = true;
+                }
             }
         });
     }
@@ -622,6 +624,8 @@ public final class VideoPlayer extends BaseObject implements IResource {
             stop();
             return;
         }
+
+        stopped = false;
 
         DataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(_env.getContext());
 
@@ -668,15 +672,17 @@ public final class VideoPlayer extends BaseObject implements IResource {
         handler.post(new SafeRunnable() {
             @Override
             public void doRun() {
-                if (paused)
-                {
+                if (paused) {
                     paused = false;
                     VideoPlayer.this.emit("pause", false);
                     if (player != null)
                         player.setPlayWhenReady(true);
-                }
-                else
+                } else if (stopped) {
+                    stopped = false;
+                    setSource(source);
+                } else {
                     Log.i(TAG, "ignoring play on non-paused stream");
+                }
             }
         });
     }
