@@ -108,6 +108,7 @@ public final class TextLayout {
             b.append(" ");
         }
         b.append("]");
+        b.append(" }");
 
         return b.toString();
     }

@@ -213,12 +213,13 @@ public final class Text extends Element {
     }
 
     private void layout() {
-        updateFontSize();
         if (_text == null || _layout != null)
             return;
 
         if (_wrap == Wrap.Wrap)
             layoutText();
+        else
+            updateFontSize();
 
         if (_layout == null && _cachedWidth < 0) {
             _cachedWidth = (int)_paint.measureText(_text);
@@ -352,6 +353,7 @@ public final class Text extends Element {
     }
 
     private void layoutText() {
+        updateFontSize();
         if (_text == null)
             return;
 
