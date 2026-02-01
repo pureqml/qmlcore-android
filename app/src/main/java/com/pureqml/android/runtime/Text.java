@@ -48,7 +48,9 @@ public final class Text extends Element {
     String              _fontFamily = null;
     int                 _fontWeight = 0;
     boolean             _fontItalic = false;
-    final float               _lineHeight = ComputedStyle.DefaultLineHeight;
+    String              _fontSize = null;
+    boolean             _needFontSizeUpdate = false;
+    final float         _lineHeight = ComputedStyle.DefaultLineHeight;
 
     public Text(IExecutionEnvironment env) {
         super(env);
@@ -72,7 +74,38 @@ public final class Text extends Element {
         int fontWeight = _fontWeight > 0? _fontWeight: _style != null? _style.fontWeight: ComputedStyle.NormalWeight;
         Typeface tf = _env.getTypeface(fontFamily, fontWeight, _fontItalic);
         _paint.setTypeface(tf);
+
+        // we've just created new Paint instance, set font size
+        if (_fontSize != null)
+            _needFontSizeUpdate = true;
+        updateFontSize();
+
+        resetLayout();
         update();
+    }
+
+    void setFontSize(String fontSize) {
+        _fontSize = fontSize;
+        _needFontSizeUpdate = true;
+        resetLayout();
+        update();
+    }
+
+    // font size may depend on display metrics
+    private void updateFontSize() {
+        if (_fontSize != null && _needFontSizeUpdate) {
+            IRenderer renderer = _env.getRenderer();
+            if (renderer != null) {
+                _needFontSizeUpdate = false;
+                int size = TypeConverter.toFontSize(_fontSize, renderer.getDisplayMetrics());
+                _paint.setTextSize(size);
+                resetLayout();
+                update();
+            } else {
+                Log.v(TAG, "no renderer, font-size update deferred");
+                _needFontSizeUpdate = true;
+            }
+        }
     }
 
     @Override
@@ -96,15 +129,7 @@ public final class Text extends Element {
                 updateTypeface();
                 break;
             case "font-size":
-                try {
-                    IRenderer renderer = _env.getRenderer();
-                    if (renderer != null)
-                        _paint.setTextSize(TypeConverter.toFontSize((String)value, renderer.getDisplayMetrics()));
-                    else
-                        Log.w(TAG, "no renderer, font-size ignored");
-                } catch (Exception e) {
-                    Log.w(TAG, "set font-size failed", e);
-                }
+                setFontSize((String)value);
                 break;
             case "font-weight":
                 _fontWeight = ComputedStyle.parseFontWeight(value);
@@ -188,6 +213,7 @@ public final class Text extends Element {
     }
 
     private void layout() {
+        updateFontSize();
         if (_text == null || _layout != null)
             return;
 
@@ -319,6 +345,7 @@ public final class Text extends Element {
         }
     }
 
+    // no update here because it's only called from setStyle, add it if you use it somewhere else
     private void setWrap(Wrap wrap) {
         _wrap = wrap;
         resetLayout();
