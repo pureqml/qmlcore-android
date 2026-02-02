@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -23,6 +24,7 @@ public interface IExecutionEnvironment {
     ViewGroup getRootView();
     void setRenderer(IRenderer renderer);
     IRenderer getRenderer();
+    DisplayMetrics getDisplayMetrics();
     Rect getSurfaceGeometry();
 
     V8 getRuntime();

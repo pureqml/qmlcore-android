@@ -22,6 +22,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -133,6 +134,7 @@ public final class ExecutionEnvironment extends Service
     private final ExecutorService       _threadPool;
     private final ImageLoader           _imageLoader;
     private IRenderer                   _renderer;
+    private DisplayMetrics              _displayMetrics;
     private ViewGroup                   _rootView;
     private boolean                     _paintScheduled;
     private int                         _eventId;
@@ -190,6 +192,8 @@ public final class ExecutionEnvironment extends Service
         boolean keepScreenOn;
         synchronized (this) {
             _renderer = renderer;
+            if (renderer != null)
+                _displayMetrics = renderer.getDisplayMetrics();
             orientation = _orientation;
             keepScreenOn = _keepScreenOn;
         }
@@ -205,6 +209,12 @@ public final class ExecutionEnvironment extends Service
     public IRenderer getRenderer() {
         synchronized (this) {
             return _renderer;
+        }
+    }
+    @Override
+    public DisplayMetrics getDisplayMetrics() {
+        synchronized (this) {
+            return _displayMetrics;
         }
     }
 
@@ -338,7 +348,7 @@ public final class ExecutionEnvironment extends Service
 
             Object fontSizeRule = rules.get("font-size");
             if (!TypeConverter.isUndefined(fontSizeRule))
-                fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _renderer.getDisplayMetrics());
+                fontSize = TypeConverter.toFontSize(fontSizeRule.toString(), _displayMetrics);
 
             Object lineHeightRule = rules.get("line-height");
             if (!TypeConverter.isUndefined(lineHeightRule)) {

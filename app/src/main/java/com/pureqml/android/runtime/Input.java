@@ -278,16 +278,13 @@ public final class Input extends Element {
             }
             case "font-size": {
                 try {
-                    IRenderer renderer = _env.getRenderer();
-                    if (renderer != null) {
-                        final int fontSize = TypeConverter.toFontSize(value.toString(), renderer.getDisplayMetrics());
-                        _env.getRootView().post(new SafeRunnable() {
-                            @Override
-                            public void doRun() {
-                                view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
-                            }
-                        });
-                    }
+                    final int fontSize = TypeConverter.toFontSize(value.toString(), _env.getDisplayMetrics());
+                    _env.getRootView().post(new SafeRunnable() {
+                        @Override
+                        public void doRun() {
+                            view.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
+                        }
+                    });
                 } catch (Exception ex) {
                     Log.e(TAG, "invalid font-size: ", ex);
                 }

@@ -49,7 +49,6 @@ public final class Text extends Element {
     int                 _fontWeight = 0;
     boolean             _fontItalic = false;
     String              _fontSize = null;
-    boolean             _needFontSizeUpdate = false;
     final float         _lineHeight = ComputedStyle.DefaultLineHeight;
 
     public Text(IExecutionEnvironment env) {
@@ -67,6 +66,17 @@ public final class Text extends Element {
         updateTypeface();
     }
 
+    // note - this won't reset your size back
+    private void updateFontSize() {
+        if (_fontSize != null) {
+            try {
+                _paint.setTextSize(TypeConverter.toFontSize(_fontSize, _env.getDisplayMetrics()));
+            } catch(RuntimeException ex) {
+                Log.w(TAG, "TypeConverter.toFontSize failed", ex);
+            }
+        }
+    }
+
     private void updateTypeface() {
         if (_paint == null)
             _paint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
@@ -74,38 +84,9 @@ public final class Text extends Element {
         int fontWeight = _fontWeight > 0? _fontWeight: _style != null? _style.fontWeight: ComputedStyle.NormalWeight;
         Typeface tf = _env.getTypeface(fontFamily, fontWeight, _fontItalic);
         _paint.setTypeface(tf);
-
-        // we've just created new Paint instance, set font size
-        if (_fontSize != null)
-            _needFontSizeUpdate = true;
         updateFontSize();
-
         resetLayout();
         update();
-    }
-
-    void setFontSize(String fontSize) {
-        _fontSize = fontSize;
-        _needFontSizeUpdate = true;
-        resetLayout();
-        update();
-    }
-
-    // font size may depend on display metrics
-    private void updateFontSize() {
-        if (_fontSize != null && _needFontSizeUpdate) {
-            IRenderer renderer = _env.getRenderer();
-            if (renderer != null) {
-                _needFontSizeUpdate = false;
-                int size = TypeConverter.toFontSize(_fontSize, renderer.getDisplayMetrics());
-                _paint.setTextSize(size);
-                resetLayout();
-                update();
-            } else {
-                Log.v(TAG, "no renderer, font-size update deferred");
-                _needFontSizeUpdate = true;
-            }
-        }
     }
 
     @Override
@@ -129,7 +110,8 @@ public final class Text extends Element {
                 updateTypeface();
                 break;
             case "font-size":
-                setFontSize((String)value);
+                _fontSize = (String)value;
+                updateFontSize();
                 break;
             case "font-weight":
                 _fontWeight = ComputedStyle.parseFontWeight(value);
@@ -218,8 +200,6 @@ public final class Text extends Element {
 
         if (_wrap == Wrap.Wrap)
             layoutText();
-        else
-            updateFontSize();
 
         if (_layout == null && _cachedWidth < 0) {
             _cachedWidth = (int)_paint.measureText(_text);
@@ -353,7 +333,6 @@ public final class Text extends Element {
     }
 
     private void layoutText() {
-        updateFontSize();
         if (_text == null)
             return;
 
