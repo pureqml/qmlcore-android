@@ -37,9 +37,10 @@ import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.Renderer;
 import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector;
+import androidx.media3.exoplayer.Renderer;
 import androidx.media3.exoplayer.source.BaseMediaSource;
 import androidx.media3.exoplayer.source.BehindLiveWindowException;
 import androidx.media3.exoplayer.source.LoadEventInfo;
@@ -52,6 +53,7 @@ import androidx.media3.exoplayer.text.TextOutput;
 import androidx.media3.exoplayer.text.TextRenderer;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
+import androidx.media3.exoplayer.video.VideoRendererEventListener;
 
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
@@ -98,7 +100,10 @@ public final class VideoPlayer extends BaseObject implements IResource {
             handler.post(new SafeRunnable() {
                 @Override
                 protected void doRun() {
-                    callback.surfaceChanged(holder, format, width, height);
+                    Log.d(TAG, "Surface changed: " + width + "x" + height + ", format: " + format);
+                    if (format != android.graphics.PixelFormat.RGBA_8888) {
+                        holder.setFormat(android.graphics.PixelFormat.RGBA_8888);
+                    }
                 }
             });
         }
@@ -215,6 +220,7 @@ public final class VideoPlayer extends BaseObject implements IResource {
     @UnstableApi
     private static class CustomRenderersFactory extends DefaultRenderersFactory {
         private final TextOutput customTextOutput;
+        private static final boolean ENABLE_SURFACE_COLOR_SPACE = true;
 
         public CustomRenderersFactory(Context context, TextOutput textOutput) {
             super(context);
@@ -222,7 +228,33 @@ public final class VideoPlayer extends BaseObject implements IResource {
         }
 
         @Override
-        protected void buildTextRenderers(@NonNull Context context, @NonNull TextOutput output, @NonNull Looper outputLooper, int extensionRendererMode, ArrayList<Renderer> out) {
+        protected void buildVideoRenderers(
+            Context context,
+            @DefaultRenderersFactory.ExtensionRendererMode int extensionRendererMode,
+            MediaCodecSelector mediaCodecSelector,
+            boolean enableDecoderFallback,
+            Handler eventHandler,
+            VideoRendererEventListener eventListener,
+            long allowedVideoJoiningTimeMs,
+            ArrayList<Renderer> out) {
+                super.buildVideoRenderers(
+                    context,
+                    extensionRendererMode,
+                    mediaCodecSelector,
+                    enableDecoderFallback,
+                    eventHandler,
+                    eventListener,
+                    allowedVideoJoiningTimeMs,
+                    out
+                );
+
+                Log.d(TAG, "Video renderers count: " + out.size());
+        }
+
+        @Override
+        protected void buildTextRenderers(@NonNull Context context, @NonNull TextOutput output,
+                                          @NonNull Looper outputLooper, int extensionRendererMode,
+                                          ArrayList<Renderer> out) {
             out.add(new TextRenderer(customTextOutput, outputLooper));
         }
     }
@@ -479,10 +511,16 @@ public final class VideoPlayer extends BaseObject implements IResource {
                 .setLooper(handler.getLooper())
                 .build();
 
+
+        SurfaceHolder holder = surfaceView.getHolder();
+        holder.setFormat(android.graphics.PixelFormat.RGBA_8888);
+
+        surfaceView.setSecure(false);
+
         player.setVideoSurfaceHolder(
                 new DeferredSurfaceHolder(
                         new Handler(handler.getLooper()),
-                        surfaceView.getHolder()));
+                        holder));
 
         player.addListener(new Player.Listener() {
             @Override
